@@ -8,6 +8,9 @@ File: uart.c
 #include <pthread.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "Log.h"
+
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -111,13 +114,13 @@ static void UartConfigureSettings(UART * pUart, const char * pDevice, const UART
                                      O_RDWR |       // read and write
                                          O_NOCTTY | // not a controller terminal
                                          O_SYNC);   // write calls are blocking TODO: consider changing this? O_DIRECT????
-#ifdef DEBUGGING
+// #ifdef DEBUGGING
     if (pUart->uartFileDescriptor < 0)
     {
-        puts("\nopen linux and enter \"sudo chmod 666 /dev/ttyS?\" in the command line");
+        log_warn("\nopen linux and enter \"sudo chmod 666 %s\" in the command line", pDevice);
         return;
     }
-#endif
+// #endif
     ASSERT_PARAM(pUart->uartFileDescriptor >= 0); // open linux and enter "sudo chmod 666 /dev/ttyS9" in the command line.
 
     struct termios tIoSetup;

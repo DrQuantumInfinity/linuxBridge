@@ -62,6 +62,8 @@ using namespace chip::Transport;
 using namespace chip::DeviceLayer;
 using namespace chip::app::Clusters;
 
+// void UartTest(void);
+
 namespace {
 
 const int kNodeLabelSize = 32;
@@ -790,6 +792,8 @@ void * bridge_polling_thread(void * context)
     mosquitto_publish(inst, mid2, "test", strlen(message), message, 0, false);
 
 
+    // UartTest();
+
 
     // bool light1_added = true;
     // bool light2_added = false;
@@ -1033,7 +1037,7 @@ void ApplicationShutdown() {}
 void UartRxCallback(UART_HANDLE uartHandle, void* pData, uint32_t dataLen)
 {
     char* pMsg = (char*)pData;
-    log_warn("%s", pMsg);
+    log_warn("uart got ---- %s", pMsg);
 }
 
 void TimerSleepMs(uint32_t numMs)
@@ -1054,8 +1058,9 @@ void UartTest(void)
         .stopBits = UART_STOP_BITS_1,
         .parity = UART_PARITY_NONE,
         .hardwareFlowCtrl = UART_HFC_DISABLED,
+        .rxCallback = UartRxCallback,
     };
-    UART_HANDLE uartHandle = UartRegister("/dev/tyyS0", &uartParams);
+    UART_HANDLE uartHandle = UartRegister("/dev/ttyUSB0", &uartParams);
 
     //Wait for thread to start before transmitting to the loopback
     TimerSleepMs(100);
@@ -1071,7 +1076,6 @@ int main(int argc, char * argv[])
         return -1;
     }
 
-    //UartTest();
 
     ChipLinuxAppMainLoop();
     return 0;
