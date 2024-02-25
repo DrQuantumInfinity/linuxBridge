@@ -52,6 +52,7 @@
 
 #include "Log.h"
 #include <mosquitto.h>
+#include "uart.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -787,16 +788,7 @@ void * bridge_polling_thread(void * context)
     mosquitto_subscribe(inst, mid, "test", 0);
     const char* message = "message";
     mosquitto_publish(inst, mid2, "test", strlen(message), message, 0, false);
-    
-sudo stty -F /dev/ttyS0 115200 raw -echo
 
-  sudo  exec 3</dev/ttyS0                     #REDIRECT SERIAL OUTPUT TO FD 3
-sudo cat <&3 > /tmp/ttyDump.dat &          #REDIRECT SERIAL OUTPUT TO FILE
-sudo PID=$!                                #SAVE PID TO KILL CAT
-sudo   echo "R" > /dev/ttyS0             #SEND COMMAND STRING TO SERIAL PORT
-sudo   sleep 0.2s                          #WAIT FOR RESPONSE
-sudo kill $PID                             #KILL CAT PROCESS
-sudo wait $PID 2>/dev/null                 #SUPRESS "Terminated" output
 
 
     // bool light1_added = true;
@@ -1038,12 +1030,49 @@ void ApplicationInit()
 
 void ApplicationShutdown() {}
 
+void UartRxCallback(UART_HANDLE uartHandle, void* pData, uint32_t dataLen)
+{
+    char* pMsg = (char*)pData;
+    log_warn("%s", pMsg);
+}
+
+void TimerSleepMs(uint32_t numMs)
+{
+   struct timespec spec;
+   spec.tv_sec = (long)numMs/1000;
+   numMs -= (uint32_t)spec.tv_sec*1000;
+   spec.tv_nsec = (long)numMs*1000000;
+   nanosleep(&spec, NULL);
+}
+
+void UartTest(void)
+{
+    UartInit();
+    UART_PARAMS uartParams = {
+        .baud = UART_BAUD_115200,
+        .mode = UART_MODE_RX_TX,
+        .stopBits = UART_STOP_BITS_1,
+        .parity = UART_PARITY_NONE,
+        .hardwareFlowCtrl = UART_HFC_DISABLED,
+    };
+    UART_HANDLE uartHandle = UartRegister("/dev/tyyS0", &uartParams);
+
+    //Wait for thread to start before transmitting to the loopback
+    TimerSleepMs(100);
+
+    #define UART_MSG "Hello World\n"
+    UartWriteBlocking(uartHandle, UART_MSG, strlen(UART_MSG));
+}
+
 int main(int argc, char * argv[])
 {
     if (ChipLinuxAppInit(argc, argv) != 0)
     {
         return -1;
     }
+
+    //UartTest();
+
     ChipLinuxAppMainLoop();
     return 0;
 }
