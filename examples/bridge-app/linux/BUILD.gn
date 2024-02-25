@@ -52,7 +52,7 @@ executable("chip-bridge-app") {
     "include/main.h",
     "main.cpp",
     "utils/Log.cpp",
-    "utils/usart.c",
+    "utils/uart.c",
   ]
 
   deps = [
