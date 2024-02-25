@@ -20,12 +20,38 @@ assert(chip_build_tools)
 
 executable("chip-bridge-app") {
   sources = [
+    # "clusters/BasicCluster.cpp",
+    # "clusters/Cluster.cpp",
+    # "clusters/ColourCluster.cpp",
+    # "clusters/DescriptorCluster.cpp",
+    # "clusters/HumidityCluster.cpp",
+    # "clusters/LevelControlCluster.cpp",
+    # "clusters/ModeCluster.cpp",
+    # "clusters/OnOffCluster.cpp",
+    # "clusters/TempCluster.cpp",
+    # "devices/Device.cpp",
+    # "devices/DeviceButton.cpp",
+    # "devices/DeviceLight.cpp",
+    # "devices/DeviceLightLevel.cpp",
+    # "devices/DeviceLightRGB.cpp",
+    # "devices/DeviceLightTemp.cpp",
+    # "devices/DeviceTemperature.cpp",
+    # "drivers/usart.c",
+    # "tasks/MatterTask.cpp",
+    # "tasks/SerialTask.cpp",
+    # "utils/Crc16.cpp",
+    # "utils/DynamicList.cpp",
+    # "utils/EndpointApi.cpp",
+    # "utils/EspNowData.cpp",
+    # "utils/TaskMessage.cpp",
+    # "utils/TimerTick.cpp",
     "${chip_root}/examples/bridge-app/linux/bridged-actions-stub.cpp",
     "${chip_root}/examples/tv-app/tv-common/include/CHIPProjectAppConfig.h",
     "Device.cpp",
     "include/Device.h",
     "include/main.h",
     "main.cpp",
+    "utils/Log.cpp",
   ]
 
   deps = [
@@ -34,9 +60,24 @@ executable("chip-bridge-app") {
     "${chip_root}/src/lib",
   ]
 
-  cflags = [ "-Wconversion" ]
+  cflags = [
+    "-Wconversion",
+    "-Wno-unused-const-variable",
+    "-Wno-error",
+  ]
 
-  include_dirs = [ "include" ]
+  # include_dirs = [
+  #   "clusters",
+  #   "devices",
+  #   "drivers",
+  #   "tasks",
+  #   "utils",
+  # ]
+
+  include_dirs = [
+    "include",
+    "utils",
+  ]
 
   output_dir = root_out_dir
 }
