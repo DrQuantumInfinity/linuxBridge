@@ -51,6 +51,7 @@
 #include <vector>
 
 #include "Log.h"
+#include "uart.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -1010,12 +1011,49 @@ void ApplicationInit()
 
 void ApplicationShutdown() {}
 
+void UartRxCallback(UART_HANDLE uartHandle, void* pData, uint32_t dataLen)
+{
+    char* pMsg = (char*)pData;
+    log_warn("%s", pMsg);
+}
+
+void TimerSleepMs(uint32_t numMs)
+{
+   struct timespec spec;
+   spec.tv_sec = (long)numMs/1000;
+   numMs -= (uint32_t)spec.tv_sec*1000;
+   spec.tv_nsec = (long)numMs*1000000;
+   nanosleep(&spec, NULL);
+}
+
+void UartTest(void)
+{
+    UartInit();
+    UART_PARAMS uartParams = {
+        .baud = UART_BAUD_115200,
+        .mode = UART_MODE_RX_TX,
+        .stopBits = UART_STOP_BITS_1,
+        .parity = UART_PARITY_NONE,
+        .hardwareFlowCtrl = UART_HFC_DISABLED,
+    };
+    UART_HANDLE uartHandle = UartRegister("/dev/tyyS0", &uartParams);
+
+    //Wait for thread to start before transmitting to the loopback
+    TimerSleepMs(100);
+
+    #define UART_MSG "Hello World\n"
+    UartWriteBlocking(uartHandle, UART_MSG, strlen(UART_MSG));
+}
+
 int main(int argc, char * argv[])
 {
     if (ChipLinuxAppInit(argc, argv) != 0)
     {
         return -1;
     }
+
+    //UartTest();
+
     ChipLinuxAppMainLoop();
     return 0;
 }

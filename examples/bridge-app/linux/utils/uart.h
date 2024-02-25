@@ -58,6 +58,9 @@ typedef enum
     UART_MODE_RX_TX
 } UART_MODE;
 
+typedef uint32_t UART_HANDLE;
+typedef void (*UART_RX_PFN)(UART_HANDLE /*uartHandle*/, void* /*pData*/, uint32_t /*dataLen*/);
+
 typedef struct
 {
     UART_BAUD baud;
@@ -65,9 +68,9 @@ typedef struct
     UART_STOP_BITS stopBits;
     UART_PARITY parity;
     UART_HARDWARE_FLOW_CONTROL hardwareFlowCtrl;
+    UART_RX_PFN rxCallback;
 } UART_PARAMS;
 
-typedef uint32_t UART_HANDLE;
 
 typedef struct
 {
@@ -77,6 +80,7 @@ typedef struct
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
+void UartInit(void);
 UART_HANDLE UartRegister(char const * pDevice, UART_PARAMS const * pParams);
 void UartUnregister(UART_HANDLE uartHandle);
 void UartWriteBlocking(UART_HANDLE uartHandle, void const * pSrc, uint32_t length);

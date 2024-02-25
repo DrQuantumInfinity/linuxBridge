@@ -49,20 +49,20 @@ static UART uart[SERIAL_NUM_DEVICES];
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
-static void uartConfigureSettings(UART * puart, const char * pDevice, const UART_PARAMS * pParams);
+static void UartConfigureSettings(UART * puart, const char * pDevice, const UART_PARAMS * pParams);
 // callbacks
-static void uartStartReceiveThread(UART * puart);
-static void uartReceiveHandler(UART * puart);
-static UART * uartValidateHandle(UART_HANDLE uartHandle);
+static void UartStartReceiveThread(UART * puart);
+static void UartReceiveHandler(UART * puart);
+static UART * UartValidateHandle(UART_HANDLE uartHandle);
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
 // Init
-void uartInit(void)
+void UartInit(void)
 {
     memset(uart, 0x00, sizeof(uart));
 }
-UART_HANDLE uartRegister(const char * pDevice, const UART_PARAMS * pParams)
+UART_HANDLE UartRegister(const char * pDevice, const UART_PARAMS * pParams)
 {
     uint32_t uartIndex;
     for (uartIndex = 0; uartIndex < NELEMENTS(uart); uartIndex++)
@@ -78,31 +78,31 @@ UART_HANDLE uartRegister(const char * pDevice, const UART_PARAMS * pParams)
     if (uartIndex < NELEMENTS(uart))
     {
         puart = &uart[uartIndex];
-        uartConfigureSettings(puart, pDevice, pParams);
+        UartConfigureSettings(puart, pDevice, pParams);
         if (puart->uartFileDescriptor >= 0 && (pParams->mode == UART_MODE_RX || pParams->mode == UART_MODE_RX_TX))
         {
-            uartStartReceiveThread(puart);
+            UartStartReceiveThread(puart);
         }
     }
     return puart ? puart->uartHandle : 0;
 }
-void uartUnregister(UART_HANDLE uartHandle)
+void UartUnregister(UART_HANDLE uartHandle)
 {
-    UART * puart = uartValidateHandle(uartHandle);
+    UART * puart = UartValidateHandle(uartHandle);
     close(puart->uartFileDescriptor);
     memset(puart, 0x00, sizeof(*puart));
 }
-void uartWriteBlocking(UART_HANDLE uartHandle, const void * pSrc, uint32_t length)
+void UartWriteBlocking(UART_HANDLE uartHandle, const void * pSrc, uint32_t length)
 {
     // lint -esym(529, writeResult)
-    UART * puart = uartValidateHandle(uartHandle);
+    UART * puart = UartValidateHandle(uartHandle);
     /*int32_t writeResult = */ write(puart->uartFileDescriptor, pSrc, length);
     // ASSERT_PARAM(writeResult == length);
 }
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-static void uartConfigureSettings(UART * puart, const char * pDevice, const UART_PARAMS * pParams)
+static void UartConfigureSettings(UART * puart, const char * pDevice, const UART_PARAMS * pParams)
 {
     ASSERT_PARAM(pDevice);
     puart->uartFileDescriptor = open(pDevice,
@@ -146,12 +146,12 @@ static void uartConfigureSettings(UART * puart, const char * pDevice, const UART
 
     tcsetattr(puart->uartFileDescriptor, TCSANOW, &tIoSetup);
 }
-static void uartStartReceiveThread(UART * puart)
+static void UartStartReceiveThread(UART * puart)
 {
     pthread_t thread;
-    pthread_create(&thread, NULL, (THREAD_PFN) uartReceiveHandler, puart);
+    pthread_create(&thread, NULL, (THREAD_PFN) UartReceiveHandler, puart);
 }
-static void uartReceiveHandler(UART * puart)
+static void UartReceiveHandler(UART * puart)
 {
     UART_DATA_RX dataReceivedEvent;
     dataReceivedEvent.uartHandle = puart->uartHandle;
@@ -164,7 +164,7 @@ static void uartReceiveHandler(UART * puart)
         //  MsgPostDouble(MID_UART_RX, &dataReceivedEvent, sizeof(dataReceivedEvent), puart->rxBuf, (uint32_t) readLength);
     }
 }
-static UART * uartValidateHandle(UART_HANDLE uartHandle)
+static UART * UartValidateHandle(UART_HANDLE uartHandle)
 {
     uartHandle--;
     ASSERT_PARAM(uartHandle < NELEMENTS(uart));
