@@ -77,7 +77,11 @@ executable("chip-bridge-app") {
   include_dirs = [
     "include",
     "utils",
+    "mqtt/include",
   ]
+
+  lib_dirs = [ "./mqtt/lib/aarch64-linux-gnu" ]
+  libs = [ "mosquitto" ]
 
   output_dir = root_out_dir
 }

@@ -51,6 +51,7 @@
 #include <vector>
 
 #include "Log.h"
+#include <mosquitto.h>
 
 using namespace chip;
 using namespace chip::app;
@@ -769,8 +770,35 @@ const int16_t oneDegree = 100;
 
 void * bridge_polling_thread(void * context)
 {
-    log_set_level(3);
+    log_set_level(1);
     log_info("test, %d", 5);
+    log_info("test, %d", 5);
+    log_info("test, %d", 5);
+    log_info("test, %d", 5);
+    log_info("test, %d", 5);
+    log_info("test, %d", 5);
+    log_info("test, %d", 5);
+
+    void* test;
+    mosquitto* inst = mosquitto_new("testID", true, test);
+    mosquitto_connect(inst, "192.168.0.128", 1883, 60);
+    int* mid;
+    int* mid2;
+    mosquitto_subscribe(inst, mid, "test", 0);
+    const char* message = "message";
+    mosquitto_publish(inst, mid2, "test", strlen(message), message, 0, false);
+    
+sudo stty -F /dev/ttyS0 115200 raw -echo
+
+  sudo  exec 3</dev/ttyS0                     #REDIRECT SERIAL OUTPUT TO FD 3
+sudo cat <&3 > /tmp/ttyDump.dat &          #REDIRECT SERIAL OUTPUT TO FILE
+sudo PID=$!                                #SAVE PID TO KILL CAT
+sudo   echo "R" > /dev/ttyS0             #SEND COMMAND STRING TO SERIAL PORT
+sudo   sleep 0.2s                          #WAIT FOR RESPONSE
+sudo kill $PID                             #KILL CAT PROCESS
+sudo wait $PID 2>/dev/null                 #SUPRESS "Terminated" output
+
+
     // bool light1_added = true;
     // bool light2_added = false;
     // while (true)
