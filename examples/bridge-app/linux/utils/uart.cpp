@@ -41,6 +41,7 @@ typedef struct
     UART_HANDLE uartHandle;
     int32_t uartFileDescriptor;
     uint8_t rxBuf[SERIAL_RECEIVE_BUF_SIZE];
+    UART_RX_PFN rxCallback;
 } UART;
 /**************************************************************************
  *                                  Variables
@@ -49,10 +50,10 @@ static UART uart[SERIAL_NUM_DEVICES];
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
-static void UartConfigureSettings(UART * puart, const char * pDevice, const UART_PARAMS * pParams);
+static void UartConfigureSettings(UART * pUart, const char * pDevice, const UART_PARAMS * pParams);
 // callbacks
-static void UartStartReceiveThread(UART * puart);
-static void UartReceiveHandler(UART * puart);
+static void UartStartReceiveThread(UART * pUart);
+static void UartReceiveHandler(UART * pUart);
 static UART * UartValidateHandle(UART_HANDLE uartHandle);
 /**************************************************************************
  *                                  Global Functions
@@ -73,50 +74,51 @@ UART_HANDLE UartRegister(const char * pDevice, const UART_PARAMS * pParams)
             break;
         }
     }
-    UART * puart = NULL;
+    UART * pUart = NULL;
     ASSERT_PARAM(uartIndex < NELEMENTS(uart));
     if (uartIndex < NELEMENTS(uart))
     {
-        puart = &uart[uartIndex];
-        UartConfigureSettings(puart, pDevice, pParams);
-        if (puart->uartFileDescriptor >= 0 && (pParams->mode == UART_MODE_RX || pParams->mode == UART_MODE_RX_TX))
+        pUart = &uart[uartIndex];
+        pUart->rxCallback = pParams->rxCallback;
+        UartConfigureSettings(pUart, pDevice, pParams);
+        if (pUart->uartFileDescriptor >= 0 && (pParams->mode == UART_MODE_RX || pParams->mode == UART_MODE_RX_TX))
         {
-            UartStartReceiveThread(puart);
+            UartStartReceiveThread(pUart);
         }
     }
-    return puart ? puart->uartHandle : 0;
+    return pUart ? pUart->uartHandle : 0;
 }
 void UartUnregister(UART_HANDLE uartHandle)
 {
-    UART * puart = UartValidateHandle(uartHandle);
-    close(puart->uartFileDescriptor);
-    memset(puart, 0x00, sizeof(*puart));
+    UART * pUart = UartValidateHandle(uartHandle);
+    close(pUart->uartFileDescriptor);
+    memset(pUart, 0x00, sizeof(*pUart));
 }
 void UartWriteBlocking(UART_HANDLE uartHandle, const void * pSrc, uint32_t length)
 {
     // lint -esym(529, writeResult)
-    UART * puart = UartValidateHandle(uartHandle);
-    /*int32_t writeResult = */ write(puart->uartFileDescriptor, pSrc, length);
+    UART * pUart = UartValidateHandle(uartHandle);
+    /*int32_t writeResult = */ write(pUart->uartFileDescriptor, pSrc, length);
     // ASSERT_PARAM(writeResult == length);
 }
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-static void UartConfigureSettings(UART * puart, const char * pDevice, const UART_PARAMS * pParams)
+static void UartConfigureSettings(UART * pUart, const char * pDevice, const UART_PARAMS * pParams)
 {
     ASSERT_PARAM(pDevice);
-    puart->uartFileDescriptor = open(pDevice,
+    pUart->uartFileDescriptor = open(pDevice,
                                      O_RDWR |       // read and write
                                          O_NOCTTY | // not a controller terminal
                                          O_SYNC);   // write calls are blocking TODO: consider changing this? O_DIRECT????
 #ifdef DEBUGGING
-    if (puart->uartFileDescriptor < 0)
+    if (pUart->uartFileDescriptor < 0)
     {
         puts("\nopen linux and enter \"sudo chmod 666 /dev/ttyS?\" in the command line");
         return;
     }
 #endif
-    ASSERT_PARAM(puart->uartFileDescriptor >= 0); // open linux and enter "sudo chmod 666 /dev/ttyS9" in the command line.
+    ASSERT_PARAM(pUart->uartFileDescriptor >= 0); // open linux and enter "sudo chmod 666 /dev/ttyS9" in the command line.
 
     struct termios tIoSetup;
     memset(&tIoSetup, 0x00, sizeof(tIoSetup));
@@ -144,24 +146,23 @@ static void UartConfigureSettings(UART * puart, const char * pDevice, const UART
     tIoSetup.c_cc[VMIN]  = MIN(SERIAL_RECEIVE_BUF_SIZE, 255); // lint !e506 //wait for this many characters (or expiry time)
     tIoSetup.c_cc[VTIME] = 1; // time to wait for input in 10ths of a second (reset after every character received)
 
-    tcsetattr(puart->uartFileDescriptor, TCSANOW, &tIoSetup);
+    tcsetattr(pUart->uartFileDescriptor, TCSANOW, &tIoSetup);
 }
-static void UartStartReceiveThread(UART * puart)
+static void UartStartReceiveThread(UART * pUart)
 {
     pthread_t thread;
-    pthread_create(&thread, NULL, (THREAD_PFN) UartReceiveHandler, puart);
+    pthread_create(&thread, NULL, (THREAD_PFN) UartReceiveHandler, pUart);
 }
-static void UartReceiveHandler(UART * puart)
+static void UartReceiveHandler(UART * pUart)
 {
-    UART_DATA_RX dataReceivedEvent;
-    dataReceivedEvent.uartHandle = puart->uartHandle;
     for (;;)
     {
-        /*int32_t readLength = */ read(puart->uartFileDescriptor, puart->rxBuf, SERIAL_RECEIVE_BUF_SIZE);
+        int32_t readLength = read(pUart->uartFileDescriptor, pUart->rxBuf, SERIAL_RECEIVE_BUF_SIZE);
         // ASSERT_PARAM(readLength > 0);
 
         // TODO: use a callback here to call into EspNow transport serial handler
-        //  MsgPostDouble(MID_UART_RX, &dataReceivedEvent, sizeof(dataReceivedEvent), puart->rxBuf, (uint32_t) readLength);
+        //  MsgPostDouble(MID_UART_RX, &pUart->uartHandle, sizeof(pUart->uartHandle), pUart->rxBuf, (uint32_t) readLength);
+        pUart->rxCallback(pUart->uartHandle, pUart->rxBuf, readLength);
     }
 }
 static UART * UartValidateHandle(UART_HANDLE uartHandle)

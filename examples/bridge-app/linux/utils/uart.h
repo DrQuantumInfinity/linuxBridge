@@ -70,13 +70,6 @@ typedef struct
     UART_HARDWARE_FLOW_CONTROL hardwareFlowCtrl;
     UART_RX_PFN rxCallback;
 } UART_PARAMS;
-
-
-typedef struct
-{
-    UART_HANDLE uartHandle;
-    uint8_t data[];
-} UART_DATA_RX;
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
