@@ -51,6 +51,7 @@ executable("chip-bridge-app") {
     "include/Device.h",
     "include/main.h",
     "main.cpp",
+    "mqtt/mqtt.cpp",
     "utils/Log.cpp",
     "utils/uart.cpp",
     "utils/uart.h",
