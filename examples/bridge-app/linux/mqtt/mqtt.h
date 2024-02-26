@@ -14,3 +14,4 @@ typedef struct mqtt_inst
 
 void add_sub(mqtt_inst * inst, char * topic);
 void unsub(mqtt_inst * inst, char * topic);
+int mqtt_init(mqtt_inst * inst, char* broker);

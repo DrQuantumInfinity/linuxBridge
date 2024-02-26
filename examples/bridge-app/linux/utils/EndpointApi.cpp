@@ -3,7 +3,7 @@
 #include <app/util/attribute-storage.h>
 #include <app/reporting/reporting.h> //for MatterReportingAttributeChangeCallback()
 #include <span>
-
+#include "Log.h"
 /**************************************************************************
  *                                  Constants
  **************************************************************************/

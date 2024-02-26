@@ -784,14 +784,15 @@ void * bridge_polling_thread(void * context)
     log_info("test, %d", 5);
     log_info("test, %d", 5);
 
-    void* test;
-    mosquitto* inst = mosquitto_new("testID", true, test);
-    mosquitto_connect(inst, "192.168.0.128", 1883, 60);
-    int* mid;
-    int* mid2;
-    mosquitto_subscribe(inst, mid, "test", 0);
-    const char* message = "message";
-    mosquitto_publish(inst, mid2, "test", strlen(message), message, 0, false);
+    
+    // void* test;
+    // mosquitto* inst = mosquitto_new("testID", true, test);
+    // mosquitto_connect(inst, "192.168.0.128", 1883, 60);
+    // int* mid;
+    // // int* mid2;
+    // mosquitto_subscribe(inst, mid, "test", 0);
+    // const char* message = "message";
+    // mosquitto_publish(inst, mid2, "test", strlen(message), message, 0, false);
 
 
     // UartTest();
