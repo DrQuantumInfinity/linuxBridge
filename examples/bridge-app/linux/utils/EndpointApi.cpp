@@ -204,16 +204,16 @@ static void EndpointAddWorker(intptr_t context)
             {
                 Span<DataVersion> dataVersion = Span<DataVersion>(pData->pDataVersionStorage, pData->dataVersionStorageLength);
                 Span<const EmberAfDeviceType> deviceTypeList= Span<const EmberAfDeviceType>(pData->pDeviceTypeList, pData->deviceTypeListLength);
-                EmberAfStatus ret = emberAfSetDynamicEndpoint(
+                CHIP_ERROR ret = emberAfSetDynamicEndpoint(
                     pData->index, endpointApi.currentEndpointId, pData->ep, 
                     dataVersion, deviceTypeList, 
                     pData->parentEndpointId);
-                if (ret == EMBER_ZCL_STATUS_SUCCESS)
+                if (ret == CHIP_NO_ERROR)
                 {
                     log_info("Added device %u: %s at dynamic endpoint %u", pData->index, pData->name, endpointApi.currentEndpointId);
                     return;
                 }
-                else if (ret != EMBER_ZCL_STATUS_DUPLICATE_EXISTS)
+                else //if (ret != EMBER_ZCL_STATUS_DUPLICATE_EXISTS)
                 {
                     return;
                 }
@@ -237,7 +237,7 @@ static void EndpointAddWorker(intptr_t context)
 }
 static void EndpointRemoveWorker(intptr_t context)
 {
-    uint16_t index = (uint16_t)(uint32_t)reinterpret_cast<void*>(context);
+    uint16_t index = (uint16_t)(uint64_t)reinterpret_cast<void*>(context);
     log_info("Removing device: %u", index);
 
     if (index < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)

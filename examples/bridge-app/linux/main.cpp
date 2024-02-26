@@ -55,6 +55,7 @@
 #include "uart.h"
 #include "timer.h"
 #include "utils.h"
+#include "SerialFramerEspNow.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -64,7 +65,6 @@ using namespace chip::Transport;
 using namespace chip::DeviceLayer;
 using namespace chip::app::Clusters;
 
-// void UartTest(void);
 
 namespace {
 
@@ -708,11 +708,11 @@ void ScheduleReportingCallback(Device * dev, ClusterId cluster, AttributeId attr
 //     }
 // }
 
-bool emberAfActionsClusterInstantActionCallback(app::CommandHandler * commandObj, const app::ConcreteCommandPath & commandPath,
+/*bool emberAfActionsClusterInstantActionCallback(app::CommandHandler * commandObj, const app::ConcreteCommandPath & commandPath,
                                                 const Actions::Commands::InstantAction::DecodableType & commandData)
 {
     return true;
-}
+}*/
 //     bool hasInvokeID      = false;
 //     uint32_t invokeID     = 0;
 //     EndpointId endpointID = commandPath.mEndpointId;
@@ -795,7 +795,6 @@ void * bridge_polling_thread(void * context)
     // mosquitto_publish(inst, mid2, "test", strlen(message), message, 0, false);
 
 
-    // UartTest();
 
 
     // bool light1_added = true;
@@ -1043,26 +1042,6 @@ void UartRxCallback(UART_HANDLE uartHandle, void* pData, uint32_t dataLen)
     log_warn("uart got ---- %s", pMsg);
 }
 
-void UartTest(void)
-{
-    UartInit();
-    UART_PARAMS uartParams = {
-        .baud = UART_BAUD_115200,
-        .mode = UART_MODE_RX_TX,
-        .stopBits = UART_STOP_BITS_1,
-        .parity = UART_PARITY_NONE,
-        .hardwareFlowCtrl = UART_HFC_DISABLED,
-        .rxCallback = UartRxCallback,
-    };
-    UART_HANDLE uartHandle = UartRegister("/dev/ttyUSB0", &uartParams);
-
-    //Wait for thread to start before transmitting to the loopback
-    TimerSleepMs(100);
-
-    #define UART_MSG "Hello World\n"
-    UartWriteBlocking(uartHandle, UART_MSG, strlen(UART_MSG));
-}
-
 int main(int argc, char * argv[])
 {
     if (ChipLinuxAppInit(argc, argv) != 0)
@@ -1070,7 +1049,7 @@ int main(int argc, char * argv[])
         return -1;
     }
 
-    UartTest();
+    //SerialInit();
 
     ChipLinuxAppMainLoop();
     return 0;

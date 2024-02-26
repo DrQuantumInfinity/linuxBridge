@@ -15,6 +15,5 @@
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
-
-//Message Poster
+void SerialInit(void);
 void SerialTransmit(const void *pData, uint32_t dataLength);
