@@ -10,6 +10,8 @@
 
 #include <app/InteractionModelEngine.h>
 #include <app/util/af-types.h>
+
+#include "mqtt.h"
 using namespace::chip;
 /**************************************************************************
  *                                  Constants
@@ -45,8 +47,8 @@ private:
     MQTT_TYPE _type;
     char _macAddr[MQTT_MAC_ADDRESS_LENGTH];
     static DeviceList _deviceList;
+    static mqtt_inst* mqtt_inst;
     struct Private;
-
 };
 /**************************************************************************
  *                                  Prototypes

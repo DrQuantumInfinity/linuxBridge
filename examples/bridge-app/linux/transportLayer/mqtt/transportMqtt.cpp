@@ -44,6 +44,7 @@ static const char *pMqttDeviceTypes[] = {
 };
 static uint32_t mqttDeviceTopicLengths[MQTT_TYPE_COUNT];
 DeviceList TransportMqtt::_deviceList; //static variables in a class need to be independently initialized. C++ is dumb
+mqtt_inst* TransportMqtt::mqtt_inst; 
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/
@@ -53,6 +54,9 @@ void TransportMqtt::Init(void)
     {
         mqttDeviceTopicLengths[type] = strlen(pMqttDeviceTypes[type]) + 12;
     }
+    mqtt_init(TransportMqtt::mqtt_inst, "192.168.0.128", TransportMqtt::HandleTopicRx);
+    for(int i = 0;i<MQTT_TYPE_COUNT;i++)
+        mqtt_add_sub(TransportMqtt::mqtt_inst, pMqttDeviceTypes[i]);
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
 {
@@ -184,6 +188,8 @@ void TransportMqtt::Private::MqttSend(TransportMqtt& self, const Device* pDevice
 }
 void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const DeviceLightLevel* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
+    char * topic;
+    char * message;
     if (clusterId == OnOff::Id && attributeId == OnOff::Attributes::OnOff::Id)
     {
         //compose mqtt string from pDevice->onOffCluster._isOn
@@ -191,7 +197,13 @@ void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const Devic
     else if (clusterId == LevelControl::Id && attributeId == LevelControl::Attributes::CurrentLevel::Id)
     {
         //compose mqtt string from pDevice->levelControlCluster._level
+
     }
+    else{
+        //no match!
+        return;
+    }
+    mqtt_publish(TransportMqtt::mqtt_inst, topic, message)
 }
 void TransportMqtt::Private::MqttSendOutlet(TransportMqtt& self, const DeviceButton* pDevice, ClusterId clusterId, AttributeId attributeId)
 {

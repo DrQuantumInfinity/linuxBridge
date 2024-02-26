@@ -1,6 +1,5 @@
 #include <string.h>
 #include <unistd.h>
-#include <unordered_set>
 #include "mqtt.h"
 
 #include <stdio.h>
@@ -17,14 +16,15 @@ bool g_connected = false;
 static void on_connect(struct mosquitto *mosq, void *obj, int reason_code);
 static void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos);
 static void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
-static void subscribe(mosquitto * mosq, char * topic);
-static void unsubscribe(mosquitto * mosq, char * topic);
+static void subscribe(mosquitto * mosq, const char * topic);
+static void unsubscribe(mosquitto * mosq, const char * topic);
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-int mqtt_init(mqtt_inst * inst, char* broker)
+int mqtt_init(mqtt_inst * inst, char* broker, mqtt_msgCallback messageHandler)
 {
     inst = (mqtt_inst*)malloc(sizeof(mqtt_inst));
+    inst->messageHandler = messageHandler;
 	mosquitto *mosq = inst->mosq;
 	int rc;
 
@@ -60,21 +60,28 @@ int mqtt_init(mqtt_inst * inst, char* broker)
     return 0;
 }
 
-void add_sub(mqtt_inst * inst, char * topic){
+void mqtt_add_sub(mqtt_inst * inst, const char * topic){
     inst->subs.insert(topic);
     if(g_connected)
         subscribe(inst->mosq, topic);
 }
 
-void unsub(mqtt_inst * inst, char * topic){
+void mqtt_unsub(mqtt_inst * inst, const char * topic){
     inst->subs.erase(topic);
     if(g_connected)
         unsubscribe(inst->mosq, topic);
 }
+
+void mqtt_publish(mqtt_inst * inst, const char * topic, const char * message){
+    int rc = mosquitto_publish(inst->mosq, NULL, topic, strlen(message), message, 2, false);
+	if(rc != MOSQ_ERR_SUCCESS){
+		fprintf(stderr, "Error publishing: %s\n", mosquitto_strerror(rc));
+	}
+}
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-static void subscribe(mosquitto * mosq, char * topic){
+static void subscribe(mosquitto * mosq, const char * topic){
     int rc = mosquitto_subscribe(mosq, NULL, topic, 1);
     if(rc != MOSQ_ERR_SUCCESS){
         fprintf(stderr, "Error subscribing: %s\n", mosquitto_strerror(rc));
@@ -82,7 +89,7 @@ static void subscribe(mosquitto * mosq, char * topic){
     }
 }
 
-static void unsubscribe(mosquitto * mosq, char* topic){
+static void unsubscribe(mosquitto * mosq, const char* topic){
     int rc = mosquitto_unsubscribe(mosq, NULL, topic);
 	if(rc != MOSQ_ERR_SUCCESS){
 		fprintf(stderr, "Error unsubscribing: %s\n", mosquitto_strerror(rc));
@@ -90,12 +97,6 @@ static void unsubscribe(mosquitto * mosq, char* topic){
 	}
 }
 
-static void publish(mqtt_inst * inst, char * topic, char * message){
-    int rc = mosquitto_publish(inst->mosq, NULL, topic, strlen(message), message, 2, false);
-	if(rc != MOSQ_ERR_SUCCESS){
-		fprintf(stderr, "Error publishing: %s\n", mosquitto_strerror(rc));
-	}
-}
 
 static void on_connect(struct mosquitto *mosq, void *obj, int reason_code)
 {
@@ -106,7 +107,7 @@ static void on_connect(struct mosquitto *mosq, void *obj, int reason_code)
         mosquitto_disconnect(mosq);
     }
     g_connected = true;
-    std::unordered_set<char*>::iterator itr;
+    std::unordered_set<const char*>::iterator itr;
     for (itr = inst->subs.begin(); itr != inst->subs.end(); itr++)
         subscribe(inst->mosq, *itr);
 }
@@ -131,5 +132,5 @@ static void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_cou
 static void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
 {
     mqtt_inst* inst = (mqtt_inst*)obj;
-    inst->messageHandler(msg);
+    inst->messageHandler(msg->topic, (char*)msg->payload);
 }
