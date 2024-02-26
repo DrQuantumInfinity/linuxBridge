@@ -56,6 +56,12 @@ executable("chip-bridge-app") {
     "utils/uart.h",
     "utils/utils.cpp",
     "utils/utils.h",
+    "utils/assert.cpp",
+    "utils/assert.h",
+    "utils/futil.cpp",
+    "utils/futil.h",
+    "utils/timer.cpp",
+    "utils/timer.h",
   ]
 
   deps = [

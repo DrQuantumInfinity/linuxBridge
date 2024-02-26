@@ -1,10 +1,9 @@
+#pragma once
 /*******************************************************************************************
 File: utils.h
 
 ********************************************************************************************/
 
-#ifndef __UTILS_H__
-#define __UTILS_H__
 
 
 #include <stdint.h>
@@ -168,12 +167,6 @@ File: utils.h
 // B32(10000000,11111111,10101010,01010101) // 2,164,238,933
 // reg = ( (B8(010) << 5) | (B8(11) << 3) | (B8(101) << 0) )
 
-#if _ASSERT_ACTIVE
-#define assert_param(expr) ((expr) ? (void)0 : assert_failed((char *)__FILE__, __LINE__, #expr))
-#else
-#define assert_param(expr)
-#endif
-
 /*************************************************************************
 *                                   ENDIAN
 **************************************************************************/
@@ -301,11 +294,8 @@ void *memmem(void const *pHaystack, uint32_t haystackSize, void const *pNeedle, 
 void memset32(void *pDest, void const *pMemsetWord, uint32_t bufferSize);
 uint32_t memdif(void const *pSrc1, void const *pSrc2, uint32_t startIndex, uint32_t compareLength);
 
-void assert_failed(char const *pFileName, uint32_t lineNumber, char const *pMsg);
 
 // "maxUlps" is the "Units in the Last Place", which specifies how big an error the caller is willing
 // to accept in terms of the value of the least significant digits of the FP number's representation.
 // AKA how many representable floats we are willing to accept between A and B
 bool Fp32AlmostEqual(float A, float B, int32_t maxUlps);
-
-#endif

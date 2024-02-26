@@ -429,7 +429,7 @@ bool Fp32AlmostEqual(float A, float B, int32_t maxUlps)
 {
    // Make sure maxUlps is non-negative and small enough that the
    // default NAN won't compare as equal to anything.
-   //ASSERT_RET((maxUlps > 0) && (maxUlps < (4*1024*1024)), false);
+   if ((maxUlps > 0) && (maxUlps < (4*1024*1024))) return false;
 
    // Make aInt lexicographically ordered as a twos-complement int
    int32_t aInt = *(int32_t*)&A; //lint !e740
@@ -629,19 +629,6 @@ uint32_t memdif(void const *pSrc1, void const *pSrc2, uint32_t startIndex, uint3
    }
    return byteIdx;
 }
-
-#if _ASSERT_ACTIVE
-#include "futil.h"
-void assert_failed(char const *pFileName, uint32_t lineNumber, char const *pMsg)
-{
-   pFileName = FutilFileName(pFileName);
-   printf("\n%s\n%d\n%s\n", pFileName, lineNumber, pMsg);
-   for (uint32_t dummy = 0; dummy < 0xFFFFFFFE; dummy++)
-   {
-      sleep(1);
-   }
-} //lint !e715 !e818
-#endif
 
 /**************************************************************************
  *                                 Private Functions

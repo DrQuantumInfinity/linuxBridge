@@ -4,12 +4,15 @@ File: uart.c
 ********************************************************************************************/
 
 #include "uart.h"
+
 #include <fcntl.h>
 #include <pthread.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "Log.h"
+#include "utils.h"
+#include "assert.h"
 
 /**************************************************************************
  *                                  Constants
@@ -22,17 +25,6 @@ File: uart.c
  **************************************************************************/
 #if SERIAL_NUM_DEVICES == 0
 #error "no serial devices are enabled"
-#endif
-
-// TODO: these includes should come from a common "utils.h"
-#define NELEMENTS(array) (sizeof(array) / sizeof(array[0]))
-#define BIT_SET(var, mask)                                                                                                         \
-    {                                                                                                                              \
-        (var) |= (mask);                                                                                                           \
-    }
-#define ASSERT_PARAM(cond)
-#ifndef MIN
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #endif
 /**************************************************************************
  *                                  Types
@@ -101,8 +93,8 @@ void UartWriteBlocking(UART_HANDLE uartHandle, const void * pSrc, uint32_t lengt
 {
     // lint -esym(529, writeResult)
     UART * pUart = UartValidateHandle(uartHandle);
-    /*int32_t writeResult = */ write(pUart->uartFileDescriptor, pSrc, length);
-    // ASSERT_PARAM(writeResult == length);
+    int32_t writeResult = write(pUart->uartFileDescriptor, pSrc, length);
+    ASSERT_PARAM(writeResult == length);
 }
 /**************************************************************************
  *                                  Private Functions
@@ -161,7 +153,7 @@ static void UartReceiveHandler(UART * pUart)
     for (;;)
     {
         int32_t readLength = read(pUart->uartFileDescriptor, pUart->rxBuf, SERIAL_RECEIVE_BUF_SIZE);
-        // ASSERT_PARAM(readLength > 0);
+        ASSERT_PARAM(readLength > 0);
 
         // TODO: use a callback here to call into EspNow transport serial handler
         //  MsgPostDouble(MID_UART_RX, &pUart->uartHandle, sizeof(pUart->uartHandle), pUart->rxBuf, (uint32_t) readLength);
