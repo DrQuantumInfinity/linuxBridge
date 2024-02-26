@@ -1,0 +1,134 @@
+#include <string.h>
+#include <unistd.h>
+#include <unordered_set>
+#include "mqtt.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+/**************************************************************************
+ *                                  Variables
+ **************************************************************************/
+bool g_initted = false;
+bool g_connected = false;
+/**************************************************************************
+ *                                  Prototypes
+ **************************************************************************/
+void on_connect(struct mosquitto *mosq, void *obj, int reason_code);
+void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos);
+void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
+void subscribe(mosquitto * mosq, char * topic);
+void unsubscribe(mosquitto * mosq, char * topic);
+/**************************************************************************
+ *                                  Global Functions
+ **************************************************************************/
+int mqtt_init(mqtt_inst * inst, char* broker)
+{
+    inst = (mqtt_inst*)malloc(sizeof(mqtt_inst));
+	mosquitto *mosq = inst->mosq;
+	int rc;
+
+    if(!g_initted)
+    {
+        mosquitto_lib_init();
+        g_initted = true;
+    }
+
+	mosq = mosquitto_new(NULL, true, inst);
+	if(mosq == NULL){
+		fprintf(stderr, "Error: Out of memory.\n");
+		return 1;
+	}
+
+	mosquitto_connect_callback_set(mosq, on_connect);
+	mosquitto_subscribe_callback_set(mosq, on_subscribe);
+	mosquitto_message_callback_set(mosq, on_message);
+
+	rc = mosquitto_connect(mosq, broker, 1883, 60);
+	if(rc != MOSQ_ERR_SUCCESS){
+		mosquitto_destroy(mosq);
+		fprintf(stderr, "Error: %s\n", mosquitto_strerror(rc));
+		return 1;
+	}
+
+    rc = mosquitto_loop_start(mosq);
+	if(rc != MOSQ_ERR_SUCCESS){
+		mosquitto_destroy(mosq);
+		fprintf(stderr, "Error: %s\n", mosquitto_strerror(rc));
+		return 1;
+	}
+}
+
+void add_sub(mqtt_inst * inst, char * topic){
+    inst->subs.insert(topic);
+    if(g_connected)
+        subscribe(inst->mosq, topic);
+}
+
+void unsub(mqtt_inst * inst, char * topic){
+    inst->subs.erase(topic);
+    if(g_connected)
+        unsubscribe(inst->mosq, topic);
+}
+/**************************************************************************
+ *                                  Private Functions
+ **************************************************************************/
+void subscribe(mosquitto * mosq, char * topic){
+    int rc = mosquitto_subscribe(mosq, NULL, topic, 1);
+    if(rc != MOSQ_ERR_SUCCESS){
+        fprintf(stderr, "Error subscribing: %s\n", mosquitto_strerror(rc));
+        mosquitto_disconnect(mosq);
+    }
+}
+
+void unsubscribe(mosquitto * mosq, char* topic){
+    int rc = mosquitto_unsubscribe(mosq, NULL, topic);
+	if(rc != MOSQ_ERR_SUCCESS){
+		fprintf(stderr, "Error unsubscribing: %s\n", mosquitto_strerror(rc));
+		mosquitto_disconnect(mosq);
+	}
+}
+
+void publish(mqtt_inst * inst, char * topic, char * message){
+    int rc = mosquitto_publish(inst->mosq, NULL, topic, strlen(message), message, 2, false);
+	if(rc != MOSQ_ERR_SUCCESS){
+		fprintf(stderr, "Error publishing: %s\n", mosquitto_strerror(rc));
+	}
+}
+
+void on_connect(struct mosquitto *mosq, void *obj, int reason_code)
+{
+    mqtt_inst* inst = (mqtt_inst*)obj;
+    int rc;
+    printf("on_connect: %s\n", mosquitto_connack_string(reason_code));
+    if(reason_code != 0){
+        mosquitto_disconnect(mosq);
+    }
+    g_connected = true;
+    std::unordered_set<char*>::iterator itr;
+    for (itr = inst->subs.begin(); itr != inst->subs.end(); itr++)
+        subscribe(inst->mosq, *itr);
+}
+
+void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos)
+{
+    int i;
+    bool have_subscription = false;
+
+    for(i=0; i<qos_count; i++){
+        printf("on_subscribe: %d:granted qos = %d\n", i, granted_qos[i]);
+        if(granted_qos[i] <= 2){
+            have_subscription = true;
+        }
+    }
+    if(have_subscription == false){
+        fprintf(stderr, "Error: All subscriptions rejected.\n");
+        mosquitto_disconnect(mosq);
+    }
+}
+
+void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
+{
+    mqtt_inst* inst = (mqtt_inst*)obj;
+    inst->messageHandler(msg);
+}

@@ -54,6 +54,7 @@ executable("chip-bridge-app") {
     "transportLayer/espNow/EspNowData.cpp",
     "transportLayer/espNow/transportEspNow.cpp",
     "transportLayer/mqtt/transportMqtt.cpp",
+    "mqtt/mqtt.cpp",
     "utils/Log.cpp",
     "utils/uart.cpp",
     "utils/utils.cpp",
