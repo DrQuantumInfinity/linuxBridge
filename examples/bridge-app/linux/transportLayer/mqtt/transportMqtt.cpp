@@ -203,7 +203,7 @@ void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const Devic
         //no match!
         return;
     }
-    mqtt_publish(TransportMqtt::mqtt_inst, topic, message)
+    mqtt_publish(TransportMqtt::mqtt_inst, topic, message);
 }
 void TransportMqtt::Private::MqttSendOutlet(TransportMqtt& self, const DeviceButton* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
