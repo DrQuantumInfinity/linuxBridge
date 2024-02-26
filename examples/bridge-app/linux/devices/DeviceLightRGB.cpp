@@ -6,7 +6,6 @@
 #include "LevelControlCluster.h"
 #include "ColourCluster.h"
 #include "OnOffCluster.h"
-#include "SerialTask.h"
 #include <app/util/attribute-storage.h>
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
@@ -52,9 +51,9 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, DEVICE_WRITE_CALLBACK pfnWriteCallback)
+DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
 {
-    _pfnWriteCallback          = pfnWriteCallback;
+    _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
         .index                    = GetIndex(),
@@ -99,17 +98,3 @@ DeviceLightRGB::~DeviceLightRGB()
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-
-void DeviceLightRGB::sendEspNowMessage()
-{
-    _espNowData.data.lightRgb.onOff      = onOffCluster._isOn;
-    _espNowData.data.lightRgb.brightness = levelControlCluster._level;
-    _espNowData.data.lightRgb.hue        = colourCluster._hue;
-    _espNowData.data.lightRgb.saturation = colourCluster._sat;
-    _espNowData.data.lightRgb.mode       = ESP_NOW_DATA_LIGHT_RGB_MODE_STATIC;
-    _espNowData.type   = ESP_NOW_DEVICE_TYPE_LIGHT_RGB;
-    uint8_t macAddr[6] = { 0x18, 0xFE, 0x34, 0xDC, 0x1F, 0xAF };
-    memcpy(_espNowData.macAddr, macAddr, sizeof(_espNowData.macAddr));
-
-    SerialTransmit(&_espNowData, offsetof(ESP_NOW_DATA, data) + sizeof(ESP_NOW_DATA_LIGHT_RGB));
-}

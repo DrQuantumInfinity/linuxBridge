@@ -1,9 +1,10 @@
 
 #pragma once
-#include "DescriptorCluster.h"
-#include "OnOffCluster.h"
-#include "Device.h"
-#include "EndpointApi.h"
+
+#include <functional>
+#include <stdbool.h>
+#include <stdint.h>
+
 #include <app/InteractionModelEngine.h>
 #include <app/util/af-types.h>
 using namespace ::chip;
@@ -16,19 +17,16 @@ using namespace ::chip;
 /**************************************************************************
  *                                  Types
  **************************************************************************/
-
-class DeviceButton : public Device
+class Device;
+class TransportLayer
 {
 public:
-    DeviceButton(const char * pName, const char * pLocation, TransportLayer* pTransportLayer);
-    ~DeviceButton(void);
-    void SetOn(bool on) { onOffCluster.SetOn(on, GetIndex()); }
-    void Toggle(void) { onOffCluster.SetOn(!onOffCluster._isOn, GetIndex()); }
+    virtual void Send(const Device* pDevice, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer) = 0;
+
+protected:
 
 private:
-    OnOffCluster onOffCluster;
-    DescriptorCluster descriptorCluster;
-    ENDPOINT_DATA _endpointData;
+
 };
 /**************************************************************************
  *                                  Prototypes

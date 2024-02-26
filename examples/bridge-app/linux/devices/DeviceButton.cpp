@@ -48,9 +48,9 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-DeviceButton::DeviceButton(const char* pName, const char* pLocation, DEVICE_WRITE_CALLBACK pfnWriteCallback)
+DeviceButton::DeviceButton(const char* pName, const char* pLocation, TransportLayer *pTransportLayer)
 {
-    _pfnWriteCallback = pfnWriteCallback;
+    _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
         .index = GetIndex(),
@@ -84,20 +84,3 @@ DeviceButton::~DeviceButton(void)
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-// static EmberAfStatus GoogleReadCallback(void *pObject, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer, uint16_t maxReadLength)
-// {
-//     DeviceButton * pDevice = (DeviceButton *) pObject;
-//     return pDevice->ReadCluster(clusterId, attributeMetadata, buffer, maxReadLength);
-// }
-
-// static EmberAfStatus GoogleWriteCallback(void * pObject, ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata,
-//                                          uint8_t * buffer)
-// {
-//     DeviceButton * pDevice = (DeviceButton *) pObject;
-//     EmberAfStatus status = pDevice->WriteCluster(clusterId, attributeMetadata, buffer);
-//     if (pDevice->_pfnWriteCallback)
-//     {
-//         pDevice->_pfnWriteCallback(pDevice, clusterId, attributeMetadata, buffer);
-//     }
-//     return status;
-// }

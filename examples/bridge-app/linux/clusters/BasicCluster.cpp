@@ -1,6 +1,5 @@
 #include "BasicCluster.h"
 #include "EndpointApi.h"
-#include "esp_log.h"
 #include <lib/support/ZclString.h>
 #include <string.h>
 #define ZCL_BRIDGED_DEVICE_BASIC_INFORMATION_CLUSTER_REVISION (2u)

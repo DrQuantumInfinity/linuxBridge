@@ -13,7 +13,6 @@ using namespace ::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
-#define DEVICE_LIGHT_LEV_NUM_CLUSTERS (5) // ArraySize(bridgedLightClusters)
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
@@ -24,7 +23,7 @@ using namespace ::chip;
 class DeviceLightRGB : public Device
 {
 public:
-    DeviceLightRGB(const char * pName, const char * pLocation, DEVICE_WRITE_CALLBACK pfnWriteCallback);
+    DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
     ~DeviceLightRGB(void);
 
     void SetOn(bool isOn) { onOffCluster.SetOn(isOn, GetIndex()); }
@@ -34,11 +33,12 @@ public:
     LevelControlCluster GetLevelControlCluster(void) { return levelControlCluster; }
     ColourCluster GetColourCluster(void) { return colourCluster; }
     DescriptorCluster GetDescriptorCluster(void) { return descriptorCluster; }
-
-private:
+    
     OnOffCluster onOffCluster;
     LevelControlCluster levelControlCluster;
     ColourCluster colourCluster;
+
+private:
     DescriptorCluster descriptorCluster;
     ENDPOINT_DATA _endpointData;
     void sendEspNowMessage(void);

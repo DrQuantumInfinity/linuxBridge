@@ -16,13 +16,13 @@ public:
     DescriptorCluster(void) { _id = Descriptor::Id; }
     EmberAfStatus Write(chip::AttributeId attributeId, uint8_t * buffer)
     {
-        ESP_LOGE("cluster", "Base cluster Write called. This shouldn't happen");
+        log_error("Base cluster Write called. This shouldn't happen");
         return EMBER_ZCL_STATUS_FAILURE;
     }
 
     EmberAfStatus Read(chip::AttributeId attributeId, uint8_t * buffer, uint16_t maxReadLength)
     {
-        ESP_LOGE("cluster", "Base cluster Read called. This shouldn't happen");
+        log_error("Base cluster Read called. This shouldn't happen");
         return EMBER_ZCL_STATUS_FAILURE;
     }
     static constexpr EmberAfAttributeMetadata descriptorAttrs[] = {
