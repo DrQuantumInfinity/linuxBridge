@@ -53,6 +53,7 @@
 #include "Log.h"
 #include <mosquitto.h>
 #include "uart.h"
+#include "timer.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -1038,15 +1039,6 @@ void UartRxCallback(UART_HANDLE uartHandle, void* pData, uint32_t dataLen)
 {
     char* pMsg = (char*)pData;
     log_warn("uart got ---- %s", pMsg);
-}
-
-void TimerSleepMs(uint32_t numMs)
-{
-   struct timespec spec;
-   spec.tv_sec = (long)numMs/1000;
-   numMs -= (uint32_t)spec.tv_sec*1000;
-   spec.tv_nsec = (long)numMs*1000000;
-   nanosleep(&spec, NULL);
 }
 
 void UartTest(void)
