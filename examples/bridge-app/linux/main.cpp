@@ -54,6 +54,7 @@
 #include <mosquitto.h>
 #include "uart.h"
 #include "timer.h"
+#include "utils.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -1073,3 +1074,70 @@ int main(int argc, char * argv[])
     ChipLinuxAppMainLoop();
     return 0;
 }
+
+/*
+typedef struct 
+{
+    char** ppList;
+    uint32_t numSubs;
+}TOPIC_LIST;
+typedef struct
+{
+    TOPIC_LIST topicList;
+}MQTT_STUFF;
+
+MQTT_STUFF* init(void);
+void deinit(MQTT_STUFF* pMqtt);
+void sub(MQTT_STUFF* pMqtt, const char* pTopic);
+uint32_t getTopicIndex(MQTT_STUFF* pMqtt, const char* pTopic);
+
+MQTT_STUFF* init(void)
+{
+    MQTT_STUFF* pMqtt = (MQTT_STUFF*)malloc(sizeof(MQTT_STUFF));
+    memset(pMqtt, 0x00, sizeof(*pMqtt));
+    return pMqtt;
+}
+void deinit(MQTT_STUFF* pMqtt)
+{
+    for (uint32_t subIdx = 0; subIdx < pMqtt->topicList.numSubs; subIdx++)
+    {
+        free(pMqtt->topicList.ppList[subIdx]);
+    }
+    free(pMqtt->topicList.ppList);
+    memset(pMqtt, 0x00, sizeof(*pMqtt));
+}
+void sub(MQTT_STUFF* pMqtt, const char* pTopic)
+{
+    if (getTopicIndex(pMqtt, pTopic) >= pMqtt->topicList.numSubs)
+    {
+        pMqtt->topicList.ppList = (char**)realloc(pMqtt->topicList.ppList, sizeof(char*)*(pMqtt->topicList.numSubs + 1));
+        pMqtt->topicList.ppList[pMqtt->topicList.numSubs] = (char*)malloc(strlen(pTopic) + 1);
+        memcpy(pMqtt->topicList.ppList[pMqtt->topicList.numSubs], pTopic, strlen(pTopic) + 1);
+        
+        pMqtt->topicList.numSubs++;
+    }
+}
+void unsub(MQTT_STUFF* pMqtt, const char* pTopic)
+{
+    uint32_t subIdx = getTopicIndex(pMqtt, pTopic);
+
+    if (subIdx < pMqtt->topicList.numSubs)
+    {
+        free(pMqtt->topicList.ppList[subIdx]);
+        memmove(&pMqtt->topicList.ppList[subIdx], &pMqtt->topicList.ppList[subIdx + 1], sizeof(char*)*((pMqtt->topicList.numSubs - 1) - subIdx));
+        pMqtt->topicList.ppList = (char**)realloc(pMqtt->topicList.ppList, sizeof(char*)*(pMqtt->topicList.numSubs - 1));
+        pMqtt->topicList.numSubs--;
+    }
+}
+uint32_t getTopicIndex(MQTT_STUFF* pMqtt, const char* pTopic)
+{
+    uint32_t subIdx;
+    for (subIdx = 0; subIdx < pMqtt->topicList.numSubs; subIdx++)
+    {
+        if (strcmp(pMqtt->topicList.ppList[subIdx], pTopic) == STR_CMP_MATCH)
+        {
+            break;
+        }
+    }
+    return subIdx;
+}*/
