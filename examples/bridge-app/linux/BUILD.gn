@@ -20,14 +20,6 @@ assert(chip_build_tools)
 
 executable("chip-bridge-app") {
   sources = [
-    # "drivers/usart.c",
-    # "tasks/MatterTask.cpp",
-    # "tasks/SerialTask.cpp",
-    # "utils/Crc16.cpp",
-    # "utils/DynamicList.cpp",
-    # "utils/EndpointApi.cpp",
-    # "utils/EspNowData.cpp",
-    # "utils/TaskMessage.cpp",
     "${chip_root}/examples/bridge-app/linux/bridged-actions-stub.cpp",
     "${chip_root}/examples/tv-app/tv-common/include/CHIPProjectAppConfig.h",
     "Device.cpp",
@@ -47,11 +39,10 @@ executable("chip-bridge-app") {
     "devices/DeviceLightRGB.cpp",
     "devices/DeviceLightTemp.cpp",
     "devices/DeviceTemperature.cpp",
-    "include/Device.h",
-    "include/main.h",
     "main.cpp",
     "mqtt/mqtt.cpp",
     "transportLayer/espNow/EspNowData.cpp",
+    "transportLayer/espNow/SerialFramerEspNow.cpp",
     "transportLayer/espNow/transportEspNow.cpp",
     "transportLayer/mqtt/transportMqtt.cpp",
     "transportLayer/transportLayer.cpp",

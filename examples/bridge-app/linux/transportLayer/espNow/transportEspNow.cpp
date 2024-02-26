@@ -4,6 +4,7 @@
 //Devices
 #include "DeviceButton.h"
 #include "DeviceLightRGB.h"
+#include "SerialFramerEspNow.h"
 
 /**************************************************************************
  *                                  Constants
@@ -136,7 +137,7 @@ void TransportEspNow::Private::EspNowSendLightRgb(TransportEspNow& self, const D
     self._data.data.lightRgb.mode       = ESP_NOW_DATA_LIGHT_RGB_MODE_STATIC;
     self._data.type                     = ESP_NOW_DEVICE_TYPE_LIGHT_RGB;
 
-    //SerialTransmit(&self._data, offsetof(ESP_NOW_DATA, data) + sizeof(ESP_NOW_DATA_LIGHT_RGB));
+    SerialTransmit(&self._data, offsetof(ESP_NOW_DATA, data) + sizeof(ESP_NOW_DATA_LIGHT_RGB));
 }
 /*
 void TransportEspNow::DeviceLightRgb(const DeviceLightRGB* pDevice)
