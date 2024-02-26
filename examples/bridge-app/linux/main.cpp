@@ -1076,6 +1076,7 @@ int main(int argc, char * argv[])
         return -1;
     }
 
+    UartTest();
 
     ChipLinuxAppMainLoop();
     return 0;

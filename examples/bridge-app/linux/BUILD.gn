@@ -54,6 +54,8 @@ executable("chip-bridge-app") {
     "utils/Log.cpp",
     "utils/uart.cpp",
     "utils/uart.h",
+    "utils/utils.cpp",
+    "utils/utils.h",
   ]
 
   deps = [
