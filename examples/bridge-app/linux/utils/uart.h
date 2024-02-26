@@ -1,10 +1,9 @@
+#pragma once
 /*******************************************************************************************
 File: uart.h
 
 ********************************************************************************************/
 
-#ifndef __UART_H__
-#define __UART_H__
 
 #include <stdint.h>
 #include <termios.h>
@@ -77,4 +76,3 @@ void UartInit(void);
 UART_HANDLE UartRegister(char const * pDevice, UART_PARAMS const * pParams);
 void UartUnregister(UART_HANDLE uartHandle);
 void UartWriteBlocking(UART_HANDLE uartHandle, void const * pSrc, uint32_t length);
-#endif
