@@ -64,8 +64,19 @@ void SerialInit(void)
     serial.uartHandle = UartRegister("/dev/ttyUSB0", &uartParams);
 
     //Test code to inject a fake EspNow message
-    //TimerSleep(100);
-    //SerialTransmit();
+    TimerSleepMs(100);
+    ESP_NOW_DATA data = {
+        .macAddr = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66},
+        .type = ESP_NOW_DEVICE_TYPE_LIGHT_RGB,
+        .data.lightRgb = {
+            .onOff = true,
+            .mode = ESP_NOW_DATA_LIGHT_RGB_MODE_STATIC,
+            .hue = 122,
+            .saturation = 100,
+            .brightness = 75,
+        }
+    };
+    SerialTransmit(&data, sizeof(data));
 }
 void SerialTransmit(const void* pData, uint32_t dataLength)
 {
