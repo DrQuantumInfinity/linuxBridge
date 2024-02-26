@@ -1,72 +1,51 @@
-#include "TimerTick.h"
+#include "EspNowData.h"
 
-#include "timer.h"
+#include <string.h>
+#include <stdlib.h>
 
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
+char const * const pDeviceTypeStrings[] = {
+    "DHT",
+    "MOTION",
+    "BOOL",
+    "TOGGLE",
+    "LIGHT_ON_OFF",
+    "LIGHT_DIMMER",
+    "LIGHT_RGB",
+    "LIGHT_TEMP",
+    "LIGHT_TEMP_RGB",
+};
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
+#ifndef ArraySize
+#define ArraySize(a) (sizeof(a) / sizeof((a)[0]))
+#endif
 /**************************************************************************
  *                                  Types
  **************************************************************************/
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
-static bool TimerTickMsbIsSet(uint32_t tick);
 /**************************************************************************
  *                                  Variables
  **************************************************************************/
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-bool TimerTick::HasElapsed(void)
+static_assert(ArraySize(pDeviceTypeStrings) == ESP_NOW_DEVICE_TYPE_COUNT);
+
+const char* EspNowGetName(const ESP_NOW_DATA* pDev)
 {
-    bool hasElapsed = false;
-    if (_ms)
+    const char* pRetVal = "UNKNOWN";
+    if (pDev->type < ArraySize(pDeviceTypeStrings))
     {
-        hasElapsed = TimerHasElapsedMs(_ms);
+        pRetVal = pDeviceTypeStrings[pDev->type];
     }
-    return hasElapsed;
-}
-uint32_t TimerTick::GetRemaining(void)
-{
-    uint32_t ticksRemaining = 0xFFFFFFFF;
-    if (_ms)
-    {
-        ticksRemaining = TimerRemainingMs(_ms);
-    }
-    return ticksRemaining;
-}
-void TimerTick::SetFromNow(uint32_t msFromNow)
-{
-    _ms = TimerGetMs() + msFromNow;
-    if (_ms == 0)
-    {
-        _ms++;
-    }
-}
-void TimerTick::Increment(uint32_t numMs)
-{
-    _ms += numMs;
-    if (_ms == 0)
-    {
-        _ms++;
-    }
-    if (HasElapsed())
-    {
-        SetFromNow(numMs);
-    }
-}
-void TimerTick::Disable(void)
-{
-    _ms = 0;
+    return pRetVal;
 }
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-static bool TimerTickMsbIsSet(uint32_t tick)
-{
-    return tick & (1 << (sizeof(uint32_t)*8  - 1));
-}

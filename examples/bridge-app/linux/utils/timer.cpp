@@ -68,7 +68,7 @@ void TimerSleepMs(uint32_t numMs)
 }
 bool TimerHasElapsedMs(uint32_t timerEndMs)
 {
-   return (TimerGetMs() > timerEndMs);
+   return (TimerGetMs() >= timerEndMs);
 }
 uint32_t TimerRemainingMs(uint32_t timerEndMs)
 {

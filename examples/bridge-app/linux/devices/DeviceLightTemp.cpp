@@ -6,7 +6,6 @@
 #include "LevelControlCluster.h"
 #include "ColourCluster.h"
 #include "OnOffCluster.h"
-#include "SerialTask.h"
 #include <app/util/attribute-storage.h>
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
@@ -51,9 +50,9 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-DeviceLightTemp::DeviceLightTemp(const char * pName, const char * pLocation, DEVICE_WRITE_CALLBACK pfnWriteCallback)
+DeviceLightTemp::DeviceLightTemp(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
 {
-    _pfnWriteCallback          = pfnWriteCallback;
+    _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
         .index                    = GetIndex(),
@@ -90,13 +89,3 @@ DeviceLightTemp::~DeviceLightTemp()
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-
-void DeviceLightTemp::sendEspNowMessage()
-{
-    _espNowData.data.lightTempRgb.onOff = onOffCluster._isOn;
-    _espNowData.data.lightTempRgb.brightness = levelControlCluster._level;
-    _espNowData.data.lightTempRgb.hue = colourCluster._hue;
-    _espNowData.data.lightTempRgb.saturation = colourCluster._sat;
-    _espNowData.data.lightTempRgb.tempKelvin = 1000'000 / colourCluster._temp;
-    SerialTransmit(&_espNowData, sizeof(_espNowData));
-}

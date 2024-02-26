@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include "Cluster.h"
 #include "BasicCluster.h"
-#include "EspNowData.h"
+#include "transportLayer.h"
 
 #include "EndpointApi.h"
 #include <app/InteractionModelEngine.h>
@@ -36,9 +36,6 @@ using namespace ::chip;
 /**************************************************************************
  *                                  Types
  **************************************************************************/
-
-class Device;
-typedef void (*DEVICE_WRITE_CALLBACK)(Device *device, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
 
 class Device
 {
@@ -55,10 +52,8 @@ public:
                                         uint8_t * buffer, uint16_t maxReadLength);
 protected:
     void AddCluster(Cluster* newCluster);
-    ESP_NOW_DATA _espNowData;
-    virtual void sendEspNowMessage(void);
+    TransportLayer* _pTransportLayer;
 
-    DEVICE_WRITE_CALLBACK _pfnWriteCallback;
 private:
     uint16_t _index;
     static inline bool _indexList[CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT] = {0};

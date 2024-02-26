@@ -16,20 +16,20 @@ using namespace ::chip;
 /**************************************************************************
  *                                  Types
  **************************************************************************/
-
 class DeviceLight : public Device
 {
 public:
-    DeviceLight(const char* pName, const char* pLocation, DEVICE_WRITE_CALLBACK pfnWriteCallback);
+    DeviceLight(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
     ~DeviceLight(void);
 
     void SetOn(bool isOn) { onOffCluster.SetOn(isOn, GetIndex()); }
-
-private:    
+    
     OnOffCluster onOffCluster;
     DescriptorCluster descriptorCluster;
-    ENDPOINT_DATA _endpointData;
+
+private:    
     void sendEspNowMessage(void);
+    ENDPOINT_DATA _endpointData;
 };
 /**************************************************************************
  *                                  Prototypes

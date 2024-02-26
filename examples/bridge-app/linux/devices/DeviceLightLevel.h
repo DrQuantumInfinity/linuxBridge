@@ -12,7 +12,6 @@ using namespace ::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
-#define DEVICE_LIGHT_LEV_NUM_CLUSTERS (4) // ArraySize(bridgedLightClusters)
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
@@ -23,7 +22,7 @@ using namespace ::chip;
 class DeviceLightLevel : public Device
 {
 public:
-    DeviceLightLevel(const char * pName, const char * pLocation, DEVICE_WRITE_CALLBACK pfnWriteCallback);
+    DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
     ~DeviceLightLevel(void);
 
     void SetOn(bool isOn) { onOffCluster.SetOn(isOn, GetIndex()); }

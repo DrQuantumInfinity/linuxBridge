@@ -5,7 +5,6 @@
 #include "EndpointApi.h"
 #include "LevelControlCluster.h"
 #include "OnOffCluster.h"
-#include "SerialTask.h"
 #include <app/util/attribute-storage.h>
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
@@ -47,9 +46,9 @@ const EmberAfDeviceType bridgedDeviceTypes[] = { { .deviceId = 0x0101, .deviceVe
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-DeviceLightLevel::DeviceLightLevel(const char * pName, const char * pLocation, DEVICE_WRITE_CALLBACK pfnWriteCallback)
+DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
 {
-    _pfnWriteCallback           = pfnWriteCallback;
+    _pTransportLayer = pTransportLayer;
     DataVersion * pDataVersions = (DataVersion *) malloc(sizeof(DataVersion) * ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData  = {
          .index                    = GetIndex(),
@@ -85,10 +84,3 @@ DeviceLightLevel::~DeviceLightLevel()
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-
-void DeviceLightLevel::sendEspNowMessage()
-{
-    _espNowData.data.lightDimmer.onOff      = onOffCluster._isOn;
-    _espNowData.data.lightDimmer.brightness = levelControlCluster._level;
-    SerialTransmit(&_espNowData, sizeof(_espNowData));
-}

@@ -1,12 +1,17 @@
 
 #pragma once
-#include "DescriptorCluster.h"
-#include "OnOffCluster.h"
-#include "Device.h"
-#include "EndpointApi.h"
+
+#include <functional>
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "transportLayer.h"
+#include "EspNowData.h"
+#include "DeviceList.h"
+
 #include <app/InteractionModelEngine.h>
 #include <app/util/af-types.h>
-using namespace ::chip;
+using namespace::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -17,18 +22,21 @@ using namespace ::chip;
  *                                  Types
  **************************************************************************/
 
-class DeviceButton : public Device
+class TransportEspNow : public TransportLayer
 {
 public:
-    DeviceButton(const char * pName, const char * pLocation, TransportLayer* pTransportLayer);
-    ~DeviceButton(void);
-    void SetOn(bool on) { onOffCluster.SetOn(on, GetIndex()); }
-    void Toggle(void) { onOffCluster.SetOn(!onOffCluster._isOn, GetIndex()); }
+    TransportEspNow(const ESP_NOW_DATA* pData, uint32_t dataLength);
+    virtual ~TransportEspNow(void);
+    static void HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLength);
+
+protected:
+    void Send(const Device* pDevice, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
 
 private:
-    OnOffCluster onOffCluster;
-    DescriptorCluster descriptorCluster;
-    ENDPOINT_DATA _endpointData;
+    ESP_NOW_DATA _data;
+    static DeviceList _deviceList;
+    struct Private;
+
 };
 /**************************************************************************
  *                                  Prototypes
