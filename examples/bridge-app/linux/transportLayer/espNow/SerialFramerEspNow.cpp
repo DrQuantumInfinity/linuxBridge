@@ -65,18 +65,17 @@ void SerialInit(void)
 
     //Test code to inject a fake EspNow message
     TimerSleepMs(100);
-    ESP_NOW_DATA data = {
-        .macAddr = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66},
-        .type = ESP_NOW_DEVICE_TYPE_LIGHT_RGB,
-        .data.lightRgb = {
-            .onOff = true,
-            .mode = ESP_NOW_DATA_LIGHT_RGB_MODE_STATIC,
-            .hue = 122,
-            .saturation = 100,
-            .brightness = 75,
-        }
-    };
-    SerialTransmit(&data, sizeof(data));
+    ESP_NOW_DATA espMsg;
+    memset(&espMsg, 0x00, sizeof(espMsg));
+    memset(espMsg.macAddr, 0xFF, sizeof(espMsg.macAddr));
+    espMsg.type = ESP_NOW_DEVICE_TYPE_LIGHT_RGB;
+    espMsg.data.lightRgb.onOff = true;
+    espMsg.data.lightRgb.mode = ESP_NOW_DATA_LIGHT_RGB_MODE_STATIC;
+    espMsg.data.lightRgb.hue = 122;
+    espMsg.data.lightRgb.saturation = 100;
+    espMsg.data.lightRgb.brightness = 75;
+
+    SerialTransmit(&espMsg, OFFSET_OF(typeof(espMsg), data) + sizeof(espMsg.data.lightRgb));
 }
 void SerialTransmit(const void* pData, uint32_t dataLength)
 {

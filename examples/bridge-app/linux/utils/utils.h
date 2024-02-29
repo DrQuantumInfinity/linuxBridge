@@ -88,7 +88,7 @@ File: utils.h
 #define MEMBER_SIZE(type, field)	(sizeof(((type *)0)->field))
 #define NELEMENTS(array)  			(sizeof (array) / sizeof (array[0]))
 #define NELEMENTS2(array)  		(sizeof (array) / sizeof (array[0][0]))
-#define OFFSET_OF(type, field)   ((UINT64)&(((type *)0)->field))
+#define OFFSET_OF(type, field)   ((uint64_t)&(((type *)0)->field))
 
 #define QUOTE_VAR_NAME(x) 	#x
 #define QUOTE_VAR_VALUE(x) QUOTE_VAR_NAME(x)

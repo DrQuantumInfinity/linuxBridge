@@ -124,7 +124,7 @@ void TransportEspNow::Private::EspNowSend(TransportEspNow& self, const Device* p
     switch (self._data.type)
     {
         case ESP_NOW_DEVICE_TYPE_TOGGLE:    /*ESPNOW TOGGLEs are transmitters only*/                            break;
-        case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: Private::EspNowSendLightRgb(self, (const DeviceLightRGB*)pDevice);  break;
+        case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: /* Private::EspNowSendLightRgb(self, (const DeviceLightRGB*)pDevice); */  break;
         default:                            /*Support this type!*/                                              break;
     }
 }

@@ -923,6 +923,7 @@ void * bridge_polling_thread(void * context)
 
 void ApplicationInit()
 {
+    // chip::Server::GetInstance().ScheduleFactoryReset();
     EndpointApiInit();
     SerialInit();
 
