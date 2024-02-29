@@ -56,6 +56,7 @@
 #include "timer.h"
 #include "utils.h"
 #include "SerialFramerEspNow.h"
+#include "EndpointApi.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -922,6 +923,9 @@ void * bridge_polling_thread(void * context)
 
 void ApplicationInit()
 {
+    EndpointApiInit();
+    SerialInit();
+
     // Clear out the device database
     // memset(gDevices, 0, sizeof(gDevices));
 
@@ -1049,7 +1053,6 @@ int main(int argc, char * argv[])
         return -1;
     }
 
-    //SerialInit();
 
     ChipLinuxAppMainLoop();
     return 0;

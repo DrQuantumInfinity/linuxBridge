@@ -68,7 +68,7 @@ void EndpointRemove(uint16_t index)
 }
 void EndpointReportChange(uint16_t index, ClusterId cluster, AttributeId attribute)
 {
-    auto * path = Platform::New<app::ConcreteAttributePath>(emberAfEndpointFromIndex(index + FIXED_ENDPOINT_COUNT), cluster, attribute);
+    auto * path = Platform::New<app::ConcreteAttributePath>(index + FIXED_ENDPOINT_COUNT, cluster, attribute);
     DeviceLayer::PlatformMgr().ScheduleWork(EndpointReportUpdateWorker, reinterpret_cast<intptr_t>(path));
 }
 /**************************************************************************
@@ -180,10 +180,11 @@ static void EndpointApiInitWorker(intptr_t context)
     // Disable last fixed endpoint, which is used as a placeholder for all of the
     // supported clusters so that ZAP will generated the requisite code.
     emberAfEndpointEnableDisable(emberAfEndpointFromIndex(static_cast<uint16_t>(emberAfFixedEndpointCount() - 1)), false);
+    emberAfEndpointEnableDisable(emberAfEndpointFromIndex(static_cast<uint16_t>(emberAfFixedEndpointCount() - 2)), false);
 
     // A bridge has root node device type on EP0 and aggregate node device type (bridge) at EP1
     emberAfSetDeviceTypeList(0, Span<const EmberAfDeviceType>(rootDeviceTypes));
-    emberAfSetDeviceTypeList(1, Span<const EmberAfDeviceType>(aggregateNodeDeviceTypes));
+    emberAfSetDeviceTypeList(2, Span<const EmberAfDeviceType>(aggregateNodeDeviceTypes));
 }
 static void EndpointAddWorker(intptr_t context)
 {
@@ -264,6 +265,12 @@ static void EndpointRemoveWorker(intptr_t context)
 static void EndpointReportUpdateWorker(intptr_t closure)
 {
     auto path = reinterpret_cast<app::ConcreteAttributePath *>(closure);
+    path->mEndpointId = emberAfEndpointFromIndex(path->mEndpointId);
+    if(path->mEndpointId == kInvalidEndpointId){
+        log_error("Invalid endpoint %u", index);
+        Platform::Delete(path);
+        return;
+    }
     log_info("Update endpoint/cluster/attr %u/%04lX/%04lX", path->mEndpointId, path->mClusterId, path->mAttributeId);
     MatterReportingAttributeChangeCallback(*path);
     Platform::Delete(path);
