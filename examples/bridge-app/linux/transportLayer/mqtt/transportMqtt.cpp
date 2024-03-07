@@ -6,6 +6,7 @@
 #include "DeviceButton.h"
 #include "DeviceLightRGB.h"
 
+using namespace ::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -54,9 +55,14 @@ void TransportMqtt::Init(void)
     {
         mqttDeviceTopicLengths[type] = strlen(pMqttDeviceTypes[type]) + 12;
     }
+
     mqtt_init(TransportMqtt::mqtt_inst, "192.168.0.128", TransportMqtt::HandleTopicRx);
-    for(int i = 0;i<MQTT_TYPE_COUNT;i++)
-        mqtt_add_sub(TransportMqtt::mqtt_inst, pMqttDeviceTypes[i]);
+    for(int i = 0; i<MQTT_TYPE_COUNT; i++)
+    {
+        char topicBuf[30];
+        sprintf(topicBuf, "%s*", pMqttDeviceTypes[i]);
+        mqtt_add_sub(TransportMqtt::mqtt_inst, topicBuf);
+    }
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
 {

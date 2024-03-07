@@ -7,7 +7,6 @@
 
 #include <app/InteractionModelEngine.h>
 #include <app/util/af-types.h>
-using namespace ::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -21,8 +20,8 @@ class Device;
 class TransportLayer
 {
 public:
-    virtual void Send(const Device* pDevice, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer) = 0;
-
+    virtual void Send(const Device* pDevice, chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer) = 0;
+    virtual ~TransportLayer(void) = 0;
 protected:
 
 private:
