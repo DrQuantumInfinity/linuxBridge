@@ -24,7 +24,8 @@ int mqtt_init(mqtt_inst * inst, char* broker, mqtt_msgCallback messageHandler)
 {
     inst = (mqtt_inst*)malloc(sizeof(mqtt_inst));
     inst->messageHandler = messageHandler;
-	mosquitto *mosq = inst->mosq;
+    inst->connected = false;
+
 	int rc;
 
     if(!g_initted)
@@ -33,7 +34,8 @@ int mqtt_init(mqtt_inst * inst, char* broker, mqtt_msgCallback messageHandler)
         g_initted = true;
     }
 
-	mosq = mosquitto_new(NULL, true, inst);
+	inst->mosq = mosquitto_new(NULL, true, inst);
+	mosquitto *mosq = inst->mosq;
 	if(mosq == NULL){
 		fprintf(stderr, "Error: Out of memory.\n");
 		return 1;
@@ -72,7 +74,7 @@ void mqtt_unsub(mqtt_inst * inst, const char * topic){
 }
 
 void mqtt_publish(mqtt_inst * inst, const char * topic, const char * message){
-    int rc = mosquitto_publish(inst->mosq, NULL, topic, strlen(message), message, 2, false);
+    int rc = mosquitto_publish(inst->mosq, NULL, topic, (int)strlen(message), message, 2, false);
 	if(rc != MOSQ_ERR_SUCCESS){
 		fprintf(stderr, "Error publishing: %s\n", mosquitto_strerror(rc));
 	}
@@ -100,7 +102,6 @@ static void unsubscribe(mosquitto * mosq, const char* topic){
 static void on_connect(struct mosquitto *mosq, void *obj, int reason_code)
 {
     mqtt_inst* inst = (mqtt_inst*)obj;
-    int rc;
     printf("on_connect: %s\n", mosquitto_connack_string(reason_code));
     if(reason_code != 0){
         mosquitto_disconnect(mosq);

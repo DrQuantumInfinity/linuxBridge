@@ -12,7 +12,6 @@
 #include <app/util/af-types.h>
 
 #include "mqtt.h"
-using namespace::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -41,7 +40,7 @@ public:
     static void HandleTopicRx(const char* pTopic, const char* pPayload);
     
 protected:
-    void Send(const Device* pDevice, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
+    void Send(const Device* pDevice, chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
 
 private:
     MQTT_TYPE _type;
