@@ -10,6 +10,7 @@ typedef struct mqtt_inst
     mosquitto * mosq;
     mqtt_msgCallback messageHandler;
     std::unordered_set<const char*> subs;
+    bool connected;
 } mqtt_inst_t;
 
 
