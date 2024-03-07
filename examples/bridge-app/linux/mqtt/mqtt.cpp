@@ -9,7 +9,6 @@
  *                                  Variables
  **************************************************************************/
 bool g_initted = false;
-bool g_connected = false;
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
@@ -62,13 +61,13 @@ int mqtt_init(mqtt_inst * inst, char* broker, mqtt_msgCallback messageHandler)
 
 void mqtt_add_sub(mqtt_inst * inst, const char * topic){
     inst->subs.insert(topic);
-    if(g_connected)
+    if(inst->connected)
         subscribe(inst->mosq, topic);
 }
 
 void mqtt_unsub(mqtt_inst * inst, const char * topic){
     inst->subs.erase(topic);
-    if(g_connected)
+    if(inst->connected)
         unsubscribe(inst->mosq, topic);
 }
 
@@ -106,7 +105,7 @@ static void on_connect(struct mosquitto *mosq, void *obj, int reason_code)
     if(reason_code != 0){
         mosquitto_disconnect(mosq);
     }
-    g_connected = true;
+    inst->connected = true;
     std::unordered_set<const char*>::iterator itr;
     for (itr = inst->subs.begin(); itr != inst->subs.end(); itr++)
         subscribe(inst->mosq, *itr);

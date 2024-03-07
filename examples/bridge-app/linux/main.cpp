@@ -57,6 +57,7 @@
 #include "utils.h"
 #include "SerialFramerEspNow.h"
 #include "EndpointApi.h"
+#include "transportMqtt.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -925,7 +926,9 @@ void ApplicationInit()
 {
     // chip::Server::GetInstance().ScheduleFactoryReset();
     EndpointApiInit();
-    SerialInit();
+    // SerialInit();
+    TransportMqtt::Init();
+    TransportMqtt::HandleTopicRx("WifiDimmerFeit-112233445566/1/set", "1");
 
     // Clear out the device database
     // memset(gDevices, 0, sizeof(gDevices));

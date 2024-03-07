@@ -84,6 +84,7 @@ executable("chip-bridge-app") {
     "clusters",
     "transportLayer",
     "transportLayer/espNow",
+    "transportLayer/mqtt",
     "utils",
     "mqtt/include",
     "mqtt",

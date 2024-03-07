@@ -1,6 +1,7 @@
 
 #include "transportMqtt.h"
 
+#include "Log.h"
 //Devices
 #include "DeviceLightLevel.h"
 #include "DeviceButton.h"
@@ -54,9 +55,9 @@ void TransportMqtt::Init(void)
     {
         mqttDeviceTopicLengths[type] = strlen(pMqttDeviceTypes[type]) + 12;
     }
-    mqtt_init(TransportMqtt::mqtt_inst, "192.168.0.128", TransportMqtt::HandleTopicRx);
-    for(int i = 0;i<MQTT_TYPE_COUNT;i++)
-        mqtt_add_sub(TransportMqtt::mqtt_inst, pMqttDeviceTypes[i]);
+    // mqtt_init(TransportMqtt::mqtt_inst, "192.168.0.128", TransportMqtt::HandleTopicRx);
+    // for(int i = 0;i<MQTT_TYPE_COUNT;i++)
+    //     mqtt_add_sub(TransportMqtt::mqtt_inst, pMqttDeviceTypes[i]);
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
 {
@@ -76,6 +77,7 @@ void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
     }
     else
     {
+        log_warn("Invalid MQTT topic: %s", pTopic);
         //TODO: log something about an invalid MQTT message
     }
 }
@@ -119,22 +121,24 @@ Device* TransportMqtt::Private::AddNewDevice(MQTT_TYPE type, const char* pName)
     }
     return pDevice;
 }
+
 MQTT_TYPE TransportMqtt::Private::GetDeviceType(const char* pTopic)
 {
+
+    
     //MQTT device identifiers must match the pattern "DEVICE-MACADDRESS/"
     uint32_t type = (uint32_t)MQTT_TYPE_COUNT;
 
     const char* pSlash = strchr(pTopic, '/');
     if (pSlash)
     {
-        pSlash--;
+        // pSlash--;
         uint32_t deviceNameLength = (uint64_t)pSlash - (uint64_t)pTopic;
-
         type = 0;
         while (type < (uint32_t)MQTT_TYPE_COUNT)
         {
             if (deviceNameLength == mqttDeviceTopicLengths[type] &&
-                strcmp(pMqttDeviceTypes[type], pTopic) == STR_CMP_MATCH)
+                memcmp(pMqttDeviceTypes[type], pTopic, strlen(pMqttDeviceTypes[type])) == STR_CMP_MATCH)
             {
                 //Could also verify that the last 12 characters are ascii-hex...
                 break;
@@ -178,6 +182,7 @@ void TransportMqtt::Private::GoogleSendLightRgb(const char* pTopic, const char* 
 //Send to EspNow device functions
 void TransportMqtt::Private::MqttSend(TransportMqtt& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
+    log_info("MqttSend");
     switch (self._type)
     {
         case MQTT_DIMMER_SWITCH_FEIT:   Private::MqttSendLightLevel(self, (const DeviceLightLevel*)pDevice, clusterId, attributeId);    break;
@@ -188,6 +193,7 @@ void TransportMqtt::Private::MqttSend(TransportMqtt& self, const Device* pDevice
 }
 void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const DeviceLightLevel* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
+    log_info("MqttSendLightLevel");
     char * topic;
     char * message;
     if (clusterId == OnOff::Id && attributeId == OnOff::Attributes::OnOff::Id)
@@ -197,13 +203,12 @@ void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const Devic
     else if (clusterId == LevelControl::Id && attributeId == LevelControl::Attributes::CurrentLevel::Id)
     {
         //compose mqtt string from pDevice->levelControlCluster._level
-
     }
     else{
         //no match!
         return;
     }
-    mqtt_publish(TransportMqtt::mqtt_inst, topic, message);
+    // mqtt_publish(TransportMqtt::mqtt_inst, topic, message);
 }
 void TransportMqtt::Private::MqttSendOutlet(TransportMqtt& self, const DeviceButton* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
