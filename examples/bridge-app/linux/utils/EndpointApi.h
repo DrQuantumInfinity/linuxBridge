@@ -3,9 +3,8 @@
 //TODO: can these be deleted?
 #include <app/InteractionModelEngine.h>
 #include <app/util/af-types.h>
+#include <stdint.h>
 
-using namespace ::chip;
-using namespace ::chip::app::Clusters;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -17,9 +16,9 @@ using namespace ::chip::app::Clusters;
 /**************************************************************************
  *                                  Types
  **************************************************************************/
-typedef EmberAfStatus (*GOOGLE_READ_CALLBACK)(void *pObject, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer, uint16_t maxReadLength);
-typedef EmberAfStatus (*GOOGLE_WRITE_CALLBACK)(void *pObject, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
-typedef bool (*GOOGLE_INSTANT_ACTION_CALLBACK)(app::CommandHandler* commandObj, const app::ConcreteCommandPath & commandPath, const Actions::Commands::InstantAction::DecodableType & commandData);
+typedef EmberAfStatus (*GOOGLE_READ_CALLBACK)(void *pObject, chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer, uint16_t maxReadLength);
+typedef EmberAfStatus (*GOOGLE_WRITE_CALLBACK)(void *pObject, chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
+typedef bool (*GOOGLE_INSTANT_ACTION_CALLBACK)(chip::app::CommandHandler* commandObj, const chip::app::ConcreteCommandPath & commandPath, const chip::app::Clusters::Actions::Commands::InstantAction::DecodableType & commandData);
 typedef struct
 {
     uint16_t index;
@@ -33,7 +32,7 @@ typedef struct
     const EmberAfEndpointType* ep;
     const EmberAfDeviceType *pDeviceTypeList;
     uint32_t deviceTypeListLength;
-    DataVersion *pDataVersionStorage;
+    chip::DataVersion *pDataVersionStorage;
     uint32_t dataVersionStorageLength;
     chip::EndpointId parentEndpointId;
 }ENDPOINT_DATA;
@@ -45,4 +44,4 @@ typedef struct
 void EndpointApiInit(void);
 void EndpointAdd(ENDPOINT_DATA *pData);
 void EndpointRemove(uint16_t index);
-void EndpointReportChange(uint16_t index, ClusterId cluster, AttributeId attribute);
+void EndpointReportChange(uint16_t index, chip::ClusterId cluster, chip::AttributeId attribute);
