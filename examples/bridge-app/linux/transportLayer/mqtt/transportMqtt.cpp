@@ -67,9 +67,6 @@ void TransportMqtt::Init(void)
         sprintf(topicBuf, "%s#", pMqttDeviceTypes[i]);
         mqtt_wrap_add_sub(TransportMqtt::_mqttInst, topicBuf);
     }
-    // while(!TransportMqtt::_mqttInst->connected){
-    //     TimerSleepMs(100);
-    // }
     mqtt_wrap_loopstart(TransportMqtt::_mqttInst);
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
@@ -198,7 +195,7 @@ void TransportMqtt::Private::GoogleSendLightRgb(const char* pTopic, const char* 
 }
 
 
-//Send to EspNow device functions
+//Send to MQTT device functions
 void TransportMqtt::Private::MqttSend(TransportMqtt& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
     log_info("MqttSend");
@@ -212,22 +209,24 @@ void TransportMqtt::Private::MqttSend(TransportMqtt& self, const Device* pDevice
 }
 void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const DeviceLightLevel* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
-    log_info("MqttSendLightLevel");
-    char * topic;
-    char * message;
+    char topic[30];
+    char message[30];
     if (clusterId == OnOff::Id && attributeId == OnOff::Attributes::OnOff::Id)
     {
-        //compose mqtt string from pDevice->onOffCluster._isOn
+        sprintf(topic, "%s%s/1/set", pMqttDeviceTypes[self._type], self._macAddr);
+        sprintf(message, "%u", pDevice->onOffCluster._isOn ? 1 : 0);
     }
     else if (clusterId == LevelControl::Id && attributeId == LevelControl::Attributes::CurrentLevel::Id)
     {
-        //compose mqtt string from pDevice->levelControlCluster._level
+        sprintf(topic, "%s%s/2/set", pMqttDeviceTypes[self._type], self._macAddr);
+        sprintf(message, "%u", pDevice->levelControlCluster._level*10);
     }
     else{
-        //no match!
+        log_error("MqttSendLightLevel unsupported cluster/attribute %u/%u", clusterId, attributeId);
         return;
     }
-    // mqtt_publish(TransportMqtt::mqtt_inst, topic, message);
+    log_info("MqttSendLightLevel %s = %s", topic, message);
+    mqtt_wrap_publish(TransportMqtt::_mqttInst, topic, message);
 }
 void TransportMqtt::Private::MqttSendOutlet(TransportMqtt& self, const DeviceButton* pDevice, ClusterId clusterId, AttributeId attributeId)
 {

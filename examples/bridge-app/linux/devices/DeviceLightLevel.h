@@ -29,10 +29,11 @@ public:
     OnOffCluster GetOnOffCluster(void) { return onOffCluster; }
     LevelControlCluster GetLevelControlCluster(void) { return levelControlCluster; }
     DescriptorCluster GetDescriptorCluster(void) { return descriptorCluster; }
-
-private:
+    
     OnOffCluster onOffCluster;
     LevelControlCluster levelControlCluster;
+
+private:
     DescriptorCluster descriptorCluster;
     ENDPOINT_DATA _endpointData;
     void sendEspNowMessage(void);
