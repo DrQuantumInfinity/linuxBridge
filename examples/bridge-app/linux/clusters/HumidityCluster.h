@@ -11,7 +11,7 @@ class HumidityCluster : public Cluster
 public:
     HumidityCluster(void) { _id = chip::app::Clusters::RelativeHumidityMeasurement::Id; }
     uint16_t _humidity;
-    void UpdateHumidity(uint16_t humidity, uint16_t index);
+    void UpdateHumidity(float humidity, uint16_t index);
     EmberAfStatus Write(chip::AttributeId attributeId, uint8_t * buffer) override;
     EmberAfStatus Read(chip::AttributeId attributeId, uint8_t * buffer, uint16_t maxReadLength) override;
 

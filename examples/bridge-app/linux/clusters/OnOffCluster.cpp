@@ -3,7 +3,6 @@
 
 #include <lib/support/ZclString.h>
 #define ZCL_ON_OFF_CLUSTER_REVISION (4u)
-static const char * TAG = "OnOffCluster";
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
 

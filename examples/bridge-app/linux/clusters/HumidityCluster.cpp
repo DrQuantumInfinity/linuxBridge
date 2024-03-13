@@ -5,7 +5,7 @@
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
 
-void HumidityCluster::UpdateHumidity(uint16_t humidity, uint16_t index)
+void HumidityCluster::UpdateHumidity(float humidity, uint16_t index)
 {
     _humidity = (uint16_t) (humidity * 100);
     EndpointReportChange(index, RelativeHumidityMeasurement::Id, RelativeHumidityMeasurement::Attributes::MeasuredValue::Id);

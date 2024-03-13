@@ -3,7 +3,6 @@
 #include <lib/support/ZclString.h>
 #include <string.h>
 #define ZCL_BRIDGED_DEVICE_BASIC_INFORMATION_CLUSTER_REVISION (2u)
-static const char * TAG = "BasicCluster";
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
 

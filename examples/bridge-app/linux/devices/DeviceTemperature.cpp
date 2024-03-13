@@ -78,8 +78,8 @@ DeviceTemperature::DeviceTemperature(const char* pName, const char* pLocation, T
     AddCluster(&tempCluster);
     AddCluster(&humidityCluster);
 
-    tempCluster._temp = temp;
-    humidityCluster._humidity = humid;
+    tempCluster._temp = (int)(100*temp); //TODO: create a constructor
+    humidityCluster._humidity = (int)(100*humid); //TODO: create a constructor
     strncpy(basicCluster._name, pName, sizeof(basicCluster._name));
     
     strcpy(endpointData.name, pName);
