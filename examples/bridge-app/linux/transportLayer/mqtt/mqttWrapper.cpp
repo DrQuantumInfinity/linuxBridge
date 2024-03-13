@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "Log.h"
 /**************************************************************************
  *                                  Variables
  **************************************************************************/
@@ -20,10 +20,10 @@ static void unsubscribe(mosquitto * mosq, const char * topic);
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-int mqtt_wrap_init(mqtt_inst * inst, const char* broker, mqtt_msgCallback messageHandler)
+mqtt_inst* mqtt_wrap_init(const char* broker, mqtt_msgCallback messageHandler)
 {
-    inst = (mqtt_inst*)malloc(sizeof(mqtt_inst));
-    // inst->messageHandler = messageHandler;
+    mqtt_inst* inst = new mqtt_inst();
+    inst->messageHandler = messageHandler;
     inst->connected = false;
 
 	int rc;
@@ -37,8 +37,8 @@ int mqtt_wrap_init(mqtt_inst * inst, const char* broker, mqtt_msgCallback messag
 	inst->mosq = mosquitto_new(NULL, true, inst);
 	mosquitto *mosq = inst->mosq;
 	if(mosq == NULL){
-		fprintf(stderr, "Error: Out of memory.\n");
-		return 1;
+        log_error("MQTT OOM error: %s", mosquitto_strerror(rc));
+		return NULL;
 	}
 
 	mosquitto_connect_callback_set(mosq, on_connect);
@@ -48,23 +48,40 @@ int mqtt_wrap_init(mqtt_inst * inst, const char* broker, mqtt_msgCallback messag
 	rc = mosquitto_connect(mosq, broker, 1883, 60);
 	if(rc != MOSQ_ERR_SUCCESS){
 		mosquitto_destroy(mosq);
-		fprintf(stderr, "Error: %s\n", mosquitto_strerror(rc));
-		return 1;
+        log_error("MQTT connect error: %s", mosquitto_strerror(rc));
+		return NULL;
 	}
+    log_info("MQTT init successful");
+    return inst;
+}
 
-    rc = mosquitto_loop_start(mosq);
+void mqtt_wrap_loopstart(mqtt_inst * inst){
+    mosquitto *mosq = inst->mosq;
+    int rc = mosquitto_loop_start(mosq);
 	if(rc != MOSQ_ERR_SUCCESS){
 		mosquitto_destroy(mosq);
-		fprintf(stderr, "Error: %s\n", mosquitto_strerror(rc));
-		return 1;
+        log_error("MQTT loop start error: %s", mosquitto_strerror(rc));
 	}
-    return 0;
 }
 
 void mqtt_wrap_add_sub(mqtt_inst * inst, const char * topic){
-    inst->subs.insert(topic);
-    if(inst->connected)
-        subscribe(inst->mosq, topic);
+    log_info("-----starting to sub to %s", topic);
+    log_info("subs size b4 %i", inst->subs.size());
+    for(auto x: inst->subs)
+    {
+        log_info("%s", x.c_str());
+    }
+    std::string cpptopic = topic;
+    inst->subs.insert(cpptopic);
+    log_info("subs size l8r %i", inst->subs.size());
+    
+    for(auto x: inst->subs)
+    {
+        log_info("%s", x.c_str());
+    }
+    log_info("end sub\n\n");
+    // if(inst->connected)
+        // subscribe(inst->mosq, topic);
 }
 
 void mqtt_wrap_unsub(mqtt_inst * inst, const char * topic){
@@ -76,16 +93,17 @@ void mqtt_wrap_unsub(mqtt_inst * inst, const char * topic){
 void mqtt_wrap_publish(mqtt_inst * inst, const char * topic, const char * message){
     int rc = mosquitto_publish(inst->mosq, NULL, topic, (int)strlen(message), message, 2, false);
 	if(rc != MOSQ_ERR_SUCCESS){
-		fprintf(stderr, "Error publishing: %s\n", mosquitto_strerror(rc));
+		log_error("Error publishing: %s", mosquitto_strerror(rc));
 	}
 }
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
 static void subscribe(mosquitto * mosq, const char * topic){
+    log_info("subscribing to: %s", topic);
     int rc = mosquitto_subscribe(mosq, NULL, topic, 1);
     if(rc != MOSQ_ERR_SUCCESS){
-        fprintf(stderr, "Error subscribing: %s\n", mosquitto_strerror(rc));
+        log_error("Error subscribing: %s", mosquitto_strerror(rc));
         mosquitto_disconnect(mosq);
     }
 }
@@ -93,7 +111,7 @@ static void subscribe(mosquitto * mosq, const char * topic){
 static void unsubscribe(mosquitto * mosq, const char* topic){
     int rc = mosquitto_unsubscribe(mosq, NULL, topic);
 	if(rc != MOSQ_ERR_SUCCESS){
-		fprintf(stderr, "Error unsubscribing: %s\n", mosquitto_strerror(rc));
+		log_error("Error unsubscribing: %s", mosquitto_strerror(rc));
 		mosquitto_disconnect(mosq);
 	}
 }
@@ -102,14 +120,15 @@ static void unsubscribe(mosquitto * mosq, const char* topic){
 static void on_connect(struct mosquitto *mosq, void *obj, int reason_code)
 {
     mqtt_inst* inst = (mqtt_inst*)obj;
-    printf("on_connect: %s\n", mosquitto_connack_string(reason_code));
+    log_info("on_connect: %s", mosquitto_connack_string(reason_code));
     if(reason_code != 0){
         mosquitto_disconnect(mosq);
     }
     inst->connected = true;
-    std::unordered_set<const char*>::iterator itr;
-    for (itr = inst->subs.begin(); itr != inst->subs.end(); itr++)
-        subscribe(inst->mosq, *itr);
+    for(auto x: inst->subs)
+    {
+        subscribe(inst->mosq, x.c_str());
+    }
 }
 
 static void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos)
@@ -118,13 +137,13 @@ static void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_cou
     bool have_subscription = false;
 
     for(i=0; i<qos_count; i++){
-        printf("on_subscribe: %d:granted qos = %d\n", i, granted_qos[i]);
+        log_info("on_subscribe: %d:granted qos = %d", i, granted_qos[i]);
         if(granted_qos[i] <= 2){
             have_subscription = true;
         }
     }
     if(have_subscription == false){
-        fprintf(stderr, "Error: All subscriptions rejected.\n");
+        log_error("Error: All subscriptions rejected.\n");
         mosquitto_disconnect(mosq);
     }
 }

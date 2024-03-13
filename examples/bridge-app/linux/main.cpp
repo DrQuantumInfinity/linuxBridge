@@ -30,7 +30,6 @@
 #include "transportMqtt.h"
 
 
-
 std::vector<EndpointListInfo> GetEndpointListInfo(chip::EndpointId parentId)
 {
     std::vector<EndpointListInfo> infoList;
@@ -67,7 +66,6 @@ int main(int argc, char * argv[])
     {
         return -1;
     }
-
 
     ChipLinuxAppMainLoop();
     return 0;
