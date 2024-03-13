@@ -121,7 +121,9 @@ File: utils.h
 #ifndef ABS_DIF
 #define ABS_DIF(x,y)	( ((x) >= (y))? ((x) - (y)) : ((y) - (x)) )
 #endif
+#ifndef CLAMP
 #define CLAMP(x,low,high)	(((x) > (high))? (high) : (((x) < (low))? (low) : (x)))
+#endif
 
 #define DIVIDE_ROUND_UP(top, bottom)   (((top) + (bottom) - 1)/(bottom))
 
