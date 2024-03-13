@@ -1,5 +1,7 @@
 
 #include "SerialFramerEspNow.h"
+
+#include "assert.h"
 #include "TimerTick.h"
 #include "Crc16.h"
 #include "EspNowData.h"
@@ -10,8 +12,6 @@
 #include "transportEspNow.h"
 
 #include <string.h>
-
-//using namespace chip;
 
 /**************************************************************************
  *                                  Constants
@@ -79,11 +79,12 @@ void SerialInit(void)
 }
 void SerialTransmit(const void* pData, uint32_t dataLength)
 {
+    uint8_t byteLength = (uint8_t)dataLength;
+    ASSERT_PARAM(dataLength < BIT(sizeof(byteLength)));
     SerialPrintDebug(true, (uint8_t*)pData, dataLength);
     if (dataLength < SERIAL_TX_MAX_SIZE)
     {
-        uint8_t byteLength = dataLength;
-        
+        byteLength = (uint8_t)dataLength;
         UartWriteBlocking(serial.uartHandle, (uint8_t*)&startKey, sizeof(startKey));
         UartWriteBlocking(serial.uartHandle, (uint8_t*)&byteLength, sizeof(byteLength));
         UartWriteBlocking(serial.uartHandle, (uint8_t*)pData, byteLength);
@@ -124,8 +125,8 @@ static void SerialParseEspNowFrame(void)
 
     while (rxBufOffset) 
     {
-        int consumeSize = 1;
-        int parseOffset = 0;
+        uint32_t consumeSize = 1;
+        uint32_t parseOffset = 0;
         if (rxBufOffset >= sizeof(startKey)) 
         {
             if (memcmp(&startKey, &pRxBuf[parseOffset], sizeof(startKey)) == 0) 
@@ -174,7 +175,7 @@ static void SerialPrintDebug(bool tx, const uint8_t* pData, uint32_t dataLength)
 {
     static char debugBuf[300];
     debugBuf[0] = '\0';
-    for (int i = 0; i < dataLength; i++)
+    for (uint32_t i = 0; i < dataLength; i++)
     {
         sprintf(&debugBuf[strlen(debugBuf)], " %02X", pData[i]);
     }
