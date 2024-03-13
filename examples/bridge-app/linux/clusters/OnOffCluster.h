@@ -5,13 +5,11 @@
 #include <app/util/attribute-storage.h>
 
 #include <app/util/af-types.h>
-using namespace ::chip;
-using namespace ::chip::app::Clusters;
 
 class OnOffCluster : public Cluster
 {
 public:
-    OnOffCluster(void) { _id = OnOff::Id; }
+    OnOffCluster(void) { _id = chip::app::Clusters::OnOff::Id; }
     bool _isOn = false;
     void SetOn(bool on, uint16_t index);
     EmberAfStatus Write(chip::AttributeId attributeId, uint8_t * buffer) override;
@@ -20,7 +18,7 @@ public:
     static constexpr EmberAfAttributeMetadata onOffAttrs[] = {
         { // onOff attribute
           .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = OnOff::Attributes::OnOff::Id,
+          .attributeId   = chip::app::Clusters::OnOff::Attributes::OnOff::Id,
           .size          = 1,
           .attributeType = ZAP_TYPE(BOOLEAN),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
@@ -32,17 +30,17 @@ public:
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
     };
     
-    static constexpr CommandId incomingCommands[] = {
-        app::Clusters::OnOff::Commands::Off::Id,
-        app::Clusters::OnOff::Commands::On::Id,
-        app::Clusters::OnOff::Commands::Toggle::Id,
-        app::Clusters::OnOff::Commands::OffWithEffect::Id,
-        app::Clusters::OnOff::Commands::OnWithRecallGlobalScene::Id,
-        app::Clusters::OnOff::Commands::OnWithTimedOff::Id,
-        kInvalidCommandId,
+    static constexpr chip::CommandId incomingCommands[] = {
+        chip::app::Clusters::OnOff::Commands::Off::Id,
+        chip::app::Clusters::OnOff::Commands::On::Id,
+        chip::app::Clusters::OnOff::Commands::Toggle::Id,
+        chip::app::Clusters::OnOff::Commands::OffWithEffect::Id,
+        chip::app::Clusters::OnOff::Commands::OnWithRecallGlobalScene::Id,
+        chip::app::Clusters::OnOff::Commands::OnWithTimedOff::Id,
+        chip::kInvalidCommandId,
     };
 
-    static constexpr EmberAfCluster cluster = { .clusterId            = OnOff::Id,
+    static constexpr EmberAfCluster cluster = { .clusterId            = chip::app::Clusters::OnOff::Id,
                                                 .attributes           = onOffAttrs,
                                                 .attributeCount       = ArraySize(onOffAttrs),
                                                 .clusterSize          = 3,

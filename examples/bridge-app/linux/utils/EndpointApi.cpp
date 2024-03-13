@@ -4,6 +4,9 @@
 #include <app/reporting/reporting.h> //for MatterReportingAttributeChangeCallback()
 #include <span>
 #include "Log.h"
+
+using namespace ::chip;
+using namespace ::chip::app::Clusters;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/

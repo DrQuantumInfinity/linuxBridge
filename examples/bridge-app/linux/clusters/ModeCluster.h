@@ -5,13 +5,11 @@
 #include <app/util/attribute-storage.h>
 
 #include <app/util/af-types.h>
-using namespace ::chip;
-using namespace ::chip::app::Clusters;
 
 class ModeCluster : public Cluster
 {
 public:
-    ModeCluster(void) { _id = OnOff::Id; }
+    ModeCluster(void) { _id = chip::app::Clusters::OnOff::Id; }
     bool _isOn;
     void SetOn(bool on, uint16_t index);
     EmberAfStatus Write(chip::AttributeId attributeId, uint8_t * buffer) override;
@@ -20,7 +18,7 @@ public:
     static constexpr EmberAfAttributeMetadata onOffAttrs[] = {
         { // onOff attribute
           .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = OnOff::Attributes::OnOff::Id,
+          .attributeId   = chip::app::Clusters::OnOff::Attributes::OnOff::Id,
           .size          = 1,
           .attributeType = ZAP_TYPE(BOOLEAN),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
@@ -32,7 +30,7 @@ public:
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
     };
 
-    static constexpr EmberAfCluster cluster = { .clusterId            = OnOff::Id,
+    static constexpr EmberAfCluster cluster = { .clusterId            = chip::app::Clusters::OnOff::Id,
                                                 .attributes           = onOffAttrs,
                                                 .attributeCount       = ArraySize(onOffAttrs),
                                                 .clusterSize          = 0,

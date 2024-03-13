@@ -26,7 +26,6 @@
 #include "EndpointApi.h"
 #include <app/InteractionModelEngine.h>
 #include <app/util/af-types.h>
-using namespace ::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -43,12 +42,12 @@ public:
     Device(void);
     virtual ~Device(void);
     uint16_t GetIndex(void);
-    EmberAfStatus ReadCluster(ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer, uint16_t maxReadLength);
-    EmberAfStatus WriteCluster(ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
+    EmberAfStatus ReadCluster(chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer, uint16_t maxReadLength);
+    EmberAfStatus WriteCluster(chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
     BasicCluster basicCluster;
-    static EmberAfStatus GoogleWriteCallback(void * pObject, ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata,
+    static EmberAfStatus GoogleWriteCallback(void * pObject, chip::ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata,
                                          uint8_t * buffer);
-    static EmberAfStatus GoogleReadCallback(void * pObject, ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata,
+    static EmberAfStatus GoogleReadCallback(void * pObject, chip::ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata,
                                         uint8_t * buffer, uint16_t maxReadLength);
 protected:
     void AddCluster(Cluster* newCluster);

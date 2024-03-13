@@ -5,13 +5,11 @@
 #include <app/util/attribute-storage.h>
 
 #include <app/util/af-types.h>
-using namespace ::chip;
-using namespace ::chip::app::Clusters;
 
 class TempCluster : public Cluster
 {
 public:
-    TempCluster() { _id = TemperatureMeasurement::Id; }
+    TempCluster() { _id = chip::app::Clusters::TemperatureMeasurement::Id; }
     int16_t _temp = 0;
     void UpdateTemp(float temp, uint16_t index);
     EmberAfStatus Write(chip::AttributeId attributeId, uint8_t * buffer) override;
@@ -19,7 +17,7 @@ public:
 
     static constexpr EmberAfAttributeMetadata levelAttrs[] = {
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = TemperatureMeasurement::Attributes::MeasuredValue::Id,
+          .attributeId   = chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Id,
           .size          = 2,
           .attributeType = ZAP_TYPE(INT16S),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
@@ -30,7 +28,7 @@ public:
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
     };
 
-    static constexpr EmberAfCluster cluster = { .clusterId            = TemperatureMeasurement::Id,
+    static constexpr EmberAfCluster cluster = { .clusterId            = chip::app::Clusters::TemperatureMeasurement::Id,
                                                 .attributes           = levelAttrs,
                                                 .attributeCount       = ArraySize(levelAttrs),
                                                 .clusterSize          = 0,
