@@ -7,6 +7,7 @@
 #include "DeviceButton.h"
 #include "DeviceLightRGB.h"
 
+#include "mqttWrapper.h"
 using namespace ::chip;
 /**************************************************************************
  *                                  Constants
@@ -46,7 +47,7 @@ static const char *pMqttDeviceTypes[] = {
 };
 static uint32_t mqttDeviceTopicLengths[MQTT_TYPE_COUNT];
 DeviceList TransportMqtt::_deviceList; //static variables in a class need to be independently initialized. C++ is dumb
-mqtt_inst* TransportMqtt::mqtt_inst; 
+mqtt_inst* TransportMqtt::_mqttInst; 
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/
@@ -57,12 +58,12 @@ void TransportMqtt::Init(void)
         mqttDeviceTopicLengths[type] = strlen(pMqttDeviceTypes[type]) + 12;
     }
 
-    // mqtt_init(TransportMqtt::mqtt_inst, "192.168.0.128", TransportMqtt::HandleTopicRx);
+    // mqtt_wrap_init(TransportMqtt::_mqttInst, "192.168.0.128", TransportMqtt::HandleTopicRx);
     // for(int i = 0; i<MQTT_TYPE_COUNT; i++)
     // {
     //     char topicBuf[30];
     //     sprintf(topicBuf, "%s*", pMqttDeviceTypes[i]);
-    //     mqtt_add_sub(TransportMqtt::mqtt_inst, topicBuf);
+    //     mqtt_wrap_add_sub(TransportMqtt::_mqttInst, topicBuf);
     // }
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)

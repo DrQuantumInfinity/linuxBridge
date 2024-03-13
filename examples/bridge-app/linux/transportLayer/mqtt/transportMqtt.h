@@ -11,7 +11,7 @@
 #include <app/InteractionModelEngine.h>
 #include <app/util/af-types.h>
 
-#include "mqtt.h"
+#include "mqttWrapper.h"
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -46,7 +46,7 @@ private:
     MQTT_TYPE _type;
     char _macAddr[MQTT_MAC_ADDRESS_LENGTH];
     static DeviceList _deviceList;
-    static mqtt_inst* mqtt_inst;
+    static mqtt_inst* _mqttInst;
     struct Private;
 };
 /**************************************************************************

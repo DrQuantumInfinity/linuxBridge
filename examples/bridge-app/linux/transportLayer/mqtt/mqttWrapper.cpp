@@ -1,6 +1,6 @@
 #include <string.h>
 #include <unistd.h>
-#include "mqtt.h"
+#include "mqttWrapper.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,10 +20,10 @@ static void unsubscribe(mosquitto * mosq, const char * topic);
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-int mqtt_init(mqtt_inst * inst, char* broker, mqtt_msgCallback messageHandler)
+int mqtt_wrap_init(mqtt_inst * inst, const char* broker, mqtt_msgCallback messageHandler)
 {
     inst = (mqtt_inst*)malloc(sizeof(mqtt_inst));
-    inst->messageHandler = messageHandler;
+    // inst->messageHandler = messageHandler;
     inst->connected = false;
 
 	int rc;
@@ -61,19 +61,19 @@ int mqtt_init(mqtt_inst * inst, char* broker, mqtt_msgCallback messageHandler)
     return 0;
 }
 
-void mqtt_add_sub(mqtt_inst * inst, const char * topic){
+void mqtt_wrap_add_sub(mqtt_inst * inst, const char * topic){
     inst->subs.insert(topic);
     if(inst->connected)
         subscribe(inst->mosq, topic);
 }
 
-void mqtt_unsub(mqtt_inst * inst, const char * topic){
+void mqtt_wrap_unsub(mqtt_inst * inst, const char * topic){
     inst->subs.erase(topic);
     if(inst->connected)
         unsubscribe(inst->mosq, topic);
 }
 
-void mqtt_publish(mqtt_inst * inst, const char * topic, const char * message){
+void mqtt_wrap_publish(mqtt_inst * inst, const char * topic, const char * message){
     int rc = mosquitto_publish(inst->mosq, NULL, topic, (int)strlen(message), message, 2, false);
 	if(rc != MOSQ_ERR_SUCCESS){
 		fprintf(stderr, "Error publishing: %s\n", mosquitto_strerror(rc));
