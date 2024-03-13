@@ -208,7 +208,7 @@ bool FutilNameIsOnlyDots(char const *pName)
 // the incoming string may require room for one extra '\0' character
 char *FutilUpDir(char *pPath)
 {
-   uint32_t len = strlen(pPath);
+   size_t len = strlen(pPath);
    bool trailingSlash = false;
    char *pRetName = NULL;
    char *pSlash;

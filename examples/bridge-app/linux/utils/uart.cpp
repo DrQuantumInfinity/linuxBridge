@@ -93,7 +93,7 @@ void UartWriteBlocking(UART_HANDLE uartHandle, const void * pSrc, uint32_t lengt
 {
     // lint -esym(529, writeResult)
     UART * pUart = UartValidateHandle(uartHandle);
-    int32_t writeResult = write(pUart->uartFileDescriptor, pSrc, length);
+    ssize_t writeResult = write(pUart->uartFileDescriptor, pSrc, length);
     ASSERT_PARAM(writeResult == length);
 }
 /**************************************************************************
@@ -152,12 +152,12 @@ static void UartReceiveHandler(UART * pUart)
 {
     for (;;)
     {
-        int32_t readLength = read(pUart->uartFileDescriptor, pUart->rxBuf, SERIAL_RECEIVE_BUF_SIZE);
+        ssize_t readLength = read(pUart->uartFileDescriptor, pUart->rxBuf, SERIAL_RECEIVE_BUF_SIZE);
         ASSERT_PARAM(readLength > 0);
 
         // TODO: use a callback here to call into EspNow transport serial handler
         //  MsgPostDouble(MID_UART_RX, &pUart->uartHandle, sizeof(pUart->uartHandle), pUart->rxBuf, (uint32_t) readLength);
-        pUart->rxCallback(pUart->uartHandle, pUart->rxBuf, readLength);
+        pUart->rxCallback(pUart->uartHandle, pUart->rxBuf, (uint32_t)readLength);
     }
 }
 static UART * UartValidateHandle(UART_HANDLE uartHandle)

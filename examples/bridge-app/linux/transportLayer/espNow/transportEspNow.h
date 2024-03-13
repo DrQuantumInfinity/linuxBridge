@@ -11,7 +11,6 @@
 
 #include <app/InteractionModelEngine.h>
 #include <app/util/af-types.h>
-using namespace::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -30,7 +29,7 @@ public:
     static void HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLength);
 
 protected:
-    void Send(const Device* pDevice, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
+    void Send(const Device* pDevice, chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
 
 private:
     ESP_NOW_DATA _data;

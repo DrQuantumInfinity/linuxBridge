@@ -30,8 +30,8 @@ const EmberAfEndpointType bridgedEndpoint = {
 // Device Version for dynamic endpoints:
 #define DEVICE_VERSION_DEFAULT 1
 const EmberAfDeviceType bridgedDeviceTypes[] = { 
-    [0] = {.deviceId = 0x0100, .deviceVersion = DEVICE_VERSION_DEFAULT},
-    [1] = {.deviceId = DEVICE_TYPE_BRIDGED_NODE,    .deviceVersion = DEVICE_VERSION_DEFAULT} 
+    {.deviceId = 0x0100, .deviceVersion = DEVICE_VERSION_DEFAULT},
+    {.deviceId = DEVICE_TYPE_BRIDGED_NODE,    .deviceVersion = DEVICE_VERSION_DEFAULT} 
 };
 /**************************************************************************
  *                                  Macros
