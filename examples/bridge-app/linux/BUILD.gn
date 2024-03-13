@@ -25,7 +25,6 @@ executable("chip-bridge-app") {
     "Device.cpp",
     "clusters/BasicCluster.cpp",
     "clusters/ColourCluster.cpp",
-    "clusters/DescriptorCluster.cpp",
     "clusters/HumidityCluster.cpp",
     "clusters/LevelControlCluster.cpp",
     "clusters/ModeCluster.cpp",

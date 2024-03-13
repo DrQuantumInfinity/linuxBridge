@@ -17,6 +17,7 @@
 
 #include "Device.h"
 #include "EndpointApi.h"
+using namespace ::chip;
 
 //static const char * TAG = "Device";
 Device::Device(void)

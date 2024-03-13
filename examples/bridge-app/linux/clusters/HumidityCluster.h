@@ -5,13 +5,11 @@
 #include <app/util/attribute-storage.h>
 
 #include <app/util/af-types.h>
-using namespace ::chip;
-using namespace ::chip::app::Clusters;
 
 class HumidityCluster : public Cluster
 {
 public:
-    HumidityCluster(void) { _id = RelativeHumidityMeasurement::Id; }
+    HumidityCluster(void) { _id = chip::app::Clusters::RelativeHumidityMeasurement::Id; }
     uint16_t _humidity;
     void UpdateHumidity(uint16_t humidity, uint16_t index);
     EmberAfStatus Write(chip::AttributeId attributeId, uint8_t * buffer) override;
@@ -19,7 +17,7 @@ public:
 
     static constexpr EmberAfAttributeMetadata attrs[] = {
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = RelativeHumidityMeasurement::Attributes::MeasuredValue::Id,
+          .attributeId   = chip::app::Clusters::RelativeHumidityMeasurement::Attributes::MeasuredValue::Id,
           .size          = 2,
           .attributeType = ZAP_TYPE(INT16U),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
@@ -30,7 +28,7 @@ public:
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
     };
 
-    static constexpr EmberAfCluster cluster = { .clusterId            = RelativeHumidityMeasurement::Id,
+    static constexpr EmberAfCluster cluster = { .clusterId            = chip::app::Clusters::RelativeHumidityMeasurement::Id,
                                                 .attributes           = attrs,
                                                 .attributeCount       = ArraySize(attrs),
                                                 .clusterSize          = 0,

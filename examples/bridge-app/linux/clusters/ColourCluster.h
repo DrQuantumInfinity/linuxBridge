@@ -5,13 +5,11 @@
 #include <app/util/attribute-storage.h>
 
 #include <app/util/af-types.h>
-using namespace ::chip;
-using namespace ::chip::app::Clusters;
 
 class ColourCluster : public Cluster
 {
 public:
-    ColourCluster(void) { _id = ColorControl::Id; }
+    ColourCluster(void) { _id = chip::app::Clusters::ColorControl::Id; }
     uint8_t _hue;
     uint8_t _sat;
     uint16_t _temp;
@@ -24,12 +22,12 @@ public:
 
     static constexpr EmberAfAttributeMetadata hsAttrs[] = {
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = ColorControl::Attributes::CurrentHue::Id,
+          .attributeId   = chip::app::Clusters::ColorControl::Attributes::CurrentHue::Id,
           .size          = 1,
           .attributeType = ZAP_TYPE(INT8U),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = ColorControl::Attributes::CurrentSaturation::Id,
+          .attributeId   = chip::app::Clusters::ColorControl::Attributes::CurrentSaturation::Id,
           .size          = 1,
           .attributeType = ZAP_TYPE(INT8U),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
@@ -42,7 +40,7 @@ public:
 
     static constexpr EmberAfAttributeMetadata tempAttrs[] = {
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = ColorControl::Attributes::ColorTemperatureMireds::Id,
+          .attributeId   = chip::app::Clusters::ColorControl::Attributes::ColorTemperatureMireds::Id,
           .size          = 2,
           .attributeType = ZAP_TYPE(INT16U),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
@@ -55,17 +53,17 @@ public:
 
     static constexpr EmberAfAttributeMetadata bothAttrs[] = {
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = ColorControl::Attributes::CurrentHue::Id,
+          .attributeId   = chip::app::Clusters::ColorControl::Attributes::CurrentHue::Id,
           .size          = 1,
           .attributeType = ZAP_TYPE(INT8U),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = ColorControl::Attributes::CurrentSaturation::Id,
+          .attributeId   = chip::app::Clusters::ColorControl::Attributes::CurrentSaturation::Id,
           .size          = 1,
           .attributeType = ZAP_TYPE(INT8U),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = ColorControl::Attributes::ColorTemperatureMireds::Id,
+          .attributeId   = chip::app::Clusters::ColorControl::Attributes::ColorTemperatureMireds::Id,
           .size          = 2,
           .attributeType = ZAP_TYPE(INT16U),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
@@ -76,57 +74,57 @@ public:
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
     };
 
-    static constexpr CommandId incomingCommands[] = {
-        app::Clusters::ColorControl::Commands::MoveToHue::Id,
-        app::Clusters::ColorControl::Commands::MoveHue::Id,
-        app::Clusters::ColorControl::Commands::StepHue::Id,
-        app::Clusters::ColorControl::Commands::MoveToSaturation::Id,
-        app::Clusters::ColorControl::Commands::MoveSaturation::Id,
-        app::Clusters::ColorControl::Commands::StepSaturation::Id,
-        app::Clusters::ColorControl::Commands::MoveToHueAndSaturation::Id,
-        app::Clusters::ColorControl::Commands::MoveToColor::Id,
-        app::Clusters::ColorControl::Commands::MoveColor::Id,
-        app::Clusters::ColorControl::Commands::StepColor::Id,
-        app::Clusters::ColorControl::Commands::MoveToColorTemperature::Id,
-        app::Clusters::ColorControl::Commands::EnhancedMoveToHue::Id,
-        app::Clusters::ColorControl::Commands::EnhancedMoveHue::Id,
-        app::Clusters::ColorControl::Commands::EnhancedStepHue::Id,
-        app::Clusters::ColorControl::Commands::EnhancedMoveToHueAndSaturation::Id,
-        app::Clusters::ColorControl::Commands::ColorLoopSet::Id,
-        app::Clusters::ColorControl::Commands::StopMoveStep::Id,
-        app::Clusters::ColorControl::Commands::MoveColorTemperature::Id,
-        app::Clusters::ColorControl::Commands::StepColorTemperature::Id,
-        kInvalidCommandId,
+    static constexpr chip::CommandId incomingCommands[] = {
+        chip::app::Clusters::ColorControl::Commands::MoveToHue::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveHue::Id,
+        chip::app::Clusters::ColorControl::Commands::StepHue::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveToSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::StepSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveToHueAndSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveToColor::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveColor::Id,
+        chip::app::Clusters::ColorControl::Commands::StepColor::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveToColorTemperature::Id,
+        chip::app::Clusters::ColorControl::Commands::EnhancedMoveToHue::Id,
+        chip::app::Clusters::ColorControl::Commands::EnhancedMoveHue::Id,
+        chip::app::Clusters::ColorControl::Commands::EnhancedStepHue::Id,
+        chip::app::Clusters::ColorControl::Commands::EnhancedMoveToHueAndSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::ColorLoopSet::Id,
+        chip::app::Clusters::ColorControl::Commands::StopMoveStep::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveColorTemperature::Id,
+        chip::app::Clusters::ColorControl::Commands::StepColorTemperature::Id,
+        chip::kInvalidCommandId,
     };
 
-    static constexpr CommandId incomingCommandsHS[] = {
-        app::Clusters::ColorControl::Commands::MoveToHue::Id,
-        app::Clusters::ColorControl::Commands::MoveHue::Id,
-        app::Clusters::ColorControl::Commands::StepHue::Id,
-        app::Clusters::ColorControl::Commands::MoveToSaturation::Id,
-        app::Clusters::ColorControl::Commands::MoveSaturation::Id,
-        app::Clusters::ColorControl::Commands::StepSaturation::Id,
-        app::Clusters::ColorControl::Commands::MoveToHueAndSaturation::Id,
-        app::Clusters::ColorControl::Commands::MoveToColor::Id,
-        app::Clusters::ColorControl::Commands::MoveColor::Id,
-        app::Clusters::ColorControl::Commands::StepColor::Id,
-        app::Clusters::ColorControl::Commands::EnhancedMoveToHue::Id,
-        app::Clusters::ColorControl::Commands::EnhancedMoveHue::Id,
-        app::Clusters::ColorControl::Commands::EnhancedStepHue::Id,
-        app::Clusters::ColorControl::Commands::EnhancedMoveToHueAndSaturation::Id,
-        app::Clusters::ColorControl::Commands::ColorLoopSet::Id,
-        app::Clusters::ColorControl::Commands::StopMoveStep::Id,
-        kInvalidCommandId,
+    static constexpr chip::CommandId incomingCommandsHS[] = {
+        chip::app::Clusters::ColorControl::Commands::MoveToHue::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveHue::Id,
+        chip::app::Clusters::ColorControl::Commands::StepHue::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveToSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::StepSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveToHueAndSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveToColor::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveColor::Id,
+        chip::app::Clusters::ColorControl::Commands::StepColor::Id,
+        chip::app::Clusters::ColorControl::Commands::EnhancedMoveToHue::Id,
+        chip::app::Clusters::ColorControl::Commands::EnhancedMoveHue::Id,
+        chip::app::Clusters::ColorControl::Commands::EnhancedStepHue::Id,
+        chip::app::Clusters::ColorControl::Commands::EnhancedMoveToHueAndSaturation::Id,
+        chip::app::Clusters::ColorControl::Commands::ColorLoopSet::Id,
+        chip::app::Clusters::ColorControl::Commands::StopMoveStep::Id,
+        chip::kInvalidCommandId,
     };
 
-    static constexpr CommandId incomingCommandsTemp[] = {
-        app::Clusters::ColorControl::Commands::MoveToColorTemperature::Id,
-        app::Clusters::ColorControl::Commands::MoveColorTemperature::Id,
-        app::Clusters::ColorControl::Commands::StepColorTemperature::Id,
-        kInvalidCommandId,
+    static constexpr chip::CommandId incomingCommandsTemp[] = {
+        chip::app::Clusters::ColorControl::Commands::MoveToColorTemperature::Id,
+        chip::app::Clusters::ColorControl::Commands::MoveColorTemperature::Id,
+        chip::app::Clusters::ColorControl::Commands::StepColorTemperature::Id,
+        chip::kInvalidCommandId,
     };
 
-    static constexpr EmberAfCluster hsCluster = { .clusterId            = ColorControl::Id,
+    static constexpr EmberAfCluster hsCluster = { .clusterId            = chip::app::Clusters::ColorControl::Id,
                                                   .attributes           = hsAttrs,
                                                   .attributeCount       = ArraySize(hsAttrs),
                                                   .clusterSize          = 4,
@@ -137,7 +135,7 @@ public:
                                                   .eventList            = nullptr,
                                                   .eventCount           = 0 };
 
-    static constexpr EmberAfCluster tempCluster = { .clusterId            = ColorControl::Id,
+    static constexpr EmberAfCluster tempCluster = { .clusterId            = chip::app::Clusters::ColorControl::Id,
                                                     .attributes           = tempAttrs,
                                                     .attributeCount       = ArraySize(tempAttrs),
                                                     .clusterSize          = 4,
@@ -148,7 +146,7 @@ public:
                                                     .eventList            = nullptr,
                                                     .eventCount           = 0 };
 
-    static constexpr EmberAfCluster bothcluster = { .clusterId            = ColorControl::Id,
+    static constexpr EmberAfCluster bothcluster = { .clusterId            = chip::app::Clusters::ColorControl::Id,
                                                     .attributes           = bothAttrs,
                                                     .attributeCount       = ArraySize(bothAttrs),
                                                     .clusterSize          = 6,

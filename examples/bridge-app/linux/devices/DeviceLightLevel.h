@@ -8,7 +8,6 @@
 #include "EndpointApi.h"
 #include <app/InteractionModelEngine.h>
 #include <app/util/af-types.h>
-using namespace ::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/

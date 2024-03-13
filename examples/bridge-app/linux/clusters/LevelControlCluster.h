@@ -5,13 +5,11 @@
 #include <app/util/attribute-storage.h>
 
 #include <app/util/af-types.h>
-using namespace ::chip;
-using namespace ::chip::app::Clusters;
 
 class LevelControlCluster : public Cluster
 {
 public:
-    LevelControlCluster(void) { _id = LevelControl::Id; }
+    LevelControlCluster(void) { _id = chip::app::Clusters::LevelControl::Id; }
     uint8_t _level;
     uint8_t _minLevel;
     uint8_t _maxLevel;
@@ -21,7 +19,7 @@ public:
 
     static constexpr EmberAfAttributeMetadata levelAttrs[] = {
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = LevelControl::Attributes::CurrentLevel::Id,
+          .attributeId   = chip::app::Clusters::LevelControl::Attributes::CurrentLevel::Id,
           .size          = 1,
           .attributeType = ZAP_TYPE(INT8U),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },/*
@@ -36,7 +34,7 @@ public:
           .attributeType = ZAP_TYPE(INT8U),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },*/
         { .defaultValue  = ZAP_EMPTY_DEFAULT(),
-          .attributeId   = LevelControl::Attributes::FeatureMap::Id,
+          .attributeId   = chip::app::Clusters::LevelControl::Attributes::FeatureMap::Id,
           .size          = 4,
           .attributeType = ZAP_TYPE(BITMAP32),
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
@@ -47,20 +45,20 @@ public:
           .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
     };
 
-    static constexpr CommandId incomingCommands[] = {
-        app::Clusters::LevelControl::Commands::MoveToLevel::Id,
-        app::Clusters::LevelControl::Commands::Move::Id,
-        app::Clusters::LevelControl::Commands::Step::Id,
-        app::Clusters::LevelControl::Commands::Stop::Id,
-        app::Clusters::LevelControl::Commands::MoveToLevelWithOnOff::Id,
-        app::Clusters::LevelControl::Commands::MoveWithOnOff::Id,
-        app::Clusters::LevelControl::Commands::StepWithOnOff::Id,
-        app::Clusters::LevelControl::Commands::StopWithOnOff::Id,
-        app::Clusters::LevelControl::Commands::MoveToClosestFrequency::Id,
-        kInvalidCommandId,
+    static constexpr chip::CommandId incomingCommands[] = {
+        chip::app::Clusters::LevelControl::Commands::MoveToLevel::Id,
+        chip::app::Clusters::LevelControl::Commands::Move::Id,
+        chip::app::Clusters::LevelControl::Commands::Step::Id,
+        chip::app::Clusters::LevelControl::Commands::Stop::Id,
+        chip::app::Clusters::LevelControl::Commands::MoveToLevelWithOnOff::Id,
+        chip::app::Clusters::LevelControl::Commands::MoveWithOnOff::Id,
+        chip::app::Clusters::LevelControl::Commands::StepWithOnOff::Id,
+        chip::app::Clusters::LevelControl::Commands::StopWithOnOff::Id,
+        chip::app::Clusters::LevelControl::Commands::MoveToClosestFrequency::Id,
+        chip::kInvalidCommandId,
     };
 
-    static constexpr EmberAfCluster cluster = { .clusterId            = LevelControl::Id,
+    static constexpr EmberAfCluster cluster = { .clusterId            = chip::app::Clusters::LevelControl::Id,
                                                 .attributes           = levelAttrs,
                                                 .attributeCount       = ArraySize(levelAttrs),
                                                 .clusterSize          = 3,
