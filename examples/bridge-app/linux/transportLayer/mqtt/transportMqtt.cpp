@@ -74,7 +74,7 @@ void TransportMqtt::Init(void)
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
 {
-    log_info("HandleTopicRx");
+    log_info("HandleTopicRx. topic: %s. payload: %s", pTopic, pPayload);
     MQTT_TYPE type = Private::GetDeviceType(pTopic);
     if (type < MQTT_TYPE_COUNT)
     {
@@ -138,8 +138,6 @@ Device* TransportMqtt::Private::AddNewDevice(MQTT_TYPE type, const char* pName)
 
 MQTT_TYPE TransportMqtt::Private::GetDeviceType(const char* pTopic)
 {
-
-    
     //MQTT device identifiers must match the pattern "DEVICE-MACADDRESS/"
     uint32_t type = (uint32_t)MQTT_TYPE_COUNT;
 
@@ -182,7 +180,29 @@ void TransportMqtt::Private::GoogleSend(MQTT_TYPE type, const char* pTopic, cons
 }
 void TransportMqtt::Private::GoogleSendLightLevel(const char* pTopic, const char* pPayload, DeviceLightLevel* pDevice)
 {
-
+    log_info("topic: %s", pTopic);
+    const char* pSlash = strchr(pTopic, '/');
+    if (pSlash)
+    {
+        log_info("mac: %s", pSlash);
+        pSlash++;
+        pSlash = strchr(pSlash, '/');
+        if (pSlash)
+        {  
+            const char* commandCode = pSlash + 1;
+            
+            log_info("cmd: %s", pSlash);
+            pSlash++;
+            pSlash = strchr(pSlash, '/');
+            if (pSlash)
+            {
+                log_info("set?: %s", pSlash);
+                
+            }
+        }
+    }
+    // pDevice->setLevel();
+    //  pDevice->SetOn(true/*or false...*/);
 }
 void TransportMqtt::Private::GoogleSendOutlet(const char* pTopic, const char* pPayload, DeviceButton* pDevice)
 {
@@ -198,7 +218,7 @@ void TransportMqtt::Private::GoogleSendLightRgb(const char* pTopic, const char* 
 }
 
 
-//Send to EspNow device functions
+//Send to MQTT device functions
 void TransportMqtt::Private::MqttSend(TransportMqtt& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
     log_info("MqttSend");
@@ -217,6 +237,7 @@ void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const Devic
     char * message;
     if (clusterId == OnOff::Id && attributeId == OnOff::Attributes::OnOff::Id)
     {
+        
         //compose mqtt string from pDevice->onOffCluster._isOn
     }
     else if (clusterId == LevelControl::Id && attributeId == LevelControl::Attributes::CurrentLevel::Id)
@@ -253,7 +274,7 @@ void TransportMqtt::Private::MqttSendLightRgb(TransportMqtt& self, const DeviceL
 void TransportEspNow::DeviceLightRgb(const DeviceLightRGB* pDevice)
 {    
     _data.data.lightRgb.onOff      = pDevice->onOffCluster._isOn;
-    _data.data.lightRgb.brightness = pDevice->levelControlCluster._level;
+    _data.data.lightRpDevicegb.brightness = pDevice->levelControlCluster._level;
     _data.data.lightRgb.hue        = pDevice->colourCluster._hue;
     _data.data.lightRgb.saturation = pDevice->colourCluster._sat;
     _data.data.lightRgb.mode       = ESP_NOW_DATA_LIGHT_RGB_MODE_STATIC;
