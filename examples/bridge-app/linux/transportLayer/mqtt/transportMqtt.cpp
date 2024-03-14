@@ -124,10 +124,10 @@ Device* TransportMqtt::Private::AddNewDevice(MQTT_TYPE type, const char* pName)
         TransportLayer* pTransport = new TransportMqtt(type, &pName[strlen(pMqttDeviceTypes[type])]);
         switch(type)
         {
-            case MQTT_DIMMER_SWITCH_FEIT:   pDevice = new DeviceLightRGB(pName, room, pTransport);  break;
+            case MQTT_DIMMER_SWITCH_FEIT:   pDevice = new DeviceLightLevel(pName, room, pTransport); break;
             case MQTT_OUTLET_GORDON:        pDevice = new DeviceButton(pName, room, pTransport);     break;
             case MQTT_LAMP_RGB:             pDevice = new DeviceLightRGB(pName, room, pTransport);   break;
-            default:                        /*Support this type!*/                                   break;
+            default:                        /*Support this type!*/                                  break;
         }
     }
     return pDevice;
@@ -171,7 +171,7 @@ void TransportMqtt::Private::GoogleSend(MQTT_TYPE type, const char* pTopic, cons
 {
     switch (type)
     {
-        case MQTT_DIMMER_SWITCH_FEIT:   Private::GoogleSendLightRgb(pTopic, pPayload, (DeviceLightRGB*)pDevice);    break;
+        case MQTT_DIMMER_SWITCH_FEIT:   Private::GoogleSendLightLevel(pTopic, pPayload, (DeviceLightLevel*)pDevice);    break;
         case MQTT_OUTLET_GORDON:        Private::GoogleSendOutlet(pTopic, pPayload, (DeviceButton*)pDevice);            break;
         case MQTT_LAMP_RGB:             Private::GoogleSendLightRgb(pTopic, pPayload, (DeviceLightRGB*)pDevice);        break;
         default:                        /*Support this type!*/                                                          break;
@@ -201,7 +201,7 @@ void TransportMqtt::Private::MqttSend(TransportMqtt& self, const Device* pDevice
     log_info("MqttSend");
     switch (self._type)
     {
-        case MQTT_DIMMER_SWITCH_FEIT:   Private::MqttSendLightRgb(self, (const DeviceLightRGB*)pDevice, clusterId, attributeId);    break;
+        case MQTT_DIMMER_SWITCH_FEIT:   Private::MqttSendLightLevel(self, (const DeviceLightLevel*)pDevice, clusterId, attributeId);    break;
         case MQTT_OUTLET_GORDON:        Private::MqttSendOutlet(self, (const DeviceButton*)pDevice, clusterId, attributeId);            break;
         case MQTT_LAMP_RGB:             Private::MqttSendLightRgb(self, (const DeviceLightRGB*)pDevice, clusterId, attributeId);        break;
         default:                        /*Support this type!*/                                                                              break;
@@ -234,24 +234,19 @@ void TransportMqtt::Private::MqttSendOutlet(TransportMqtt& self, const DeviceBut
 }
 void TransportMqtt::Private::MqttSendLightRgb(TransportMqtt& self, const DeviceLightRGB* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
-    char topic[30];
-    char message[30];
-    if (clusterId == OnOff::Id && attributeId == OnOff::Attributes::OnOff::Id)
-    {
-        sprintf(topic, "%s%s/1/set", pMqttDeviceTypes[self._type], self._macAddr);
-        sprintf(message, "%u", pDevice->onOffCluster._isOn ? 1 : 0);
-    }
-    else if (clusterId == LevelControl::Id && attributeId == LevelControl::Attributes::CurrentLevel::Id)
-    {
-        sprintf(topic, "%s%s/2/set", pMqttDeviceTypes[self._type], self._macAddr);
-        sprintf(message, "%u", pDevice->levelControlCluster._level*10);
-    }
-    else{
-        log_error("MqttSendLightLevel unsupported cluster/attribute %u/%u", clusterId, attributeId);
-        return;
-    }
-    log_info("MqttSendLightLevel %s = %s", topic, message);
-    mqtt_wrap_publish(TransportMqtt::_mqttInst, topic, message);
+    //Read the cluster info and compose an MQTT update. 
+    //Might need to look at the cluster/attribute data to determine what kind of update to post...
+
+    /*
+    self._data.data.lightRgb.onOff      = pDevice->onOffCluster._isOn;
+    self._data.data.lightRgb.brightness = pDevice->levelControlCluster._level;
+    self._data.data.lightRgb.hue        = pDevice->colourCluster._hue;
+    self._data.data.lightRgb.saturation = pDevice->colourCluster._sat;
+    self._data.data.lightRgb.mode       = ESP_NOW_DATA_LIGHT_RGB_MODE_STATIC;
+    self._data.type                     = ESP_NOW_DEVICE_TYPE_LIGHT_RGB;
+
+    SerialTransmit(&self._data, offsetof(ESP_NOW_DATA, data) + sizeof(ESP_NOW_DATA_LIGHT_RGB));
+    */
 }
 /*
 void TransportEspNow::DeviceLightRgb(const DeviceLightRGB* pDevice)
