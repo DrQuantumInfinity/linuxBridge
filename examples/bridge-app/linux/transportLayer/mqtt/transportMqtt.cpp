@@ -9,6 +9,8 @@
 
 #include "mqttWrapper.h"
 #include "timer.h"
+#include "string"
+
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
 /**************************************************************************
@@ -21,6 +23,11 @@ using namespace ::chip::app::Clusters;
 /**************************************************************************
  *                                  Types
  **************************************************************************/
+typedef enum
+{
+    MQTT_FEIT_CMD_ONOFF,
+    MQTT_FEIT_CMD_LEVEL
+}MQTT_FEIT_CMD;
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
@@ -39,6 +46,8 @@ struct TransportMqtt::Private
     static void MqttSendOutlet(TransportMqtt& self, const DeviceButton* pDevice, ClusterId clusterId, AttributeId attributeId);
     static void MqttSendLightRgb(TransportMqtt& self, const DeviceLightRGB* pDevice, ClusterId clusterId, AttributeId attributeId);
 };
+
+vector<string> split(const string& str, const string& delim);
 /**************************************************************************
  *                                  Variables
  **************************************************************************/
@@ -47,6 +56,14 @@ static const char *pMqttDeviceTypes[] = {
     [MQTT_OUTLET_GORDON] = "OutletGordon/",
     [MQTT_LAMP_RGB] = "RgbLampGordon/"
 };
+static std::string MqttFeitCommands[2]      = { 
+    [MQTT_FEIT_CMD_ONOFF] = "0",
+    [MQTT_FEIT_CMD_LEVEL] = "1"
+ };
+// static const char *pMqttFeitCommands[] = {
+//     [MQTT_FEIT_CMD_ONOFF] = "0/",
+//     [MQTT_FEIT_CMD_LEVEL] = "1/"
+// };
 static uint32_t mqttDeviceTopicLengths[MQTT_TYPE_COUNT];
 DeviceList TransportMqtt::_deviceList; //static variables in a class need to be independently initialized. C++ is dumb
 mqtt_inst* TransportMqtt::_mqttInst; 
@@ -67,9 +84,6 @@ void TransportMqtt::Init(void)
         sprintf(topicBuf, "%s#", pMqttDeviceTypes[i]);
         mqtt_wrap_add_sub(TransportMqtt::_mqttInst, topicBuf);
     }
-    // while(!TransportMqtt::_mqttInst->connected){
-    //     TimerSleepMs(100);
-    // }
     mqtt_wrap_loopstart(TransportMqtt::_mqttInst);
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
@@ -181,6 +195,16 @@ void TransportMqtt::Private::GoogleSend(MQTT_TYPE type, const char* pTopic, cons
 void TransportMqtt::Private::GoogleSendLightLevel(const char* pTopic, const char* pPayload, DeviceLightLevel* pDevice)
 {
     log_info("topic: %s", pTopic);
+    string topic (pTopic);
+    vector<string> splitTopic = split(topic, '/');
+    
+    if(splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_ONOFF])==0){
+
+    }
+    else if(splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_LEVEL])==0){
+
+    }
+
     const char* pSlash = strchr(pTopic, '/');
     if (pSlash)
     {
@@ -232,23 +256,24 @@ void TransportMqtt::Private::MqttSend(TransportMqtt& self, const Device* pDevice
 }
 void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const DeviceLightLevel* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
-    log_info("MqttSendLightLevel");
-    char * topic;
-    char * message;
+    char topic[30];
+    char message[30];
     if (clusterId == OnOff::Id && attributeId == OnOff::Attributes::OnOff::Id)
     {
-        
-        //compose mqtt string from pDevice->onOffCluster._isOn
+        sprintf(topic, "%s%s/1/set", pMqttDeviceTypes[self._type], self._macAddr);
+        sprintf(message, "%u", pDevice->onOffCluster._isOn ? 1 : 0);
     }
     else if (clusterId == LevelControl::Id && attributeId == LevelControl::Attributes::CurrentLevel::Id)
     {
-        //compose mqtt string from pDevice->levelControlCluster._level
+        sprintf(topic, "%s%s/2/set", pMqttDeviceTypes[self._type], self._macAddr);
+        sprintf(message, "%u", pDevice->levelControlCluster._level*10);
     }
     else{
-        //no match!
+        log_error("MqttSendLightLevel unsupported cluster/attribute %u/%u", clusterId, attributeId);
         return;
     }
-    // mqtt_publish(TransportMqtt::mqtt_inst, topic, message);
+    log_info("MqttSendLightLevel %s = %s", topic, message);
+    mqtt_wrap_publish(TransportMqtt::_mqttInst, topic, message);
 }
 void TransportMqtt::Private::MqttSendOutlet(TransportMqtt& self, const DeviceButton* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
@@ -303,3 +328,18 @@ void DeviceLightTemp::sendEspNowMessage()
     SerialTransmit(&_espNowData, sizeof(_espNowData));
 }
 */
+
+vector<string> split(const string& str, const string& delim)
+{
+    vector<string> result;
+    size_t start = 0;
+
+    for (size_t found = str.find(delim); found != string::npos; found = str.find(delim, start))
+    {
+        result.emplace_back(str.begin() + start, str.begin() + found);
+        start = found + delim.size();
+    }
+    if (start != str.size())
+        result.emplace_back(str.begin() + start, str.end());
+    return result;      
+}
