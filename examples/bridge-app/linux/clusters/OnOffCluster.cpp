@@ -1,18 +1,66 @@
 #include "OnOffCluster.h"
 #include "EndpointApi.h"
 
+#include <app-common/zap-generated/callback.h>
 #include <lib/support/ZclString.h>
+/**************************************************************************
+ *                                  Constants
+ **************************************************************************/
 #define ZCL_ON_OFF_CLUSTER_REVISION (4u)
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
 
+const EmberAfGenericClusterFunction chipFuncArrayOnOffServer[] = {
+    (EmberAfGenericClusterFunction) emberAfOnOffClusterServerInitCallback,
+    (EmberAfGenericClusterFunction) MatterOnOffClusterServerShutdownCallback,
+};
+
+static constexpr EmberAfAttributeMetadata attributes[] = {
+    { // onOff attribute
+        .defaultValue  = ZAP_EMPTY_DEFAULT(),
+        .attributeId   = OnOff::Attributes::OnOff::Id,
+        .size          = 1,
+        .attributeType = ZAP_TYPE(BOOLEAN),
+        .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
+    { // ClusterRevision attribute
+        .defaultValue  = ZAP_EMPTY_DEFAULT(),
+        .attributeId   = 0xFFFD,
+        .size          = 2,
+        .attributeType = ZAP_TYPE(INT16U),
+        .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) },
+};
+static constexpr CommandId acceptedCommandList[] = {
+    app::Clusters::OnOff::Commands::Off::Id,
+    app::Clusters::OnOff::Commands::On::Id,
+    app::Clusters::OnOff::Commands::Toggle::Id,
+    app::Clusters::OnOff::Commands::OffWithEffect::Id,
+    app::Clusters::OnOff::Commands::OnWithRecallGlobalScene::Id,
+    app::Clusters::OnOff::Commands::OnWithTimedOff::Id,
+    kInvalidCommandId,
+};
+
+static EmberAfCluster cluster = { 
+    .clusterId            = OnOff::Id,
+    .attributes           = attributes,
+    .attributeCount       = ArraySize(attributes),
+    .clusterSize          = 0, //Assigned dynamically upon GetObject()
+    .mask                 = ZAP_CLUSTER_MASK(SERVER) | ZAP_CLUSTER_MASK(INIT_FUNCTION) | ZAP_CLUSTER_MASK(SHUTDOWN_FUNCTION),
+    .functions            = chipFuncArrayOnOffServer,
+    .acceptedCommandList  = acceptedCommandList,
+    .generatedCommandList = nullptr,
+    .eventList            = nullptr,
+    .eventCount           = 0 
+};
+/**************************************************************************
+ *                                  Class Functions
+ **************************************************************************/
 void OnOffCluster::SetOn(bool on, uint16_t index)
 {
     if (_isOn != on)
-    {
-        _isOn = on;
-        EndpointReportChange(index, OnOff::Id, OnOff::Attributes::OnOff::Id);
-    }
+{
+    _isOn = on;
+    EndpointReportChange(index, OnOff::Id, OnOff::Attributes::OnOff::Id);
+}
 }
 
 EmberAfStatus OnOffCluster::Write(chip::AttributeId attributeId, uint8_t* buffer)
@@ -45,4 +93,18 @@ EmberAfStatus OnOffCluster::Read(chip::AttributeId attributeId, uint8_t* buffer,
         status = EMBER_ZCL_STATUS_FAILURE;
     }
     return status;
+}
+/**************************************************************************
+ *                                  Global Functions
+ **************************************************************************/
+ EmberAfCluster ClusterOnOffGetObject(void)
+{
+    if (cluster.clusterSize == 0) //only perform this the first time
+    {
+        for (int i = 0; i < cluster.attributeCount; i++)
+        {
+            cluster.clusterSize += cluster.attributes[i].size;
+        }
+    }
+    return cluster;
 }
