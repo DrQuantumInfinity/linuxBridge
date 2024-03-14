@@ -1,11 +1,83 @@
 #include "LevelControlCluster.h"
 #include "EndpointApi.h"
 
+#include <app-common/zap-generated/callback.h>
 #include <app/util/attribute-storage.h>
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
 
+/**************************************************************************
+ *                                  Constants
+ **************************************************************************/
 #define ZCL_LEVEL_CLUSTER_REVISION (5u)
+static const char * TAG = "LevelControlCluster";
+
+const EmberAfGenericClusterFunction chipFuncArrayLevelControlServer[] = {
+    (EmberAfGenericClusterFunction) emberAfLevelControlClusterServerInitCallback,
+    (EmberAfGenericClusterFunction) MatterLevelControlClusterServerShutdownCallback,
+};
+
+static constexpr EmberAfAttributeMetadata attributes[] = {
+    {   .defaultValue  = ZAP_EMPTY_DEFAULT(),
+        .attributeId   = LevelControl::Attributes::CurrentLevel::Id,
+        .size          = 1,
+        .attributeType = ZAP_TYPE(INT8U),
+        .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) 
+    },
+    {   .defaultValue  = ZAP_EMPTY_DEFAULT(),
+        .attributeId   = LevelControl::Attributes::MinLevel::Id,
+        .size          = 1,
+        .attributeType = ZAP_TYPE(INT8U),
+        .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) 
+    },
+    {   .defaultValue  = ZAP_EMPTY_DEFAULT(),
+        .attributeId   = LevelControl::Attributes::MaxLevel::Id,
+        .size          = 1,
+        .attributeType = ZAP_TYPE(INT8U),
+        .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) 
+    },
+    {   .defaultValue  = ZAP_EMPTY_DEFAULT(),
+        .attributeId   = LevelControl::Attributes::FeatureMap::Id,
+        .size          = 4,
+        .attributeType = ZAP_TYPE(BITMAP32),
+        .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) 
+    },
+    {   .defaultValue  = ZAP_EMPTY_DEFAULT(),
+        .attributeId   = 0xFFFD,
+        .size          = 2,
+        .attributeType = ZAP_TYPE(INT16U),
+        .mask          = ZAP_ATTRIBUTE_MASK(EXTERNAL_STORAGE) 
+    },
+};
+
+static constexpr CommandId acceptedCommandList[] = {
+    app::Clusters::LevelControl::Commands::MoveToLevel::Id,
+    app::Clusters::LevelControl::Commands::Move::Id,
+    app::Clusters::LevelControl::Commands::Step::Id,
+    app::Clusters::LevelControl::Commands::Stop::Id,
+    app::Clusters::LevelControl::Commands::MoveToLevelWithOnOff::Id,
+    app::Clusters::LevelControl::Commands::MoveWithOnOff::Id,
+    app::Clusters::LevelControl::Commands::StepWithOnOff::Id,
+    app::Clusters::LevelControl::Commands::StopWithOnOff::Id,
+    app::Clusters::LevelControl::Commands::MoveToClosestFrequency::Id,
+    kInvalidCommandId,
+};
+
+static EmberAfCluster cluster = { 
+    .clusterId            = LevelControl::Id,
+    .attributes           = attributes,
+    .attributeCount       = ArraySize(attributes),
+    .clusterSize          = 0, //Assigned dynamically upon GetObject()
+    .mask                 = ZAP_CLUSTER_MASK(SERVER) | ZAP_CLUSTER_MASK(INIT_FUNCTION) | ZAP_CLUSTER_MASK(SHUTDOWN_FUNCTION), 
+    .functions            = chipFuncArrayLevelControlServer,
+    .acceptedCommandList  = acceptedCommandList,
+    .generatedCommandList = nullptr,
+    .eventList            = nullptr,
+    .eventCount           = 0 
+};
+/**************************************************************************
+ *                                  Class Functions
+ **************************************************************************/
 void LevelControlCluster::SetLevel(uint8_t level, uint16_t index)
 {
     _level = level;
@@ -55,4 +127,19 @@ EmberAfStatus LevelControlCluster::Read(chip::AttributeId attributeId, uint8_t* 
         status = EMBER_ZCL_STATUS_FAILURE;
     }
     return status;
+}
+
+/**************************************************************************
+ *                                  Global Functions
+ **************************************************************************/
+ EmberAfCluster ClusterLevelControlGetObject(void)
+{
+    if (cluster.clusterSize == 0) //only perform this the first time
+    {
+        for (int i = 0; i < cluster.attributeCount; i++)
+        {
+            cluster.clusterSize += cluster.attributes[i].size;
+        }
+    }
+    return cluster;
 }

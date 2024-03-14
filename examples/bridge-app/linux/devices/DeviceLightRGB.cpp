@@ -14,9 +14,9 @@ using namespace ::chip::app::Clusters;
  **************************************************************************/
 
 const EmberAfCluster bridgedClusters[] = {
-    LevelControlCluster::cluster,
-    ColourCluster::hsCluster,    
-    OnOffCluster::cluster,
+    ClusterLevelControlGetObject(),
+    ClusterColorControlGetObjectBoth(),
+    ClusterOnOffGetObject(),
     DescriptorCluster::cluster,
     BasicCluster::cluster,
 };
