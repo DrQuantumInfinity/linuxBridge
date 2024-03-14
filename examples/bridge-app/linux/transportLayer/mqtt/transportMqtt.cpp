@@ -197,34 +197,40 @@ void TransportMqtt::Private::GoogleSendLightLevel(const char* pTopic, const char
     log_info("topic: %s", pTopic);
     string topic (pTopic);
     vector<string> splitTopic = split(topic, '/');
-    
-    if(splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_ONOFF])==0){
-
-    }
-    else if(splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_LEVEL])==0){
-
-    }
-
-    const char* pSlash = strchr(pTopic, '/');
-    if (pSlash)
+    if(splitTopic.length() == 4 && splitTopic[3].compare("set"))
     {
-        log_info("mac: %s", pSlash);
-        pSlash++;
-        pSlash = strchr(pSlash, '/');
-        if (pSlash)
-        {  
-            const char* commandCode = pSlash + 1;
-            
-            log_info("cmd: %s", pSlash);
-            pSlash++;
-            pSlash = strchr(pSlash, '/');
-            if (pSlash)
-            {
-                log_info("set?: %s", pSlash);
-                
-            }
+        if(splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_ONOFF])==0)
+        {
+            int value = std:: strtol(pPayload);
+            pDevice->SetOn(value);
+        }
+        else if(splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_LEVEL])==0)
+        {
+            int value = std:: strtol(pPayload);
+            pDevice->SetLevel(value);
         }
     }
+
+    // const char* pSlash = strchr(pTopic, '/');
+    // if (pSlash)
+    // {
+    //     log_info("mac: %s", pSlash);
+    //     pSlash++;
+    //     pSlash = strchr(pSlash, '/');
+    //     if (pSlash)
+    //     {  
+    //         const char* commandCode = pSlash + 1;
+            
+    //         log_info("cmd: %s", pSlash);
+    //         pSlash++;
+    //         pSlash = strchr(pSlash, '/');
+    //         if (pSlash)
+    //         {
+    //             log_info("set?: %s", pSlash);
+                
+    //         }
+    //     }
+    // }
     // pDevice->setLevel();
     //  pDevice->SetOn(true/*or false...*/);
 }
