@@ -16,17 +16,24 @@
  **************************************************************************/
 class Device; //Forward declare (awful shit. Should just be able to #include Device.h but things will break)
 
-class MAPPED_DEVICE
+class MappedDevice
 {
 public:
-    Device* pDevice;
-    TimerTick timer;
+    Device* _pDevice;
+    TimerTick _timer;
+
+    MappedDevice(Device* pDevice, uint32_t msFromNow)
+    {
+        _pDevice = pDevice;
+        _timer.SetFromNow(msFromNow);
+    }
+
 protected:
 
 private:
 };
 
-typedef std::map<std::string, MAPPED_DEVICE*> MAPPING;
+typedef std::map<std::string, MappedDevice*> MAPPING;
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/

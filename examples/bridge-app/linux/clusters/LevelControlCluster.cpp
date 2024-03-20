@@ -80,8 +80,11 @@ static EmberAfCluster cluster = {
  **************************************************************************/
 void LevelControlCluster::SetLevel(uint8_t level, uint16_t index)
 {
-    _level = level;
-    EndpointReportChange(index, LevelControl::Id, LevelControl::Attributes::CurrentLevel::Id);
+    if (_level != level)
+    {
+        _level = level;
+        EndpointReportChange(index, LevelControl::Id, LevelControl::Attributes::CurrentLevel::Id);
+    }
 }
 
 EmberAfStatus LevelControlCluster::Write(chip::AttributeId attributeId, uint8_t * buffer)

@@ -30,15 +30,11 @@ void DeviceList::Upsert(std::string key, Device* pDevice)
 {
     std::pair<MAPPING::iterator, bool> mapRet;
 
-    MAPPED_DEVICE mappedDevice;
-    mappedDevice.pDevice = pDevice,
-    mappedDevice.timer.SetFromNow(REMOVE_TIMER_1_DAY_MS); //1 day
-
-    mapRet = _map.insert(make_pair(key, &mappedDevice));
+    mapRet = _map.insert(make_pair(key, new MappedDevice(pDevice, REMOVE_TIMER_1_DAY_MS)));
     if (mapRet.second == false)
     {
         //mapRet.first->second.pDevice = pDevice; //Already assigned
-        mapRet.first->second->timer.SetFromNow(REMOVE_TIMER_1_DAY_MS);
+        mapRet.first->second->_timer.SetFromNow(REMOVE_TIMER_1_DAY_MS);
     }
 }
 void DeviceList::Upsert(const uint8_t* pKey, uint32_t len, Device* pDevice)
@@ -58,7 +54,7 @@ Device* DeviceList::GetDevice(std::string key)
     MAPPING::iterator it = _map.find(key);
     if (it != _map.end())
     {
-        return it->second->pDevice;
+        return it->second->_pDevice;
     }
     return NULL;
 }
@@ -70,10 +66,10 @@ Device* DeviceList::GetAndRemoveExpiredDevice(std::string key)
 {
     for (MAPPING::iterator it = _map.begin(); it != _map.end(); it++)
     {
-        if (it->second->timer.HasElapsed())
+        if (it->second->_timer.HasElapsed())
         {
             Remove(key);
-            return it->second->pDevice;
+            return it->second->_pDevice;
         }
     }
     return NULL;
