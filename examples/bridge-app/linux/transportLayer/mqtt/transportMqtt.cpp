@@ -272,7 +272,7 @@ void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const Devic
     else if (clusterId == LevelControl::Id && attributeId == LevelControl::Attributes::CurrentLevel::Id)
     {
         sprintf(topic, "%s%s/2/set", pMqttDeviceTypes[self._type], self._macAddr);
-        sprintf(message, "%u", pDevice->levelControlCluster._level*10);
+        sprintf(message, "%u", (uint8_t)((float)pDevice->levelControlCluster._level/2.55f));
     }
     else{
         log_error("MqttSendLightLevel unsupported cluster/attribute %u/%u", clusterId, attributeId);
