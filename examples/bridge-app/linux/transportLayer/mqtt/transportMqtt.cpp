@@ -13,6 +13,7 @@
 
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
+using namespace std;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -56,9 +57,9 @@ static const char *pMqttDeviceTypes[] = {
     [MQTT_OUTLET_GORDON] = "OutletGordon/",
     [MQTT_LAMP_RGB] = "RgbLampGordon/"
 };
-static std::string MqttFeitCommands[2]      = { 
-    [MQTT_FEIT_CMD_ONOFF] = "0",
-    [MQTT_FEIT_CMD_LEVEL] = "1"
+static string MqttFeitCommands[2]      = { 
+    [MQTT_FEIT_CMD_ONOFF] = "1",
+    [MQTT_FEIT_CMD_LEVEL] = "2"
  };
 // static const char *pMqttFeitCommands[] = {
 //     [MQTT_FEIT_CMD_ONOFF] = "0/",
@@ -195,18 +196,19 @@ void TransportMqtt::Private::GoogleSend(MQTT_TYPE type, const char* pTopic, cons
 void TransportMqtt::Private::GoogleSendLightLevel(const char* pTopic, const char* pPayload, DeviceLightLevel* pDevice)
 {
     log_info("topic: %s", pTopic);
-    string topic (pTopic);
-    vector<string> splitTopic = split(topic, '/');
-    if(splitTopic.length() == 4 && splitTopic[3].compare("set"))
+    std::string topic (pTopic);
+    std::string delim ("/");
+    vector<string> splitTopic = split(topic, delim);
+    if(splitTopic.size() == 4 && splitTopic[3].compare("get")==0)
     {
         if(splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_ONOFF])==0)
         {
-            int value = std:: strtol(pPayload);
+            int value = strtol(pPayload,NULL,10);
             pDevice->SetOn(value);
         }
         else if(splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_LEVEL])==0)
         {
-            int value = std:: strtol(pPayload);
+            int value = strtol(pPayload,NULL,10)*2.55;
             pDevice->SetLevel(value);
         }
     }
