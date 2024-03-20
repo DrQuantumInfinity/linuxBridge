@@ -49,7 +49,8 @@ public:
                                          uint8_t * buffer);
     static EmberAfStatus GoogleReadCallback(void * pObject, chip::ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata,
                                         uint8_t * buffer, uint16_t maxReadLength);
-protected:
+    
+    protected:
     void AddCluster(Cluster* newCluster);
     TransportLayer* _pTransportLayer;
 
