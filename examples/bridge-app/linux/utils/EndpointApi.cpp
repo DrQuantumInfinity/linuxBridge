@@ -215,11 +215,13 @@ static void EndpointAddWorker(intptr_t context)
                 if (ret == CHIP_NO_ERROR)
                 {
                     log_info("Added device %u: %s at dynamic endpoint %u", pData->index, pData->name, endpointApi.currentEndpointId);
+                    endpointApi.currentEndpointId++;
                     return;
                 }
                 else //if (ret != EMBER_ZCL_STATUS_DUPLICATE_EXISTS)
                 {
-                    return;
+                    log_error("add failed for device %u: retVal %u", pData->index, ret);
+                    // return;
                 }
                 // Handle wrap condition
                 if (++endpointApi.currentEndpointId < endpointApi.firstDynamicEndpointId)
