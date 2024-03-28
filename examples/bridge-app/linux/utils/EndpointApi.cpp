@@ -183,11 +183,11 @@ static void EndpointApiInitWorker(intptr_t context)
     // Disable last fixed endpoint, which is used as a placeholder for all of the
     // supported clusters so that ZAP will generated the requisite code.
     emberAfEndpointEnableDisable(emberAfEndpointFromIndex(static_cast<uint16_t>(emberAfFixedEndpointCount() - 1)), false);
-    emberAfEndpointEnableDisable(emberAfEndpointFromIndex(static_cast<uint16_t>(emberAfFixedEndpointCount() - 2)), false);
+    // emberAfEndpointEnableDisable(emberAfEndpointFromIndex(static_cast<uint16_t>(emberAfFixedEndpointCount() - 2)), false);
 
     // A bridge has root node device type on EP0 and aggregate node device type (bridge) at EP1
-    emberAfSetDeviceTypeList(0, Span<const EmberAfDeviceType>(rootDeviceTypes));
-    emberAfSetDeviceTypeList(2, Span<const EmberAfDeviceType>(aggregateNodeDeviceTypes));
+    // emberAfSetDeviceTypeList(0, Span<const EmberAfDeviceType>(rootDeviceTypes));
+    // emberAfSetDeviceTypeList(2, Span<const EmberAfDeviceType>(aggregateNodeDeviceTypes));
 }
 static void EndpointAddWorker(intptr_t context)
 {
