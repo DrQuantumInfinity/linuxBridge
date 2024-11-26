@@ -5,6 +5,7 @@ File: uart.c
 
 #include "uart.h"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <string.h>
@@ -109,8 +110,13 @@ static void UartConfigureSettings(UART * pUart, const char * pDevice, const UART
 // #ifdef DEBUGGING
     if (pUart->uartFileDescriptor < 0)
     {
-        log_warn("\nopen linux and enter \"sudo chmod 666 %s\" in the command line", pDevice);
+        log_error("open linux and enter \"sudo chmod 666 %s\" in the command line", pDevice);
+        log_error("%s", strerror(errno));
         return;
+    }
+    else
+    {
+        log_info("opened device %s", pDevice);
     }
 // #endif
     ASSERT_PARAM(pUart->uartFileDescriptor >= 0); // open linux and enter "sudo chmod 666 /dev/ttyS9" in the command line.

@@ -61,8 +61,9 @@ void SerialInit(void)
         .hardwareFlowCtrl = UART_HFC_DISABLED,
         .rxCallback = SerialHandleRxCallback,
     };
-    serial.uartHandle = UartRegister("/dev/ttyUSB0", &uartParams);
+    serial.uartHandle = UartRegister("/dev/ttyAMA0", &uartParams);
 
+    //TODO: delete test code
     //Test code to inject a fake EspNow message
     TimerSleepMs(100);
     ESP_NOW_DATA espMsg;
@@ -80,7 +81,7 @@ void SerialInit(void)
 void SerialTransmit(const void* pData, uint32_t dataLength)
 {
     uint8_t byteLength = (uint8_t)dataLength;
-    ASSERT_PARAM(dataLength < BIT(sizeof(byteLength)));
+    ASSERT_PARAM(dataLength < BIT(sizeof(byteLength)*8));
     SerialPrintDebug(true, (uint8_t*)pData, dataLength);
     if (dataLength < SERIAL_TX_MAX_SIZE)
     {

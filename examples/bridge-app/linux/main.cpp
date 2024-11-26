@@ -47,7 +47,7 @@ void ApplicationInit()
     log_set_level(1);
     // chip::Server::GetInstance().ScheduleFactoryReset();
     EndpointApiInit();
-    // SerialInit();
+    SerialInit();
     TransportMqtt::Init();
     TransportMqtt::HandleTopicRx("WifiDimmerFeit-112233445566/1/set", "1");
 }
