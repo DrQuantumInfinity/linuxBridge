@@ -12,17 +12,18 @@
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
-/**************************************************************************
- *                                  Macros
- **************************************************************************/
-/**************************************************************************
- *                                  Types
- **************************************************************************/
+ /**************************************************************************
+  *                                  Macros
+  **************************************************************************/
+  /**************************************************************************
+   *                                  Types
+   **************************************************************************/
 
 class DeviceLightRGB : public Device
 {
 public:
     DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
+    DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index);
     ~DeviceLightRGB(void);
 
     void SetOn(bool isOn) { onOffCluster.SetOn(isOn, GetIndex()); }
@@ -32,7 +33,7 @@ public:
     LevelControlCluster GetLevelControlCluster(void) { return levelControlCluster; }
     ColourCluster GetColourCluster(void) { return colourCluster; }
     DescriptorCluster GetDescriptorCluster(void) { return descriptorCluster; }
-    
+
     OnOffCluster onOffCluster;
     LevelControlCluster levelControlCluster;
     ColourCluster colourCluster;

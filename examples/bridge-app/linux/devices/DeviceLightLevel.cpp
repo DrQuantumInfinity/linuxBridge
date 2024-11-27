@@ -20,7 +20,7 @@ const EmberAfCluster bridgedClusters[] = {
 };
 
 // Declare Bridged Light endpoint
-const EmberAfEndpointType bridgedEndpoint = { .cluster      = bridgedClusters,
+const EmberAfEndpointType bridgedEndpoint = { .cluster = bridgedClusters,
                                               .clusterCount = ArraySize(bridgedClusters),
                                               .endpointSize = 0 };
 
@@ -28,42 +28,46 @@ const EmberAfEndpointType bridgedEndpoint = { .cluster      = bridgedClusters,
 #define DEVICE_TYPE_BRIDGED_NODE 0x0013
 // Device Version for dynamic endpoints:
 #define DEVICE_VERSION_DEFAULT 1
-const EmberAfDeviceType bridgedDeviceTypes[] = { { .deviceId = 0x0101, .deviceVersion = DEVICE_VERSION_DEFAULT },
-                                                 { .deviceId      = DEVICE_TYPE_BRIDGED_NODE,
+const EmberAfDeviceType bridgedDeviceTypes[] = { {.deviceId = 0x0101, .deviceVersion = DEVICE_VERSION_DEFAULT },
+                                                 {.deviceId = DEVICE_TYPE_BRIDGED_NODE,
                                                    .deviceVersion = DEVICE_VERSION_DEFAULT } };
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
-/**************************************************************************
- *                                  Types
- **************************************************************************/
-/**************************************************************************
- *                                  Prototypes
- **************************************************************************/
-/**************************************************************************
- *                                  Variables
- **************************************************************************/
-/**************************************************************************
- *                                  Global Functions
- **************************************************************************/
+ /**************************************************************************
+  *                                  Types
+  **************************************************************************/
+  /**************************************************************************
+   *                                  Prototypes
+   **************************************************************************/
+   /**************************************************************************
+    *                                  Variables
+    **************************************************************************/
+    /**************************************************************************
+     *                                  Global Functions
+     **************************************************************************/
+DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index) : Device(index)
+{
+    DeviceLightLevel(pName, pLocation, pTransportLayer);
+}
 DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
 {
     _pTransportLayer = pTransportLayer;
-    DataVersion * pDataVersions = (DataVersion *) malloc(sizeof(DataVersion) * ArraySize(bridgedClusters));
-    ENDPOINT_DATA endpointData  = {
-         .index                    = GetIndex(),
-         .pObject                  = this,
-         .pfnReadCallback          = GoogleReadCallback /*local read function specific to a DeviceLightLevel*/,
-         .pfnWriteCallback         = GoogleWriteCallback,
+    DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion) * ArraySize(bridgedClusters));
+    ENDPOINT_DATA endpointData = {
+         .index = GetIndex(),
+         .pObject = this,
+         .pfnReadCallback = GoogleReadCallback /*local read function specific to a DeviceLightLevel*/,
+         .pfnWriteCallback = GoogleWriteCallback,
          .pfnInstantActionCallback = NULL, // worry about this later
-         .name                     = { 0 },
-         .location                 = { 0 },
-         .ep                       = &bridgedEndpoint,
-         .pDeviceTypeList          = bridgedDeviceTypes,
-         .deviceTypeListLength     = ArraySize(bridgedDeviceTypes),
-         .pDataVersionStorage      = pDataVersions,
+         .name = { 0 },
+         .location = { 0 },
+         .ep = &bridgedEndpoint,
+         .pDeviceTypeList = bridgedDeviceTypes,
+         .deviceTypeListLength = ArraySize(bridgedDeviceTypes),
+         .pDataVersionStorage = pDataVersions,
          .dataVersionStorageLength = ArraySize(bridgedClusters),
-         .parentEndpointId         = 1,
+         .parentEndpointId = 1,
     };
 
     AddCluster(&descriptorCluster);

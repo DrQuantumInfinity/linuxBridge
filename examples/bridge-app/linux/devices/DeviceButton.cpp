@@ -48,6 +48,11 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
+
+DeviceButton::DeviceButton(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index) : Device(index)
+{
+    DeviceButton(pName, pLocation, pTransportLayer);
+}
 DeviceButton::DeviceButton(const char* pName, const char* pLocation, TransportLayer *pTransportLayer)
 {
     _pTransportLayer = pTransportLayer;

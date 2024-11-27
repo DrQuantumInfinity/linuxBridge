@@ -9,24 +9,25 @@
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
-/**************************************************************************
- *                                  Macros
- **************************************************************************/
-/**************************************************************************
- *                                  Types
- **************************************************************************/
+ /**************************************************************************
+  *                                  Macros
+  **************************************************************************/
+  /**************************************************************************
+   *                                  Types
+   **************************************************************************/
 class DeviceLight : public Device
 {
 public:
     DeviceLight(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
+    DeviceLight(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index);
     ~DeviceLight(void);
 
     void SetOn(bool isOn) { onOffCluster.SetOn(isOn, GetIndex()); }
-    
+
     OnOffCluster onOffCluster;
     DescriptorCluster descriptorCluster;
 
-private:    
+private:
     void sendEspNowMessage(void);
     ENDPOINT_DATA _endpointData;
 };

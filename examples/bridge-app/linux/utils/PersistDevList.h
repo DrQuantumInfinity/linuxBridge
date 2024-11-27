@@ -1,21 +1,21 @@
+#pragma once
+
 #include "EndpointApi.h"
-#include "transportMqtt.h"
+#include <map>
 
-struct PersistMQTT {
+struct PersistGeneric {
     int index;
-    char pName[MQTT_MAX_DEVICE_NAME_LENGTH];
-    char room[ENDPOINT_LOCATION_LENGTH];
-    MQTT_TYPE type;
+    uint8_t data[];
 };
-
-typedef std::map<int, PersistMQTT> MAPPING;
-
+typedef std::map<int, PersistGeneric*> PersistentMap;
+typedef void (*PersistApplyFn)(int /*index*/, void* /*newDev*/);
 class PersistDevList {
 public:
-    PersistDevList(void);
-    void Upsert(PersistMQTT newDev);
-
+    PersistDevList(int structSize);
+    void Upsert(int index, void* newDev);
+    void Apply(PersistApplyFn func);
 private:
-    MAPPING _map;
     void Persist(void);
+    int _structSize;
+    PersistentMap _map;
 };

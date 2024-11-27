@@ -20,6 +20,20 @@
 using namespace ::chip;
 
 //static const char * TAG = "Device";
+Device::Device(int index)
+{
+    if (index < 0)
+    {
+        Device();
+    }
+    else
+    {
+        _index = index;
+        _indexList[_index] = true;
+        AddCluster(&basicCluster);
+        basicCluster._reachable = true;
+    }
+}
 Device::Device(void)
 {
     for (_index = 0; _index < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; _index++)
@@ -30,8 +44,9 @@ Device::Device(void)
             break;
         }
     }
-    AddCluster(&basicCluster);
-    basicCluster._reachable = true;
+    Device(_index);
+    // AddCluster(&basicCluster);
+    // basicCluster._reachable = true;
 }
 Device::~Device(void)
 {
@@ -43,34 +58,34 @@ uint16_t Device::GetIndex(void)
     return _index;
 }
 
-void Device::AddCluster(Cluster * newCluster)
+void Device::AddCluster(Cluster* newCluster)
 {
     _clusters.push_back(newCluster);
 }
 
-EmberAfStatus Device::GoogleReadCallback(void * pObject, ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata,
-                                         uint8_t * buffer, uint16_t maxReadLength)
+EmberAfStatus Device::GoogleReadCallback(void* pObject, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata,
+    uint8_t* buffer, uint16_t maxReadLength)
 {
-    Device * pDevice = (Device *) pObject;
+    Device* pDevice = (Device*)pObject;
     return pDevice->ReadCluster(clusterId, attributeMetadata, buffer, maxReadLength);
 }
 
-EmberAfStatus Device::GoogleWriteCallback(void * pObject, ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata,
-                                          uint8_t * buffer)
+EmberAfStatus Device::GoogleWriteCallback(void* pObject, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata,
+    uint8_t* buffer)
 {
-    Device * pDevice     = (Device *) pObject;
+    Device* pDevice = (Device*)pObject;
     EmberAfStatus status = pDevice->WriteCluster(clusterId, attributeMetadata, buffer);
     pDevice->_pTransportLayer->Send(pDevice, clusterId, attributeMetadata, buffer);
     return status;
 }
 
-EmberAfStatus Device::ReadCluster(ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer,
-                                  uint16_t maxReadLength)
+EmberAfStatus Device::ReadCluster(ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer,
+    uint16_t maxReadLength)
 {
     EmberAfStatus status = EMBER_ZCL_STATUS_FAILURE;
     if (basicCluster._reachable)
     {
-        for (auto & cluster : _clusters)
+        for (auto& cluster : _clusters)
         {
             if (cluster->_id == clusterId)
             {
@@ -81,12 +96,12 @@ EmberAfStatus Device::ReadCluster(ClusterId clusterId, const EmberAfAttributeMet
     }
     return status;
 }
-EmberAfStatus Device::WriteCluster(ClusterId clusterId, const EmberAfAttributeMetadata * attributeMetadata, uint8_t * buffer)
+EmberAfStatus Device::WriteCluster(ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer)
 {
     EmberAfStatus status = EMBER_ZCL_STATUS_FAILURE;
     if (basicCluster._reachable)
     {
-        for (auto & cluster : _clusters)
+        for (auto& cluster : _clusters)
         {
             if (cluster->_id == clusterId)
             {

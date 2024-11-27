@@ -51,6 +51,11 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
+
+DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index) : Device(index)
+{
+    DeviceLightRGB(pName, pLocation, pTransportLayer);
+}
 DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
 {
     _pTransportLayer = pTransportLayer;

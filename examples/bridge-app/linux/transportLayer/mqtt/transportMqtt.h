@@ -12,6 +12,7 @@
 #include <app/util/af-types.h>
 
 #include "mqttWrapper.h"
+#include "PersistDevList.h"
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
@@ -48,6 +49,7 @@ private:
     static DeviceList _deviceList;
     static mqtt_inst* _mqttInst;
     struct Private;
+    static PersistDevList _persistList;
 };
 /**************************************************************************
  *                                  Prototypes

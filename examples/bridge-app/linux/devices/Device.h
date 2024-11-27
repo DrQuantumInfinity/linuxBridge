@@ -39,6 +39,7 @@
 class Device
 {
 public:
+    Device(int index);
     Device(void);
     virtual ~Device(void);
     uint16_t GetIndex(void);

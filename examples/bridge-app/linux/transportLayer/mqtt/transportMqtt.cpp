@@ -28,12 +28,20 @@ typedef enum {
     MQTT_FEIT_CMD_ONOFF,
     MQTT_FEIT_CMD_LEVEL
 } MQTT_FEIT_CMD;
+
+typedef struct {
+    char name[MQTT_MAX_DEVICE_NAME_LENGTH];
+    char room[ENDPOINT_LOCATION_LENGTH];
+    MQTT_TYPE type;
+}PersistMQTT;
+
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
 struct TransportMqtt::Private {
     static MQTT_TYPE GetDeviceType(const char* pTopic);
-    static Device* NewDevice(MQTT_TYPE type, const char* pName);
+    static void NewDeviceOnPwr(int index, void* pPersist);
+    static Device* NewDevice(int index, PersistMQTT* persistMqtt);
 
     static void GoogleSend(MQTT_TYPE type, const char* pTopic, const char* pPayload, Device* pDevice);
     static void GoogleSendLightLevel(const char* pTopic, const char* pPayload, DeviceLightLevel* pDevice);
@@ -66,6 +74,7 @@ static string MqttFeitCommands[2] = {
 static uint32_t mqttDeviceTopicLengths[MQTT_TYPE_COUNT];
 DeviceList TransportMqtt::_deviceList; // static variables in a class need to be independently initialized. C++ is dumb
 mqtt_inst* TransportMqtt::_mqttInst;
+PersistDevList TransportMqtt::_persistList = PersistDevList(sizeof(PersistMQTT));
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/
@@ -84,6 +93,7 @@ void TransportMqtt::Init(void)
         mqtt_wrap_add_sub(TransportMqtt::_mqttInst, topicBuf);
     }
     mqtt_wrap_loopstart(TransportMqtt::_mqttInst);
+    _persistList.Apply(TransportMqtt::Private::NewDeviceOnPwr);
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
 {
@@ -98,11 +108,15 @@ void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
         Device* pDevice = _deviceList.GetDevice(name);
         if (pDevice == NULL)
         {
-            pDevice = Private::NewDevice(type, name);
+            PersistMQTT persistData;
+            strncpy(persistData.name, name, sizeof(persistData.name));
+            strncpy(persistData.room, "Bridge", sizeof(persistData.room));
+            persistData.type = type;
+            pDevice = TransportMqtt::Private::NewDevice(-1, &persistData);
+            _persistList.Upsert(pDevice->GetIndex(), &persistData);
         }
         _deviceList.Upsert(name, pDevice);
         Private::GoogleSend(type, pTopic, pPayload, pDevice);
-
     }
     else
     {
@@ -132,18 +146,24 @@ void TransportMqtt::Send(const Device* pDevice, ClusterId clusterId, const Ember
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-Device* TransportMqtt::Private::NewDevice(MQTT_TYPE type, const char* pName)
+
+void TransportMqtt::Private::NewDeviceOnPwr(int index, void* pPersist)
+{
+    NewDevice(index, (PersistMQTT*)pPersist);
+}
+Device* TransportMqtt::Private::NewDevice(int index, PersistMQTT* pPersist)
 {
     Device* pDevice;
-    char room[10] = "Bridge";
-    TransportLayer* pTransport = new TransportMqtt(type, &pName[strlen(pMqttDeviceTypes[type])]);
-    switch (type)
+
+    TransportLayer* pTransport = new TransportMqtt(pPersist->type, &pPersist->name[strlen(pMqttDeviceTypes[pPersist->type])]);
+    switch (pPersist->type)
     {
-        case MQTT_DIMMER_SWITCH_FEIT:   pDevice = new DeviceLightLevel(pName, room, pTransport); break;
-        case MQTT_OUTLET_GORDON:        pDevice = new DeviceButton(pName, room, pTransport);     break;
-        case MQTT_LAMP_RGB:             pDevice = new DeviceLightRGB(pName, room, pTransport);   break;
+        case MQTT_DIMMER_SWITCH_FEIT:   pDevice = new DeviceLightLevel(pPersist->name, pPersist->room, pTransport, index); break;
+        case MQTT_OUTLET_GORDON:        pDevice = new DeviceButton(pPersist->name, pPersist->room, pTransport, index);     break;
+        case MQTT_LAMP_RGB:             pDevice = new DeviceLightRGB(pPersist->name, pPersist->room, pTransport, index);   break;
         default:                        /*Support this type!*/                                   break;
     }
+
     return pDevice;
 }
 

@@ -11,16 +11,17 @@
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
-/**************************************************************************
- *                                  Macros
- **************************************************************************/
-/**************************************************************************
- *                                  Types
- **************************************************************************/
+ /**************************************************************************
+  *                                  Macros
+  **************************************************************************/
+  /**************************************************************************
+   *                                  Types
+   **************************************************************************/
 
 class DeviceLightLevel : public Device
 {
 public:
+    DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index);
     DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
     ~DeviceLightLevel(void);
 
@@ -29,7 +30,7 @@ public:
     OnOffCluster GetOnOffCluster(void) { return onOffCluster; }
     LevelControlCluster GetLevelControlCluster(void) { return levelControlCluster; }
     DescriptorCluster GetDescriptorCluster(void) { return descriptorCluster; }
-    
+
     OnOffCluster onOffCluster;
     LevelControlCluster levelControlCluster;
 
