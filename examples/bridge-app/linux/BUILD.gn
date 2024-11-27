@@ -47,6 +47,7 @@ executable("chip-bridge-app") {
     "utils/DeviceList.cpp",
     "utils/EndpointApi.cpp",
     "utils/Log.cpp",
+    "utils/PersistDevList.cpp",
     "utils/TimerTick.cpp",
     "utils/assert.cpp",
     "utils/futil.cpp",
