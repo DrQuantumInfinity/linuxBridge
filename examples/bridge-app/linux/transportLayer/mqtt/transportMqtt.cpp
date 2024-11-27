@@ -18,12 +18,12 @@ using namespace std;
  *                                  Constants
  **************************************************************************/
 #define STR_CMP_MATCH 0
-/**************************************************************************
- *                                  Macros
- **************************************************************************/
-/**************************************************************************
- *                                  Types
- **************************************************************************/
+ /**************************************************************************
+  *                                  Macros
+  **************************************************************************/
+  /**************************************************************************
+   *                                  Types
+   **************************************************************************/
 typedef enum {
     MQTT_FEIT_CMD_ONOFF,
     MQTT_FEIT_CMD_LEVEL
@@ -71,12 +71,14 @@ mqtt_inst* TransportMqtt::_mqttInst;
  **************************************************************************/
 void TransportMqtt::Init(void)
 {
-    for (uint32_t type = 0; type < (uint32_t)MQTT_TYPE_COUNT; type++) {
+    for (uint32_t type = 0; type < (uint32_t)MQTT_TYPE_COUNT; type++)
+    {
         mqttDeviceTopicLengths[type] = strlen(pMqttDeviceTypes[type]) + 12;
     }
 
     TransportMqtt::_mqttInst = mqtt_wrap_init("192.168.0.128", TransportMqtt::HandleTopicRx);
-    for (int i = 0; i < MQTT_TYPE_COUNT; i++) {
+    for (int i = 0; i < MQTT_TYPE_COUNT; i++)
+    {
         char topicBuf[30];
         sprintf(topicBuf, "%s#", pMqttDeviceTypes[i]);
         mqtt_wrap_add_sub(TransportMqtt::_mqttInst, topicBuf);
@@ -87,19 +89,23 @@ void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
 {
     log_info("HandleTopicRx. topic: %s. payload: %s", pTopic, pPayload);
     MQTT_TYPE type = Private::GetDeviceType(pTopic);
-    if (type < MQTT_TYPE_COUNT) {
+    if (type < MQTT_TYPE_COUNT)
+    {
         char name[MQTT_MAX_DEVICE_NAME_LENGTH];
         memcpy(name, pTopic, mqttDeviceTopicLengths[type]);
         name[mqttDeviceTopicLengths[type]] = '\0';
 
         Device* pDevice = _deviceList.GetDevice(name);
-        if (pDevice == NULL) {
+        if (pDevice == NULL)
+        {
             pDevice = Private::NewDevice(type, name);
         }
         _deviceList.Upsert(name, pDevice);
         Private::GoogleSend(type, pTopic, pPayload, pDevice);
 
-    } else {
+    }
+    else
+    {
         log_warn("Invalid MQTT topic: %s", pTopic);
         // TODO: log something about an invalid MQTT message
     }
@@ -131,18 +137,12 @@ Device* TransportMqtt::Private::NewDevice(MQTT_TYPE type, const char* pName)
     Device* pDevice;
     char room[10] = "Bridge";
     TransportLayer* pTransport = new TransportMqtt(type, &pName[strlen(pMqttDeviceTypes[type])]);
-    switch (type) {
-    case MQTT_DIMMER_SWITCH_FEIT:
-        pDevice = new DeviceLightLevel(pName, room, pTransport);
-        break;
-    case MQTT_OUTLET_GORDON:
-        pDevice = new DeviceButton(pName, room, pTransport);
-        break;
-    case MQTT_LAMP_RGB:
-        pDevice = new DeviceLightRGB(pName, room, pTransport);
-        break;
-    default: /*Support this type!*/
-        break;
+    switch (type)
+    {
+        case MQTT_DIMMER_SWITCH_FEIT:   pDevice = new DeviceLightLevel(pName, room, pTransport); break;
+        case MQTT_OUTLET_GORDON:        pDevice = new DeviceButton(pName, room, pTransport);     break;
+        case MQTT_LAMP_RGB:             pDevice = new DeviceLightRGB(pName, room, pTransport);   break;
+        default:                        /*Support this type!*/                                   break;
     }
     return pDevice;
 }
@@ -153,15 +153,19 @@ MQTT_TYPE TransportMqtt::Private::GetDeviceType(const char* pTopic)
     uint32_t type = (uint32_t)MQTT_TYPE_COUNT;
 
     const char* pSlash = strchr(pTopic, '/');
-    if (pSlash) {
+    if (pSlash)
+    {
         pSlash++;
         pSlash = strchr(pSlash, '/');
-        if (pSlash) {
+        if (pSlash)
+        {
             // pSlash--;
             uint32_t deviceNameLength = (uint64_t)pSlash - (uint64_t)pTopic;
             type = 0;
-            while (type < (uint32_t)MQTT_TYPE_COUNT) {
-                if (deviceNameLength == mqttDeviceTopicLengths[type] && memcmp(pMqttDeviceTypes[type], pTopic, strlen(pMqttDeviceTypes[type])) == STR_CMP_MATCH) {
+            while (type < (uint32_t)MQTT_TYPE_COUNT)
+            {
+                if (deviceNameLength == mqttDeviceTopicLengths[type] && memcmp(pMqttDeviceTypes[type], pTopic, strlen(pMqttDeviceTypes[type])) == STR_CMP_MATCH)
+                {
                     // Could also verify that the last 12 characters are ascii-hex...
                     break;
                 }
@@ -175,18 +179,12 @@ MQTT_TYPE TransportMqtt::Private::GetDeviceType(const char* pTopic)
 // Send to Google functions
 void TransportMqtt::Private::GoogleSend(MQTT_TYPE type, const char* pTopic, const char* pPayload, Device* pDevice)
 {
-    switch (type) {
-    case MQTT_DIMMER_SWITCH_FEIT:
-        Private::GoogleSendLightLevel(pTopic, pPayload, (DeviceLightLevel*)pDevice);
-        break;
-    case MQTT_OUTLET_GORDON:
-        Private::GoogleSendOutlet(pTopic, pPayload, (DeviceButton*)pDevice);
-        break;
-    case MQTT_LAMP_RGB:
-        Private::GoogleSendLightRgb(pTopic, pPayload, (DeviceLightRGB*)pDevice);
-        break;
-    default: /*Support this type!*/
-        break;
+    switch (type)
+    {
+        case MQTT_DIMMER_SWITCH_FEIT:        Private::GoogleSendLightLevel(pTopic, pPayload, (DeviceLightLevel*)pDevice);       break;
+        case MQTT_OUTLET_GORDON:         Private::GoogleSendOutlet(pTopic, pPayload, (DeviceButton*)pDevice);        break;
+        case MQTT_LAMP_RGB:        Private::GoogleSendLightRgb(pTopic, pPayload, (DeviceLightRGB*)pDevice);        break;
+        default: /*Support this type!*/        break;
     }
 }
 void TransportMqtt::Private::GoogleSendLightLevel(const char* pTopic, const char* pPayload, DeviceLightLevel* pDevice)
@@ -195,11 +193,15 @@ void TransportMqtt::Private::GoogleSendLightLevel(const char* pTopic, const char
     std::string topic(pTopic);
     std::string delim("/");
     vector<string> splitTopic = split(topic, delim);
-    if (splitTopic.size() == 4 && splitTopic[3].compare("get") == 0) {
-        if (splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_ONOFF]) == 0) {
+    if (splitTopic.size() == 4 && splitTopic[3].compare("get") == 0)
+    {
+        if (splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_ONOFF]) == 0)
+        {
             int value = strtol(pPayload, NULL, 10);
             pDevice->SetOn(value);
-        } else if (splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_LEVEL]) == 0) {
+        }
+        else if (splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_LEVEL]) == 0)
+        {
             int value = strtol(pPayload, NULL, 10) * 2.55;
             pDevice->SetLevel(value);
         }
@@ -245,31 +247,30 @@ void TransportMqtt::Private::GoogleSendLightRgb(const char* pTopic, const char* 
 void TransportMqtt::Private::MqttSend(TransportMqtt& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
     log_info("MqttSend");
-    switch (self._type) {
-    case MQTT_DIMMER_SWITCH_FEIT:
-        Private::MqttSendLightLevel(self, (const DeviceLightLevel*)pDevice, clusterId, attributeId);
-        break;
-    case MQTT_OUTLET_GORDON:
-        Private::MqttSendOutlet(self, (const DeviceButton*)pDevice, clusterId, attributeId);
-        break;
-    case MQTT_LAMP_RGB:
-        Private::MqttSendLightRgb(self, (const DeviceLightRGB*)pDevice, clusterId, attributeId);
-        break;
-    default: /*Support this type!*/
-        break;
+    switch (self._type)
+    {
+        case MQTT_DIMMER_SWITCH_FEIT:   Private::MqttSendLightLevel(self, (const DeviceLightLevel*)pDevice, clusterId, attributeId);    break;
+        case MQTT_OUTLET_GORDON:        Private::MqttSendOutlet(self, (const DeviceButton*)pDevice, clusterId, attributeId);            break;
+        case MQTT_LAMP_RGB:             Private::MqttSendLightRgb(self, (const DeviceLightRGB*)pDevice, clusterId, attributeId);        break;
+        default:                        /*Support this type!*/                                                                          break;
     }
 }
 void TransportMqtt::Private::MqttSendLightLevel(TransportMqtt& self, const DeviceLightLevel* pDevice, ClusterId clusterId, AttributeId attributeId)
 {
     char topic[30];
     char message[30];
-    if (clusterId == OnOff::Id && attributeId == OnOff::Attributes::OnOff::Id) {
+    if (clusterId == OnOff::Id && attributeId == OnOff::Attributes::OnOff::Id)
+    {
         sprintf(topic, "%s%s/1/set", pMqttDeviceTypes[self._type], self._macAddr);
         sprintf(message, "%u", pDevice->onOffCluster._isOn ? 1 : 0);
-    } else if (clusterId == LevelControl::Id && attributeId == LevelControl::Attributes::CurrentLevel::Id) {
+    }
+    else if (clusterId == LevelControl::Id && attributeId == LevelControl::Attributes::CurrentLevel::Id)
+    {
         sprintf(topic, "%s%s/2/set", pMqttDeviceTypes[self._type], self._macAddr);
         sprintf(message, "%u", (uint8_t)((float)pDevice->levelControlCluster._level / 2.55f));
-    } else {
+    }
+    else
+    {
         log_error("MqttSendLightLevel unsupported cluster/attribute %u/%u", clusterId, attributeId);
         return;
     }
@@ -334,7 +335,8 @@ vector<string> split(const string& str, const string& delim)
     vector<string> result;
     size_t start = 0;
 
-    for (size_t found = str.find(delim); found != string::npos; found = str.find(delim, start)) {
+    for (size_t found = str.find(delim); found != string::npos; found = str.find(delim, start))
+    {
         result.emplace_back(str.begin() + start, str.begin() + found);
         start = found + delim.size();
     }
