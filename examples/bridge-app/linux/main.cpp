@@ -20,7 +20,7 @@
 #include <pigpio.h>
 
 #include "Device.h"
-#include "main.h"
+#include "main.h" 
 
 #include <vector>
 
@@ -28,6 +28,7 @@
 #include "uart.h"
 #include "SerialFramerEspNow.h"
 #include "EndpointApi.h"
+#include "transportEspNow.h"
 #include "transportMqtt.h"
 #include "timer.h"
 

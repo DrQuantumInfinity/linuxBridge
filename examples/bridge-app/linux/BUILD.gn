@@ -84,14 +84,13 @@ executable("chip-bridge-app") {
     "transportLayer/espNow",
     "transportLayer/mqtt",
     "utils",
-    "mqtt/include",
-    "mqtt",
-    "~/pigpio-master"
+    "libs/pigpio/include",
+    "libs/mqtt/include",
   ]
 
   lib_dirs = [ 
-    "./mqtt/lib/aarch64-linux-gnu",
-    "/usr/lib"
+    "libs/mqtt/lib/aarch64-linux-gnu",
+    "libs/pigpio/lib/aarch64-linux-gnu"
   ]
   libs = [ 
     "mosquitto", 
