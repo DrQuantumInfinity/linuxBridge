@@ -17,6 +17,7 @@
  */
 
 #include <AppMain.h>
+#include <pigpio.h>
 
 #include "Device.h"
 #include "main.h"
@@ -28,6 +29,7 @@
 #include "SerialFramerEspNow.h"
 #include "EndpointApi.h"
 #include "transportMqtt.h"
+#include "timer.h"
 
 
 std::vector<EndpointListInfo> GetEndpointListInfo(chip::EndpointId parentId)
@@ -47,6 +49,15 @@ void ApplicationInit()
     log_set_level(1);
     // chip::Server::GetInstance().ScheduleFactoryReset();
     EndpointApiInit();
+    TransportEspNow::Init();
+    gpioInitialise();
+    gpioSetMode(2, PI_OUTPUT);
+    gpioSetMode(3, PI_OUTPUT);
+    gpioWrite(3, 1);
+    gpioWrite(2, 0);
+    TimerSleepMs(10);
+    gpioWrite(2, 1);
+
     SerialInit();
     TransportMqtt::Init();
     TransportMqtt::HandleTopicRx("WifiDimmerFeit-112233445566/1/set", "1");

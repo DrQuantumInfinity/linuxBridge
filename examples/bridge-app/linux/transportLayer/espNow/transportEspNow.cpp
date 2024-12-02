@@ -50,7 +50,8 @@ PersistDevList TransportEspNow::_persistList = PersistDevList(sizeof(PersistEspN
 
 void TransportEspNow::Init(void)
 {
-    _persistList.Apply(TransportEspNow::Private::NewDeviceOnPwr);
+    
+    //_persistList.Apply(TransportEspNow::Private::NewDeviceOnPwr);
 }
 void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLength)
 {
@@ -125,9 +126,9 @@ void TransportEspNow::Private::GoogleSend(const ESP_NOW_DATA* pData, Device* pDe
 {
     switch (pData->type)
     {
-        case ESP_NOW_DEVICE_TYPE_TOGGLE:    Private::GoogleSendButton(pData, (DeviceButton*)pDevice);       break;
-        case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: Private::GoogleSendLightRgb(pData, (DeviceLightRGB*)pDevice);   break;
-        default:                            /*Support this type!*/                                          break;
+    case ESP_NOW_DEVICE_TYPE_TOGGLE:    Private::GoogleSendButton(pData, (DeviceButton*)pDevice);       break;
+    case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: Private::GoogleSendLightRgb(pData, (DeviceLightRGB*)pDevice);   break;
+    default:                            /*Support this type!*/                                          break;
     }
 }
 void TransportEspNow::Private::GoogleSendButton(const ESP_NOW_DATA* pData, DeviceButton* pDevice)
@@ -154,9 +155,9 @@ void TransportEspNow::Private::EspNowSend(TransportEspNow& self, const Device* p
 {
     switch (self._data.type)
     {
-        case ESP_NOW_DEVICE_TYPE_TOGGLE:    /*ESPNOW TOGGLEs are transmitters only*/                            break;
-        case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: /* Private::EspNowSendLightRgb(self, (const DeviceLightRGB*)pDevice); */  break;
-        default:                            /*Support this type!*/                                              break;
+    case ESP_NOW_DEVICE_TYPE_TOGGLE:    /*ESPNOW TOGGLEs are transmitters only*/                            break;
+    case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: /* Private::EspNowSendLightRgb(self, (const DeviceLightRGB*)pDevice); */  break;
+    default:                            /*Support this type!*/                                              break;
     }
 }
 void TransportEspNow::Private::EspNowSendLightRgb(TransportEspNow& self, const DeviceLightRGB* pDevice)

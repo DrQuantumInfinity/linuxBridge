@@ -86,10 +86,17 @@ executable("chip-bridge-app") {
     "utils",
     "mqtt/include",
     "mqtt",
+    "~/pigpio-master"
   ]
 
-  lib_dirs = [ "./mqtt/lib/aarch64-linux-gnu" ]
-  libs = [ "mosquitto" ]
+  lib_dirs = [ 
+    "./mqtt/lib/aarch64-linux-gnu",
+    "/usr/lib"
+  ]
+  libs = [ 
+    "mosquitto", 
+    "pigpio" 
+  ]
 
   output_dir = root_out_dir
 }
