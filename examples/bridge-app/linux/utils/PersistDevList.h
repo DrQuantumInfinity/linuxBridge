@@ -11,7 +11,7 @@ typedef std::map<int, PersistGeneric*> PersistentMap;
 typedef void (*PersistApplyFn)(int /*index*/, void* /*newDev*/);
 class PersistDevList {
 public:
-    PersistDevList(int structSize);
+    PersistDevList(int structSize, char* filename);
     void Upsert(int index, void* newDev);
     void Apply(PersistApplyFn func);
 private:

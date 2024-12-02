@@ -74,7 +74,7 @@ static string MqttFeitCommands[2] = {
 static uint32_t mqttDeviceTopicLengths[MQTT_TYPE_COUNT];
 DeviceList TransportMqtt::_deviceList; // static variables in a class need to be independently initialized. C++ is dumb
 mqtt_inst* TransportMqtt::_mqttInst;
-PersistDevList TransportMqtt::_persistList = PersistDevList(sizeof(PersistMQTT));
+PersistDevList TransportMqtt::_persistList = PersistDevList(sizeof(PersistMQTT), "mqttPersist.bin");
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/

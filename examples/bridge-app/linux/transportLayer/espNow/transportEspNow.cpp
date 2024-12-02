@@ -11,23 +11,31 @@ using namespace ::chip;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
-/**************************************************************************
- *                                  Macros
- **************************************************************************/
-/**************************************************************************
- *                                  Types
- **************************************************************************/
+ /**************************************************************************
+  *                                  Macros
+  **************************************************************************/
+  /**************************************************************************
+   *                                  Types
+   **************************************************************************/
+typedef struct {
+    char name[32];
+    char room[ENDPOINT_LOCATION_LENGTH];
+    uint8_t macAddr[6];
+    ESP_NOW_DEVICE_TYPE type;
+}PersistEspNow;
+
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
 struct TransportEspNow::Private
 {
-    static Device* AddNewDevice(const ESP_NOW_DATA* pData, uint32_t dataLength);
+    static void NewDeviceOnPwr(int index, void* pPersist);
+    static Device* NewDevice(int index, PersistEspNow* pPersist);
 
     static void GoogleSend(const ESP_NOW_DATA* pData, Device* pDevice);
     static void GoogleSendButton(const ESP_NOW_DATA* pData, DeviceButton* pDevice);
     static void GoogleSendLightRgb(const ESP_NOW_DATA* pData, DeviceLightRGB* pDevice);
-    
+
     static void EspNowSend(TransportEspNow& self, const Device* pDevice);
     static void EspNowSendLightRgb(TransportEspNow& self, const DeviceLightRGB* pDevice);
 };
@@ -35,12 +43,36 @@ struct TransportEspNow::Private
  *                                  Variables
  **************************************************************************/
 DeviceList TransportEspNow::_deviceList; //static variables in a class need to be independently initialized. C++ is dumb
+PersistDevList TransportEspNow::_persistList = PersistDevList(sizeof(PersistEspNow), "espnowPersist.bin");
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/
+
+void TransportEspNow::Init(void)
+{
+    _persistList.Apply(TransportEspNow::Private::NewDeviceOnPwr);
+}
 void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLength)
 {
-    Device* pDevice = Private::AddNewDevice(pData, dataLength);
+    char name[32];
+    sprintf(name, "%s %02X:%02X:%02X:%02X:%02X:%02X", EspNowGetName(pData),
+        pData->macAddr[0], pData->macAddr[1], pData->macAddr[2],
+        pData->macAddr[3], pData->macAddr[4], pData->macAddr[5]);
+    char room[10] = "Bridge";
+
+    Device* pDevice = _deviceList.GetDevice(pData->macAddr, sizeof(pData->macAddr));
+
+    if (pDevice == NULL)
+    {
+        PersistEspNow persistData;
+        strncpy(persistData.name, name, sizeof(persistData.name));
+        strncpy(persistData.room, "Bridge", sizeof(persistData.room));
+        persistData.type = pData->type;
+        pDevice = TransportEspNow::Private::NewDevice(-1, &persistData);
+        _persistList.Upsert(pDevice->GetIndex(), &persistData);
+    }
+
+    // Device* pDevice = Private::AddNewDevice(pData, dataLength);
     if (pDevice)
     {
         _deviceList.Upsert(pData->macAddr, sizeof(pData->macAddr), pDevice);
@@ -50,13 +82,14 @@ void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLen
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-TransportEspNow::TransportEspNow(const ESP_NOW_DATA* pData, uint32_t dataLength)
+TransportEspNow::TransportEspNow(ESP_NOW_DEVICE_TYPE type, const uint8_t* pMacAddr)
 {
-    memcpy(&_data, pData, dataLength);
+    _data.type = type;
+    memcpy(&_data.macAddr, pMacAddr, sizeof(_data.macAddr));
 }
 TransportEspNow::~TransportEspNow(void)
 {
-    
+
 }
 /**************************************************************************
  *                                  Protected Functions
@@ -68,28 +101,24 @@ void TransportEspNow::Send(const Device* pDevice, ClusterId clusterId, const Emb
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-Device* TransportEspNow::Private::AddNewDevice(const ESP_NOW_DATA* pData, uint32_t dataLength)
+
+void TransportEspNow::Private::NewDeviceOnPwr(int index, void* pPersist)
 {
-    //TODO: add a validator to match pData->type and dataLength
-    Device* pDevice = _deviceList.GetDevice(pData->macAddr, sizeof(pData->macAddr));
-    if (pDevice == NULL)
+    NewDevice(index, (PersistEspNow*)pPersist);
+}
+
+Device* TransportEspNow::Private::NewDevice(int index, PersistEspNow* pPersist)
+{
+    Device* pDevice;
+    TransportLayer* pTransport = new TransportEspNow(pPersist->type, pPersist->macAddr);
+    switch (pPersist->type)
     {
-        char name[32];
-        sprintf(name, "%s %02X:%02X:%02X:%02X:%02X:%02X", EspNowGetName(pData),
-            pData->macAddr[0], pData->macAddr[1], pData->macAddr[2], 
-            pData->macAddr[3], pData->macAddr[4], pData->macAddr[5]);
-        char room[10] = "Bridge";
-        TransportLayer* pTransport = new TransportEspNow(pData, dataLength);
-        switch(pData->type)
-        {
-            case ESP_NOW_DEVICE_TYPE_TOGGLE:    pDevice = new DeviceButton(name, room, pTransport);     break;
-            case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: pDevice = new DeviceLightRGB(name, room, pTransport);   break;
-            default:                            /*Support this type!*/                                  break;
-        }
+        case ESP_NOW_DEVICE_TYPE_TOGGLE:    pDevice = new DeviceButton(pPersist->name, pPersist->room, pTransport);     break;
+        case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: pDevice = new DeviceLightRGB(pPersist->name, pPersist->room, pTransport);   break;
+        default:                            /*Support this type!*/                                  break;
     }
     return pDevice;
 }
-
 
 //Send to Google functions
 void TransportEspNow::Private::GoogleSend(const ESP_NOW_DATA* pData, Device* pDevice)
@@ -115,8 +144,8 @@ void TransportEspNow::Private::GoogleSendLightRgb(const ESP_NOW_DATA* pData, Dev
     uint8_t brightness;
     */
     pDevice->SetOn(pData->data.lightRgb.onOff);
-    pDevice->SetLevel(pData->data.lightRgb.brightness*100/255);
-    pDevice->SetColourHS(pData->data.lightRgb.hue*360/255, pData->data.lightRgb.saturation*100/255);
+    pDevice->SetLevel(pData->data.lightRgb.brightness * 100 / 255);
+    pDevice->SetColourHS(pData->data.lightRgb.hue * 360 / 255, pData->data.lightRgb.saturation * 100 / 255);
 }
 
 
@@ -132,18 +161,18 @@ void TransportEspNow::Private::EspNowSend(TransportEspNow& self, const Device* p
 }
 void TransportEspNow::Private::EspNowSendLightRgb(TransportEspNow& self, const DeviceLightRGB* pDevice)
 {
-    self._data.data.lightRgb.onOff      = pDevice->onOffCluster._isOn;
+    self._data.data.lightRgb.onOff = pDevice->onOffCluster._isOn;
     self._data.data.lightRgb.brightness = pDevice->levelControlCluster._level;
-    self._data.data.lightRgb.hue        = pDevice->colourCluster._hue;
+    self._data.data.lightRgb.hue = pDevice->colourCluster._hue;
     self._data.data.lightRgb.saturation = pDevice->colourCluster._sat;
-    self._data.data.lightRgb.mode       = ESP_NOW_DATA_LIGHT_RGB_MODE_STATIC;
-    self._data.type                     = ESP_NOW_DEVICE_TYPE_LIGHT_RGB;
+    self._data.data.lightRgb.mode = ESP_NOW_DATA_LIGHT_RGB_MODE_STATIC;
+    self._data.type = ESP_NOW_DEVICE_TYPE_LIGHT_RGB;
 
     SerialTransmit(&self._data, offsetof(ESP_NOW_DATA, data) + sizeof(ESP_NOW_DATA_LIGHT_RGB));
 }
 /*
 void TransportEspNow::DeviceLightRgb(const DeviceLightRGB* pDevice)
-{    
+{
     _data.data.lightRgb.onOff      = pDevice->onOffCluster._isOn;
     _data.data.lightRgb.brightness = pDevice->levelControlCluster._level;
     _data.data.lightRgb.hue        = pDevice->colourCluster._hue;
