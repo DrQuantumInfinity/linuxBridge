@@ -4,6 +4,8 @@
 //Devices
 #include "DeviceButton.h"
 #include "DeviceLightRGB.h"
+#include "DeviceTemperature.h"
+
 #include "SerialFramerEspNow.h"
 
 using namespace ::chip;
@@ -63,19 +65,18 @@ void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLen
     }
     else
     {
-        char name[32];
-        sprintf(name, "%s %02X:%02X:%02X:%02X:%02X:%02X", EspNowGetName(pData),
-            pData->macAddr[0], pData->macAddr[1], pData->macAddr[2],
-            pData->macAddr[3], pData->macAddr[4], pData->macAddr[5]);
-        char room[10] = "Bridge";
 
         Device* pDevice = _deviceList.GetDevice(pData->macAddr, sizeof(pData->macAddr));
 
         if (pDevice == NULL)
         {
             PersistEspNow persistData;
-            strncpy(persistData.name, name, sizeof(persistData.name));
-            strncpy(persistData.room, "Bridge", sizeof(persistData.room));
+            memset(&persistData, 0x00, sizeof(persistData));
+            sprintf(persistData.name, "%s %02X:%02X:%02X:%02X:%02X:%02X", EspNowGetName(pData),
+                pData->macAddr[0], pData->macAddr[1], pData->macAddr[2],
+                pData->macAddr[3], pData->macAddr[4], pData->macAddr[5]);
+            strcpy(persistData.room, "Bridge");
+            memcpy(persistData.macAddr, pData->macAddr, sizeof(persistData.macAddr));
             persistData.type = pData->type;
             pDevice = TransportEspNow::Private::NewDevice(-1, &persistData);
             //_persistList.Upsert(pDevice->GetIndex(), &persistData);
@@ -95,7 +96,7 @@ void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLen
 TransportEspNow::TransportEspNow(ESP_NOW_DEVICE_TYPE type, const uint8_t* pMacAddr)
 {
     _data.type = type;
-    memcpy(&_data.macAddr, pMacAddr, sizeof(_data.macAddr));
+    memcpy(_data.macAddr, pMacAddr, sizeof(_data.macAddr));
 }
 TransportEspNow::~TransportEspNow(void)
 {
@@ -119,13 +120,14 @@ void TransportEspNow::Private::NewDeviceOnPwr(int index, void* pPersist)
 
 Device* TransportEspNow::Private::NewDevice(int index, PersistEspNow* pPersist)
 {
-    Device* pDevice;
+    Device* pDevice = nullptr;
     TransportLayer* pTransport = new TransportEspNow(pPersist->type, pPersist->macAddr);
     switch (pPersist->type)
     {
-        case ESP_NOW_DEVICE_TYPE_TOGGLE:    pDevice = new DeviceButton(pPersist->name, pPersist->room, pTransport);     break;
-        case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: pDevice = new DeviceLightRGB(pPersist->name, pPersist->room, pTransport);   break;
-        default:                            /*Support this type!*/                                  break;
+    case ESP_NOW_DEVICE_TYPE_TOGGLE:    pDevice = new DeviceButton(pPersist->name, pPersist->room, pTransport);     break;
+    case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: pDevice = new DeviceLightRGB(pPersist->name, pPersist->room, pTransport);   break;
+    case ESP_NOW_DEVICE_TYPE_DHT:       pDevice = new DeviceTemperature(pPersist->name, pPersist->room, pTransport, 0.0f, 0.0f);break;
+    default:                            log_warn("support device %u", pPersist->type);                              break;
     }
     return pDevice;
 }

@@ -76,7 +76,14 @@ void SerialInit(void)
     espMsg.data.lightRgb.saturation = 100;
     espMsg.data.lightRgb.brightness = 75;
 
-    SerialTransmit(&espMsg, OFFSET_OF(typeof(espMsg), data) + sizeof(espMsg.data.lightRgb));
+    const void* pData = &espMsg;
+    uint8_t byteLength = OFFSET_OF(typeof(espMsg), data) + sizeof(espMsg.data.lightRgb);    
+   
+    SerialHandleRxCallback(serial.uartHandle, (uint8_t*)&startKey, sizeof(startKey));
+    SerialHandleRxCallback(serial.uartHandle, (uint8_t*)&byteLength, sizeof(byteLength));
+    SerialHandleRxCallback(serial.uartHandle, (uint8_t*)pData, byteLength);
+    uint16_t crc = Crc16Block(0, pData, byteLength);
+    SerialHandleRxCallback(serial.uartHandle, (uint8_t*)&crc, sizeof(crc));
     */
 }
 void SerialTransmit(const void* pData, uint32_t dataLength)

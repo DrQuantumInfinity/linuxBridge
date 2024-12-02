@@ -44,9 +44,8 @@ Device::Device(void)
             break;
         }
     }
-    Device(_index);
-    // AddCluster(&basicCluster);
-    // basicCluster._reachable = true;
+    AddCluster(&basicCluster);
+    basicCluster._reachable = true;
 }
 Device::~Device(void)
 {
