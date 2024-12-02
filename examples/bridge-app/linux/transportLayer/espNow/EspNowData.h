@@ -29,6 +29,13 @@ typedef enum __attribute__((packed))
 
 typedef struct __attribute__((packed))
 {
+    bool isText;
+    int length;
+    char data[100];
+}ESP_NOW_DATA_DEBUG;
+
+typedef struct __attribute__((packed))
+{
     float temperature;
     float humidity;
 }ESP_NOW_DATA_DHT;
@@ -91,6 +98,7 @@ typedef struct __attribute__((packed))
 
 typedef union __attribute__((packed))
 {
+    ESP_NOW_DATA_DEBUG debug;
     ESP_NOW_DATA_DHT dht;
     ESP_NOW_DATA_MOTION motion;
     ESP_NOW_DATA_ON_OFF onOff;

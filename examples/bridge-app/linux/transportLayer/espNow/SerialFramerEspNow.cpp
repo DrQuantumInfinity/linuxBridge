@@ -63,8 +63,8 @@ void SerialInit(void)
     };
     serial.uartHandle = UartRegister("/dev/ttyAMA0", &uartParams);
 
-    //TODO: delete test code
     //Test code to inject a fake EspNow message
+    /*
     TimerSleepMs(100);
     ESP_NOW_DATA espMsg;
     memset(&espMsg, 0x00, sizeof(espMsg));
@@ -77,6 +77,7 @@ void SerialInit(void)
     espMsg.data.lightRgb.brightness = 75;
 
     SerialTransmit(&espMsg, OFFSET_OF(typeof(espMsg), data) + sizeof(espMsg.data.lightRgb));
+    */
 }
 void SerialTransmit(const void* pData, uint32_t dataLength)
 {

@@ -54,29 +54,39 @@ void TransportEspNow::Init(void)
 }
 void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLength)
 {
-    char name[32];
-    sprintf(name, "%s %02X:%02X:%02X:%02X:%02X:%02X", EspNowGetName(pData),
-        pData->macAddr[0], pData->macAddr[1], pData->macAddr[2],
-        pData->macAddr[3], pData->macAddr[4], pData->macAddr[5]);
-    char room[10] = "Bridge";
-
-    Device* pDevice = _deviceList.GetDevice(pData->macAddr, sizeof(pData->macAddr));
-
-    if (pDevice == NULL)
+    if (pData->type == ESP_NOW_DEVICE_TYPE_DEBUG)
     {
-        PersistEspNow persistData;
-        strncpy(persistData.name, name, sizeof(persistData.name));
-        strncpy(persistData.room, "Bridge", sizeof(persistData.room));
-        persistData.type = pData->type;
-        pDevice = TransportEspNow::Private::NewDevice(-1, &persistData);
-        //_persistList.Upsert(pDevice->GetIndex(), &persistData);
+        if (pData->data.debug.isText)
+        {
+            log_info(pData->data.debug.data);
+        }
     }
-
-    // Device* pDevice = Private::AddNewDevice(pData, dataLength);
-    if (pDevice)
+    else
     {
-        _deviceList.Upsert(pData->macAddr, sizeof(pData->macAddr), pDevice);
-        Private::GoogleSend(pData, pDevice);
+        char name[32];
+        sprintf(name, "%s %02X:%02X:%02X:%02X:%02X:%02X", EspNowGetName(pData),
+            pData->macAddr[0], pData->macAddr[1], pData->macAddr[2],
+            pData->macAddr[3], pData->macAddr[4], pData->macAddr[5]);
+        char room[10] = "Bridge";
+
+        Device* pDevice = _deviceList.GetDevice(pData->macAddr, sizeof(pData->macAddr));
+
+        if (pDevice == NULL)
+        {
+            PersistEspNow persistData;
+            strncpy(persistData.name, name, sizeof(persistData.name));
+            strncpy(persistData.room, "Bridge", sizeof(persistData.room));
+            persistData.type = pData->type;
+            pDevice = TransportEspNow::Private::NewDevice(-1, &persistData);
+            //_persistList.Upsert(pDevice->GetIndex(), &persistData);
+        }
+
+        // Device* pDevice = Private::AddNewDevice(pData, dataLength);
+        if (pDevice)
+        {
+            _deviceList.Upsert(pData->macAddr, sizeof(pData->macAddr), pDevice);
+            Private::GoogleSend(pData, pDevice);
+        }
     }
 }
 /**************************************************************************
