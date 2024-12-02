@@ -7,6 +7,7 @@
  *                                  Constants
  **************************************************************************/
 char const * const pDeviceTypeStrings[] = {
+    "DEBUG",
     "DHT",
     "MOTION",
     "BOOL",

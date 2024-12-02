@@ -47,7 +47,7 @@ executable("chip-bridge-app") {
     "utils/DeviceList.cpp",
     "utils/EndpointApi.cpp",
     "utils/Log.cpp",
-    "utils/PersistDevList.cpp",
+    #"utils/PersistDevList.cpp",
     "utils/TimerTick.cpp",
     "utils/assert.cpp",
     "utils/futil.cpp",
@@ -67,14 +67,6 @@ executable("chip-bridge-app") {
     "-Wno-unused-const-variable",
     "-Wno-error",
   ]
-
-  # include_dirs = [
-  #   "clusters",
-  #   "devices",
-  #   "drivers",
-  #   "tasks",
-  #   "utils",
-  # ]
 
   include_dirs = [
     "include",

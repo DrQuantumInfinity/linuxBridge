@@ -43,14 +43,13 @@ struct TransportEspNow::Private
  *                                  Variables
  **************************************************************************/
 DeviceList TransportEspNow::_deviceList; //static variables in a class need to be independently initialized. C++ is dumb
-PersistDevList TransportEspNow::_persistList = PersistDevList(sizeof(PersistEspNow), "espnowPersist.bin");
+//PersistDevList TransportEspNow::_persistList = PersistDevList(sizeof(PersistEspNow), "espnowPersist.bin");
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/
 
 void TransportEspNow::Init(void)
 {
-    
     //_persistList.Apply(TransportEspNow::Private::NewDeviceOnPwr);
 }
 void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLength)
@@ -70,7 +69,7 @@ void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLen
         strncpy(persistData.room, "Bridge", sizeof(persistData.room));
         persistData.type = pData->type;
         pDevice = TransportEspNow::Private::NewDevice(-1, &persistData);
-        _persistList.Upsert(pDevice->GetIndex(), &persistData);
+        //_persistList.Upsert(pDevice->GetIndex(), &persistData);
     }
 
     // Device* pDevice = Private::AddNewDevice(pData, dataLength);

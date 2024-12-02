@@ -14,6 +14,7 @@
  **************************************************************************/
 typedef enum __attribute__((packed))
 {
+    ESP_NOW_DEVICE_TYPE_DEBUG,
     ESP_NOW_DEVICE_TYPE_DHT,
     ESP_NOW_DEVICE_TYPE_MOTION,
     ESP_NOW_DEVICE_TYPE_BOOL,
