@@ -47,7 +47,7 @@ switch to change led brightness
 temp sensor
 
 
-Linux Bridge first-time Setup:
+******************************************Linux Bridge first-time Setup:
 sudo apt-get install -y libmosquitto-dev
 wget http://launchpadlibrarian.net/741613665/libssl1.1_1.1.1f-1ubuntu2.23_arm64.deb
 sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_arm64.deb 
@@ -57,3 +57,9 @@ sudo systemctl enable mosquitto.service
 sudo nano /etc/mosquitto/mosquitto.conf
 //Add "listener 1883" and "allow_anonymous true" to the end
 sudo systemctl restart mosquitto
+
+python3 -m venv ./espVenv/                         
+cd espVenv/               
+source ./bin/activate  
+
+pip install esptool
