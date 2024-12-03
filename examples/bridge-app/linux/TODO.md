@@ -68,6 +68,12 @@ pip install esptool
 
 ***** ubuntu
 
+**enable serial port
+remove console=... from /boot/firmware/cmdline.txt
+
+add this to /etc/rc.local (create if needed)
+sudo ln -s /dev/ttyS0 /dev/ttyEspNow
+
 **pinctrl
 
 sudo apt install g++
