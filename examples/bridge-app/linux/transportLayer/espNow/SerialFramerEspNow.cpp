@@ -61,7 +61,7 @@ void SerialInit(void)
         .hardwareFlowCtrl = UART_HFC_DISABLED,
         .rxCallback = SerialHandleRxCallback,
     };
-    serial.uartHandle = UartRegister("/dev/ttyAMA0", &uartParams);
+    serial.uartHandle = UartRegister("/dev/ttyEspNow", &uartParams);
 
     //Test code to inject a fake EspNow message
     /*
