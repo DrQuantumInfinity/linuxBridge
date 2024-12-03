@@ -4,7 +4,7 @@ cd ../../.. &&
 
 DEST="ubuntu@192.168.0.128"
 deploy () {
-  scp ./out/linux-arm64-bridge-clang/chip-bridge-app $DEST:~
+  scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ./out/linux-arm64-bridge-clang/chip-bridge-app $DEST:~
 }
 
 if [ "$1" == "--deploy" ]; then
