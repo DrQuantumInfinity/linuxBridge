@@ -37,6 +37,7 @@ struct TransportEspNow::Private
     static void GoogleSend(const ESP_NOW_DATA* pData, Device* pDevice);
     static void GoogleSendButton(const ESP_NOW_DATA* pData, DeviceButton* pDevice);
     static void GoogleSendLightRgb(const ESP_NOW_DATA* pData, DeviceLightRGB* pDevice);
+    static void GoogleSendTemperature(const ESP_NOW_DATA* pData, DeviceTemperature* pDevice);
 
     static void EspNowSend(TransportEspNow& self, const Device* pDevice);
     static void EspNowSendLightRgb(TransportEspNow& self, const DeviceLightRGB* pDevice);
@@ -127,7 +128,7 @@ Device* TransportEspNow::Private::NewDevice(int index, PersistEspNow* pPersist)
     case ESP_NOW_DEVICE_TYPE_TOGGLE:    pDevice = new DeviceButton(pPersist->name, pPersist->room, pTransport);     break;
     case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: pDevice = new DeviceLightRGB(pPersist->name, pPersist->room, pTransport);   break;
     case ESP_NOW_DEVICE_TYPE_DHT:       pDevice = new DeviceTemperature(pPersist->name, pPersist->room, pTransport, 0.0f, 0.0f);break;
-    default:                            log_warn("support device %u", pPersist->type);                              break;
+    default:                            log_warn("support new device %u", pPersist->type);                          break;
     }
     return pDevice;
 }
@@ -137,9 +138,10 @@ void TransportEspNow::Private::GoogleSend(const ESP_NOW_DATA* pData, Device* pDe
 {
     switch (pData->type)
     {
-    case ESP_NOW_DEVICE_TYPE_TOGGLE:    Private::GoogleSendButton(pData, (DeviceButton*)pDevice);       break;
-    case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: Private::GoogleSendLightRgb(pData, (DeviceLightRGB*)pDevice);   break;
-    default:                            /*Support this type!*/                                          break;
+    case ESP_NOW_DEVICE_TYPE_TOGGLE:    Private::GoogleSendButton(pData, (DeviceButton*)pDevice);           break;
+    case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: Private::GoogleSendLightRgb(pData, (DeviceLightRGB*)pDevice);       break;
+    case ESP_NOW_DEVICE_TYPE_DHT:       Private::GoogleSendTemperature(pData, (DeviceTemperature*)pDevice); break;
+    default:                            log_warn("support send device %u", pData->type);                    break;
     }
 }
 void TransportEspNow::Private::GoogleSendButton(const ESP_NOW_DATA* pData, DeviceButton* pDevice)
@@ -158,6 +160,11 @@ void TransportEspNow::Private::GoogleSendLightRgb(const ESP_NOW_DATA* pData, Dev
     pDevice->SetOn(pData->data.lightRgb.onOff);
     pDevice->SetLevel(pData->data.lightRgb.brightness * 100 / 255);
     pDevice->SetColourHS(pData->data.lightRgb.hue * 360 / 255, pData->data.lightRgb.saturation * 100 / 255);
+}
+void TransportEspNow::Private::GoogleSendTemperature(const ESP_NOW_DATA* pData, DeviceTemperature* pDevice)
+{
+    pDevice->UpdateTemp(pData->data.dht.temperature);
+    pDevice->UpdateHumidity(pData->data.dht.humidity);
 }
 
 
