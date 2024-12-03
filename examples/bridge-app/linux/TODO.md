@@ -63,3 +63,17 @@ cd espVenv/
 source ./bin/activate  
 
 pip install esptool
+
+
+
+***** ubuntu
+
+**pinctrl
+
+sudo apt install g++
+
+git clone https://github.com/raspberrypi/utils.git
+cd utils
+cmake .
+make
+sudo make install
