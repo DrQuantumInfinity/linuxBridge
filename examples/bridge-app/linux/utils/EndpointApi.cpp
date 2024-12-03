@@ -63,7 +63,9 @@ void EndpointApiInit(void)
 }
 void EndpointAdd(ENDPOINT_DATA *pData)
 {
-    chip::DeviceLayer::PlatformMgr().ScheduleWork(EndpointAddWorker, reinterpret_cast<intptr_t>(pData));
+    ENDPOINT_DATA* pDataMalloc = (ENDPOINT_DATA*)malloc(sizeof(*pData));
+    memcpy(pDataMalloc, pData, sizeof(*pDataMalloc));
+    chip::DeviceLayer::PlatformMgr().ScheduleWork(EndpointAddWorker, reinterpret_cast<intptr_t>(pDataMalloc));
 }
 void EndpointRemove(uint16_t index)
 {
@@ -215,6 +217,7 @@ static void EndpointAddWorker(intptr_t context)
                 {
                     log_info("Added device %u: %s at dynamic endpoint %u", pData->index, pData->name, endpointApi.currentEndpointId);
                     endpointApi.currentEndpointId++;
+                    free(pData);
                     return;
                 }
                 else //if (ret != EMBER_ZCL_STATUS_DUPLICATE_EXISTS)
@@ -239,6 +242,7 @@ static void EndpointAddWorker(intptr_t context)
         log_error("Index out of range: %u: %s", pData->index, pData->name);
     }
     log_error("Failed to add dynamic endpoint: No endpoints available!");
+    free(pData);
 }
 static void EndpointRemoveWorker(intptr_t context)
 {
