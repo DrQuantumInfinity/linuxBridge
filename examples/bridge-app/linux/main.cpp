@@ -17,7 +17,6 @@
  */
 
 #include <AppMain.h>
-#include <pigpio.h>
 
 #include "Device.h"
 #include "main.h" 
@@ -51,13 +50,13 @@ void ApplicationInit()
     // chip::Server::GetInstance().ScheduleFactoryReset();
     EndpointApiInit();
     TransportEspNow::Init();
-    gpioInitialise();
+/*    gpioInitialise();
     gpioSetMode(2, PI_OUTPUT);
     gpioSetMode(3, PI_OUTPUT);
     gpioWrite(3, 1);
     gpioWrite(2, 0);
     TimerSleepMs(10);
-    gpioWrite(2, 1);
+    gpioWrite(2, 1);*/
 
     SerialInit();
     TransportMqtt::Init();
