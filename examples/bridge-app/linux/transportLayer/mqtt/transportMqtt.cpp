@@ -74,7 +74,7 @@ static string MqttFeitCommands[2] = {
 static uint32_t mqttDeviceTopicLengths[MQTT_TYPE_COUNT];
 DeviceList TransportMqtt::_deviceList; // static variables in a class need to be independently initialized. C++ is dumb
 mqtt_inst* TransportMqtt::_mqttInst;
-//PersistDevList TransportMqtt::_persistList = PersistDevList(sizeof(PersistMQTT), "mqttPersist.bin");
+PersistDevList TransportMqtt::_persistList = PersistDevList(sizeof(PersistMQTT), "mqttPersist.bin");
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/
@@ -93,7 +93,7 @@ void TransportMqtt::Init(void)
         mqtt_wrap_add_sub(TransportMqtt::_mqttInst, topicBuf);
     }
     mqtt_wrap_loopstart(TransportMqtt::_mqttInst);
-    //_persistList.Apply(TransportMqtt::Private::NewDeviceOnPwr);
+    _persistList.Apply(TransportMqtt::Private::NewDeviceOnPwr);
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
 {
@@ -113,7 +113,7 @@ void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
             strncpy(persistData.room, "Bridge", sizeof(persistData.room));
             persistData.type = type;
             pDevice = TransportMqtt::Private::NewDevice(-1, &persistData);
-            //_persistList.Upsert(pDevice->GetIndex(), &persistData);
+            _persistList.Upsert(pDevice->GetIndex(), &persistData);
         }
         _deviceList.Upsert(name, pDevice);
         Private::GoogleSend(type, pTopic, pPayload, pDevice);

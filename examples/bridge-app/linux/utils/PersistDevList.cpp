@@ -8,14 +8,17 @@ PersistDevList::PersistDevList(int structSize, char* filename) //: _structSize(s
     strncpy(_filename, filename, sizeof(_filename));
     FILE* f_ptr;
     f_ptr = fopen(filename, "rb");
-    while (!feof(f_ptr))
+    if(f_ptr!=NULL)
     {
-        // PersistMQTT newDev;
-        PersistGeneric* newDev = (PersistGeneric*)malloc(_structSize);
-        fread(&newDev, _structSize, 1, f_ptr);
-        _map[newDev->index] = newDev;
+        while (!feof(f_ptr))
+        {
+            // PersistMQTT newDev;
+            PersistGeneric* newDev = (PersistGeneric*)malloc(_structSize);
+            fread(&newDev, _structSize, 1, f_ptr);
+            _map[newDev->index] = newDev;
+        }
+        fclose(f_ptr);
     }
-    fclose(f_ptr);
 }
 
 void PersistDevList::Upsert(int index, void* newDev)
