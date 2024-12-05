@@ -72,8 +72,14 @@ pip install esptool
 **enable serial port
 remove console=... from /boot/firmware/cmdline.txt
 
-add this to /etc/rc.local (create if needed)
+create file named /lib/systemd/system/esp-serial.service with one of these two in it
+
 sudo ln -s /dev/ttyS0 /dev/ttyEspNow
+
+sudo ln -s /dev/ttyAMA0 /dev/ttyEspNow
+
+sudo systemctl daemon-reload
+sudo systemctl enable esp-serial.service
 
 **pinctrl
 
