@@ -58,9 +58,10 @@ sudo nano /etc/mosquitto/mosquitto.conf
 //Add "listener 1883" and "allow_anonymous true" to the end
 sudo systemctl restart mosquitto
 
-python3 -m venv ./espVenv/                         
-cd espVenv/               
-source ./bin/activate  
+apt install python3.10-venv
+python3 -m venv ./espVenv/
+cd espVenv/
+source ./bin/activate
 
 pip install esptool
 
