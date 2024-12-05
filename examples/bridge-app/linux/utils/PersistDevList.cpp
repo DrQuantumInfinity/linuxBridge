@@ -1,6 +1,7 @@
 #include "PersistDevList.h"
+#include "Log.h"
 
-char _filename[64];
+
 
 PersistDevList::PersistDevList(int structSize, char* filename) //: _structSize(structSize)
 {
@@ -12,10 +13,15 @@ PersistDevList::PersistDevList(int structSize, char* filename) //: _structSize(s
     {
         while (!feof(f_ptr))
         {
-            // PersistMQTT newDev;
-            PersistGeneric* newDev = (PersistGeneric*)malloc(_structSize);
-            fread(&newDev, _structSize, 1, f_ptr);
-            _map[newDev->index] = newDev;
+             PersistGeneric* pNewDev = (PersistGeneric*)malloc(_structSize + sizeof(PersistGeneric));
+            if(1 == fread(pNewDev, _structSize + sizeof(PersistGeneric), 1, f_ptr))
+            {
+                log_info("Fread in persist. index is:%d", pNewDev->index);
+                _map[pNewDev->index] = pNewDev;
+            }
+            else{
+                log_error("Fread of persist file failed. filename: %s", _filename);
+            }
         }
         fclose(f_ptr);
     }
@@ -23,7 +29,7 @@ PersistDevList::PersistDevList(int structSize, char* filename) //: _structSize(s
 
 void PersistDevList::Upsert(int index, void* newDev)
 {
-    PersistGeneric* persistedDev = (PersistGeneric*)malloc(sizeof(index) + _structSize);
+    PersistGeneric* persistedDev = (PersistGeneric*)malloc(sizeof(PersistGeneric) + _structSize);
     persistedDev->index = index;
     memcpy(persistedDev->data, newDev, _structSize);
     _map[index] = persistedDev;
@@ -36,15 +42,16 @@ void PersistDevList::Persist(void)
     f_ptr = fopen(_filename, "wb");
     for (auto dev : _map)
     {
-        fwrite(dev.second, _structSize, 1, f_ptr);
+        fwrite(dev.second, _structSize + sizeof(PersistGeneric), 1, f_ptr);
     }
     fclose(f_ptr);
 }
 
 void PersistDevList::Apply(PersistApplyFn func)
 {
+    log_info("Applying persist. map size: %d,  filename: %s", _map.size(), _filename);
     for (auto dev : _map)
     {
-        func(dev.first, dev.second);
+        func(dev.first, dev.second->data);
     }
 }

@@ -18,4 +18,5 @@ private:
     void Persist(void);
     int _structSize;
     PersistentMap _map;
+    char _filename[64];
 };
