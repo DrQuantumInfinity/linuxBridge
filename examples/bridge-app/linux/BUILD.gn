@@ -76,7 +76,6 @@ executable("chip-bridge-app") {
     "transportLayer/espNow",
     "transportLayer/mqtt",
     "utils",
-
     #"libs/pigpio/include",
     "libs/mqtt/include",
   ]

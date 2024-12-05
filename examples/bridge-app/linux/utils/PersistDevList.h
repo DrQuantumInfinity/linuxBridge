@@ -1,6 +1,5 @@
 #pragma once
 
-#include "EndpointApi.h"
 #include <map>
 
 struct PersistGeneric {
