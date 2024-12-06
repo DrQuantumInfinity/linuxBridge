@@ -66,6 +66,7 @@ executable("chip-bridge-app") {
     "-Wconversion",
     "-Wno-unused-const-variable",
     "-Wno-error",
+    "-Wno-c99-designator",
   ]
 
   include_dirs = [

@@ -82,7 +82,7 @@ void TransportMqtt::Init(void)
 {
     for (uint32_t type = 0; type < (uint32_t)MQTT_TYPE_COUNT; type++)
     {
-        mqttDeviceTopicLengths[type] = strlen(pMqttDeviceTypes[type]) + 12;
+        mqttDeviceTopicLengths[type] = (uint32_t)strlen(pMqttDeviceTypes[type]) + 12;
     }
 
     TransportMqtt::_mqttInst = mqtt_wrap_init("192.168.0.128", TransportMqtt::HandleTopicRx);
@@ -153,7 +153,7 @@ void TransportMqtt::Private::NewDeviceOnPwr(int index, void* pPersist)
 }
 Device* TransportMqtt::Private::NewDevice(int index, PersistMQTT* pPersist)
 {
-    Device* pDevice;
+    Device* pDevice = nullptr;
 
     TransportLayer* pTransport = new TransportMqtt(pPersist->type, &pPersist->name[strlen(pMqttDeviceTypes[pPersist->type])]);
     switch (pPersist->type)
@@ -172,6 +172,7 @@ MQTT_TYPE TransportMqtt::Private::GetDeviceType(const char* pTopic)
     // MQTT device identifiers must match the pattern "DEVICE-MACADDRESS/"
     uint32_t type = (uint32_t)MQTT_TYPE_COUNT;
 
+
     const char* pSlash = strchr(pTopic, '/');
     if (pSlash)
     {
@@ -180,7 +181,7 @@ MQTT_TYPE TransportMqtt::Private::GetDeviceType(const char* pTopic)
         if (pSlash)
         {
             // pSlash--;
-            uint32_t deviceNameLength = (uint64_t)pSlash - (uint64_t)pTopic;
+            uint32_t deviceNameLength = (uint32_t)((uint64_t)pSlash - (uint64_t)pTopic);
             type = 0;
             while (type < (uint32_t)MQTT_TYPE_COUNT)
             {
@@ -217,12 +218,12 @@ void TransportMqtt::Private::GoogleSendLightLevel(const char* pTopic, const char
     {
         if (splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_ONOFF]) == 0)
         {
-            int value = strtol(pPayload, NULL, 10);
+            int value = (int)strtol(pPayload, NULL, 10);
             pDevice->SetOn(value);
         }
         else if (splitTopic[2].compare(MqttFeitCommands[MQTT_FEIT_CMD_LEVEL]) == 0)
         {
-            int value = strtol(pPayload, NULL, 10) * 2.55;
+            uint8_t value = (uint8_t)((double)strtol(pPayload, NULL, 10) * 2.55);
             pDevice->SetLevel(value);
         }
     }
@@ -357,10 +358,10 @@ vector<string> split(const string& str, const string& delim)
 
     for (size_t found = str.find(delim); found != string::npos; found = str.find(delim, start))
     {
-        result.emplace_back(str.begin() + start, str.begin() + found);
+        result.emplace_back(str.begin() + (long)start, str.begin() +(long) found);
         start = found + delim.size();
     }
     if (start != str.size())
-        result.emplace_back(str.begin() + start, str.end());
+        result.emplace_back(str.begin() + (long)start, str.end());
     return result;
 }

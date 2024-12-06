@@ -15,7 +15,7 @@ File: utils.cpp
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
-const char * const stringMonthsLong[12] = {
+const char* const stringMonthsLong[12] = {
    "January",
    "February",
    "March",
@@ -29,7 +29,7 @@ const char * const stringMonthsLong[12] = {
    "November",
    "December",
 };
-const char * const stringMonthsShort[12] = {
+const char* const stringMonthsShort[12] = {
    "Jan",
    "Feb",
    "Mar",
@@ -46,23 +46,23 @@ const char * const stringMonthsShort[12] = {
 /**************************************************************************
  *                                  Types
  **************************************************************************/
-/**************************************************************************
- *                                  Variables
- **************************************************************************/
-/**************************************************************************
- *                                  Prototypes
- **************************************************************************/
-/**************************************************************************
- *                                  Global Functions
- **************************************************************************/
+ /**************************************************************************
+  *                                  Variables
+  **************************************************************************/
+  /**************************************************************************
+   *                                  Prototypes
+   **************************************************************************/
+   /**************************************************************************
+    *                                  Global Functions
+    **************************************************************************/
 bool CpuIsLittleEndian(void)
 {
    uint16_t n = 1;
-   char *p = (char*)&n;
+   char* p = (char*)&n;
    return (bool)(*p == 1);
 }
 
-int32_t antoi(char const *pStr, uint32_t maxChars)
+int32_t antoi(char const* pStr, uint32_t maxChars)
 {
    char buffer[12];
    maxChars = MIN(sizeof(buffer) - 1, maxChars);
@@ -71,7 +71,7 @@ int32_t antoi(char const *pStr, uint32_t maxChars)
    return atoi(buffer);
 }
 
-uint32_t GetStringIndexFromTable(char const *const *ppTable, char const *pSearchStr, uint32_t maxIndex)
+uint32_t GetStringIndexFromTable(char const* const* ppTable, char const* pSearchStr, uint32_t maxIndex)
 {
    uint32_t stringIndex;
    for (stringIndex = 0; stringIndex < maxIndex; stringIndex++)
@@ -84,14 +84,14 @@ uint32_t GetStringIndexFromTable(char const *const *ppTable, char const *pSearch
    return stringIndex;
 }
 
-int stricmp(char const *pStr1, char const *pStr2)
+int stricmp(char const* pStr1, char const* pStr2)
 {
-   uint32_t len1 = strlen(pStr1);
-   uint32_t len2 = strlen(pStr2);
+   uint32_t len1 = (uint32_t)strlen(pStr1);
+   uint32_t len2 = (uint32_t)strlen(pStr2);
 
    return strnicmp(pStr1, pStr2, (len1 > len2) ? len1 : len2);
 }
-int strnicmp(char const *pStr1, char const *pStr2, uint32_t len)
+int strnicmp(char const* pStr1, char const* pStr2, uint32_t len)
 {
    char c1, c2;
    while (len--)
@@ -110,10 +110,10 @@ int strnicmp(char const *pStr1, char const *pStr2, uint32_t len)
    }
    return 0;
 }
-char *stristr(char *pStr1, char *pStr2)
+char* stristr(char* pStr1, char* pStr2)
 {
    char c1, c2;
-   uint32_t len2 = strlen(pStr2);
+   uint32_t len2 = (uint32_t)strlen(pStr2);
 
    c1 = (char)toupper((int)*pStr2);
    while (*pStr1)
@@ -131,7 +131,7 @@ char *stristr(char *pStr1, char *pStr2)
    return NULL;
 } //lint !e818
 
-char const *strTrimFront(char const *pStr)
+char const* strTrimFront(char const* pStr)
 {
    if (pStr)
    {
@@ -142,11 +142,11 @@ char const *strTrimFront(char const *pStr)
    }
    return pStr;
 }
-char *strTrimTail(char *pStr)
+char* strTrimTail(char* pStr)
 {
    if (pStr)
    {
-      char *pEnd = &pStr[(strlen(pStr) - 1)];
+      char* pEnd = &pStr[(strlen(pStr) - 1)];
       while (pEnd > pStr)
       {
          if (!isspace(*pEnd))
@@ -159,7 +159,7 @@ char *strTrimTail(char *pStr)
    }
    return pStr;
 }
-char *strTrim(char *pStr)
+char* strTrim(char* pStr)
 {
    if (pStr)
    {
@@ -172,10 +172,10 @@ char *strTrim(char *pStr)
    return pStr;
 }
 
-char *Strxtoa(uint32_t v, char *pStr, int32_t r, int32_t isNeg)
+char* Strxtoa(uint32_t v, char* pStr, int32_t r, int32_t isNeg)
 {
-   char *pStart = pStr;
-   char buf[33], *p;
+   char* pStart = pStr;
+   char buf[33], * p;
 
    p = buf;
 
@@ -198,7 +198,7 @@ char *Strxtoa(uint32_t v, char *pStr, int32_t r, int32_t isNeg)
 
    return pStart;
 }
-char *Stritoa(int32_t v, char *pStr, int32_t r)
+char* Stritoa(int32_t v, char* pStr, int32_t r)
 {
    if ((r == 10) && (v < 0))
    {
@@ -207,10 +207,10 @@ char *Stritoa(int32_t v, char *pStr, int32_t r)
    return Strxtoa((uint32_t)(v), pStr, r, 0);
 }
 
-void strncatf(char *pDest, uint32_t maxLen, char const *pFormat, ...)
+void strncatf(char* pDest, uint32_t maxLen, char const* pFormat, ...)
 {
    va_list pArg;
-   uint32_t len = strlen(pDest);
+   uint32_t len = (uint32_t)strlen(pDest);
    if (maxLen > len)
    {
       va_start(pArg, pFormat);
@@ -219,7 +219,7 @@ void strncatf(char *pDest, uint32_t maxLen, char const *pFormat, ...)
    }
 }
 
-void StringifyTime(char *pDest, uint32_t destLen, char const *pFormat, time_t const *pData)
+void StringifyTime(char* pDest, uint32_t destLen, char const* pFormat, time_t const* pData)
 {
    struct tm ltm;
    localtime_r(pData, &ltm);
@@ -231,49 +231,49 @@ void StringifyTime(char *pDest, uint32_t destLen, char const *pFormat, time_t co
       char nxtChar = pFormat[1];
       switch (curChar)
       {
-      case 'y':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_year - 100);                                          break;
-      case 'Y':   strLen = snprintf(pDest, destLen, "20%02u", ltm.tm_year - 100);                                        break;
-      case 'M':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_mon + 1);                                             break;
-      case 'B':   strLen = snprintf(pDest, destLen, " %s ", stringMonthsLong[ltm.tm_mon]);                               break;
-      case 'b':   strLen = snprintf(pDest, destLen, " %s ", stringMonthsShort[ltm.tm_mon]);                              break;
-      case 'd':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_mday);                                                break;
-      case 'D':   strLen = snprintf(pDest, destLen, "%02u/%02u/%02u", ltm.tm_year - 100, ltm.tm_mon + 1, ltm.tm_mday);   break;
-      case 'h':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_hour);                                                break;
-      case 'm':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_min);                                                 break;
-      case 's':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_sec);                                                 break;
-      case 'T':   strLen = snprintf(pDest, destLen, "%02u:%02u:%02u", ltm.tm_hour, ltm.tm_min, ltm.tm_sec);              break;
-      default:    strLen = 1;    *pDest = curChar;                                                                       break;
+         case 'y':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_year - 100);                                          break;
+         case 'Y':   strLen = snprintf(pDest, destLen, "20%02u", ltm.tm_year - 100);                                        break;
+         case 'M':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_mon + 1);                                             break;
+         case 'B':   strLen = snprintf(pDest, destLen, " %s ", stringMonthsLong[ltm.tm_mon]);                               break;
+         case 'b':   strLen = snprintf(pDest, destLen, " %s ", stringMonthsShort[ltm.tm_mon]);                              break;
+         case 'd':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_mday);                                                break;
+         case 'D':   strLen = snprintf(pDest, destLen, "%02u/%02u/%02u", ltm.tm_year - 100, ltm.tm_mon + 1, ltm.tm_mday);   break;
+         case 'h':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_hour);                                                break;
+         case 'm':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_min);                                                 break;
+         case 's':   strLen = snprintf(pDest, destLen, "%02u", ltm.tm_sec);                                                 break;
+         case 'T':   strLen = snprintf(pDest, destLen, "%02u:%02u:%02u", ltm.tm_hour, ltm.tm_min, ltm.tm_sec);              break;
+         default:    strLen = 1;    *pDest = curChar;                                                                       break;
       }
       destLen -= (uint32_t)strLen;
       pDest += strLen;
 
       if ((curChar == 'y' || curChar == 'Y' || curChar == 'M' || curChar == 'd') &&
-          (nxtChar == 'y' || nxtChar == 'Y' || nxtChar == 'M' || nxtChar == 'd') &&
-          destLen)
+         (nxtChar == 'y' || nxtChar == 'Y' || nxtChar == 'M' || nxtChar == 'd') &&
+         destLen)
       {
          destLen--;
          *pDest = '/';
          pDest++;
       }
       else if ((curChar == 'y' || curChar == 'Y' || curChar == 'M' || curChar == 'd' || curChar == 'D') &&
-               (nxtChar == 'h' || nxtChar == 'm' || nxtChar == 's' || nxtChar == 'T') &&
-               destLen)
+         (nxtChar == 'h' || nxtChar == 'm' || nxtChar == 's' || nxtChar == 'T') &&
+         destLen)
       {
          destLen--;
          *pDest = ' ';
          pDest++;
       }
       else if ((curChar == 'h' || curChar == 'm' || curChar == 's' || curChar == 'T') &&
-               (nxtChar == 'y' || nxtChar == 'Y' || nxtChar == 'M' || nxtChar == 'd' || nxtChar == 'D') &&
-               destLen)
+         (nxtChar == 'y' || nxtChar == 'Y' || nxtChar == 'M' || nxtChar == 'd' || nxtChar == 'D') &&
+         destLen)
       {
          destLen--;
          *pDest = ' ';
          pDest++;
       }
       else if ((curChar == 'h' || curChar == 'm' || curChar == 's') &&
-               (nxtChar == 'h' || nxtChar == 'm' || nxtChar == 's') &&
-               destLen)
+         (nxtChar == 'h' || nxtChar == 'm' || nxtChar == 's') &&
+         destLen)
       {
          destLen--;
          *pDest = ':';
@@ -284,11 +284,11 @@ void StringifyTime(char *pDest, uint32_t destLen, char const *pFormat, time_t co
 }
 
 
-uint32_t aton(char const *pAddr)
+uint32_t aton(char const* pAddr)
 {
    // Example: 192.168.1.120 = 0x7801ABC0
    uint32_t retAddr = 0;
-   char const *pStart = pAddr;
+   char const* pStart = pAddr;
    for (uint32_t i = 0; i < 4; i++)
    {
       retAddr |= ((uint32_t)atoi(pStart) & 0xFF) << (uint32_t)(8 * i);
@@ -306,24 +306,24 @@ uint32_t aton(char const *pAddr)
 }
 
 
-void macToa(char *pDest, char const *pMac)
+void macToa(char* pDest, char const* pMac)
 {
 #define UINT_FIELD(b)		(((uint32_t)b) & 0xFF)
    sprintf(pDest, "%02X:%02X:%02X:%02X:%02X:%02X",
-           UINT_FIELD(pMac[0]), UINT_FIELD(pMac[1]), UINT_FIELD(pMac[2]),
-           UINT_FIELD(pMac[3]), UINT_FIELD(pMac[4]), UINT_FIELD(pMac[5]));
+      UINT_FIELD(pMac[0]), UINT_FIELD(pMac[1]), UINT_FIELD(pMac[2]),
+      UINT_FIELD(pMac[3]), UINT_FIELD(pMac[4]), UINT_FIELD(pMac[5]));
 }
-void atoMac(char *pDest, char const *pMac)
+void atoMac(char* pDest, char const* pMac)
 {
    for (uint32_t i = 0; i < 6; i++)
    {
-      pDest[i] = (uint8_t)strtoul(&pMac[i*3], NULL, 16); // each field is 3 digits (i.e. 00:11:22:33:44:55)
+      pDest[i] = (uint8_t)strtoul(&pMac[i * 3], NULL, 16); // each field is 3 digits (i.e. 00:11:22:33:44:55)
    }
 }
-bool stringIsValidIp(char const *pIp)
+bool stringIsValidIp(char const* pIp)
 {
    bool retVal = true;
-   uint32_t ipLength = strlen(pIp);
+   uint32_t ipLength = (uint32_t)strlen(pIp);
    int32_t digit;
    if (ipLength <= strlen("xxx.xxx.xxx.xxx"))
    {
@@ -378,9 +378,9 @@ uint32_t BitReverseWord(uint32_t x)
 
 uint8_t BitReverseByte(uint8_t x)
 {
-   x = (((x & 0xaa) >> 1) | ((x & 0x55) << 1));
-   x = (((x & 0xcc) >> 2) | ((x & 0x33) << 2));
-   return ((x >> 4) | (x << 4)); //lint !e734
+   x = (uint8_t)(((x & 0xaa) >> 1) | ((x & 0x55) << 1));
+   x = (uint8_t)(((x & 0xcc) >> 2) | ((x & 0x33) << 2));
+   return ((uint8_t)(x >> 4) | (uint8_t)(x << 4)); //lint !e734
 }
 
 //http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
@@ -429,7 +429,7 @@ bool Fp32AlmostEqual(float A, float B, int32_t maxUlps)
 {
    // Make sure maxUlps is non-negative and small enough that the
    // default NAN won't compare as equal to anything.
-   if ((maxUlps > 0) && (maxUlps < (4*1024*1024))) return false;
+   if ((maxUlps > 0) && (maxUlps < (4 * 1024 * 1024))) return false;
 
    // Make aInt lexicographically ordered as a twos-complement int
    int32_t aInt = *(int32_t*)&A; //lint !e740
@@ -445,9 +445,9 @@ bool Fp32AlmostEqual(float A, float B, int32_t maxUlps)
    return (bool)(intDiff <= maxUlps);
 }
 
-void SwitchBytesInString(char *pDest, char const *pSrc)
+void SwitchBytesInString(char* pDest, char const* pSrc)
 {
-   uint8_t numChars = (uint8_t)strlen((char const *)pSrc);
+   uint8_t numChars = (uint8_t)strlen((char const*)pSrc);
    uint8_t tempChar;
    bool oddChars = false;
 
@@ -475,7 +475,7 @@ void SwitchBytesInString(char *pDest, char const *pSrc)
    }
 }
 
-void CopyToContiguousArray(uint8_t *pDest, SRC_ELEMENT const *pSrc, uint32_t numElements)
+void CopyToContiguousArray(uint8_t* pDest, SRC_ELEMENT const* pSrc, uint32_t numElements)
 {
    while (numElements--)
    {
@@ -484,7 +484,7 @@ void CopyToContiguousArray(uint8_t *pDest, SRC_ELEMENT const *pSrc, uint32_t num
       pSrc++;
    }
 }
-uint32_t SrcElementsGetLength(SRC_ELEMENT const *pSrc, uint32_t numElements)
+uint32_t SrcElementsGetLength(SRC_ELEMENT const* pSrc, uint32_t numElements)
 {
    uint32_t totalLength = 0;
    while (numElements-- > 0)
@@ -494,7 +494,7 @@ uint32_t SrcElementsGetLength(SRC_ELEMENT const *pSrc, uint32_t numElements)
    }
    return totalLength;
 }
-uint32_t SrcElementsMemMem(SRC_ELEMENT const *pHaystack, uint32_t numHaystacks, void const *pNeedle, uint32_t needleLength)
+uint32_t SrcElementsMemMem(SRC_ELEMENT const* pHaystack, uint32_t numHaystacks, void const* pNeedle, uint32_t needleLength)
 {
    uint32_t needleLocation = 0;
    uint32_t needleIndex = 0;
@@ -524,7 +524,7 @@ uint32_t SrcElementsMemMem(SRC_ELEMENT const *pHaystack, uint32_t numHaystacks, 
    }
    return needleLocation - (needleLength - 1);
 }
-bool SrcElementsMemCpy(SRC_ELEMENT const *pHaystack, uint32_t numHaystacks, void *pDest, uint32_t copyLength)
+bool SrcElementsMemCpy(SRC_ELEMENT const* pHaystack, uint32_t numHaystacks, void* pDest, uint32_t copyLength)
 {
    while (numHaystacks-- && copyLength)
    {
@@ -536,7 +536,7 @@ bool SrcElementsMemCpy(SRC_ELEMENT const *pHaystack, uint32_t numHaystacks, void
    }
    return copyLength == 0;
 }
-void SrcElementsMoveToStartOffset(SRC_ELEMENT **ppHaystack, uint32_t *pNumHaystacks, uint32_t startOffset)
+void SrcElementsMoveToStartOffset(SRC_ELEMENT** ppHaystack, uint32_t* pNumHaystacks, uint32_t startOffset)
 {
    while (*pNumHaystacks)
    {
@@ -555,7 +555,7 @@ void SrcElementsMoveToStartOffset(SRC_ELEMENT **ppHaystack, uint32_t *pNumHaysta
    }
 }
 
-uint32_t AsciiHexToBytes(uint8_t *pDest, uint32_t destLen, char const *pSrc, char const **pSrcEnd)
+uint32_t AsciiHexToBytes(uint8_t* pDest, uint32_t destLen, char const* pSrc, char const** pSrcEnd)
 {
    uint32_t destCount;
    uint8_t msb, lsb;
@@ -583,7 +583,7 @@ uint32_t AsciiHexToBytes(uint8_t *pDest, uint32_t destLen, char const *pSrc, cha
    return destCount;
 }
 
-void *memmem(void const *pHaystack, uint32_t haystackSize, void const *pNeedle, uint32_t needleLength)
+void* memmem(void const* pHaystack, uint32_t haystackSize, void const* pNeedle, uint32_t needleLength)
 {
    const void* pNextSearch = memchr(pHaystack, *(char*)pNeedle, haystackSize);
    while (pNextSearch)
@@ -607,7 +607,7 @@ void *memmem(void const *pHaystack, uint32_t haystackSize, void const *pNeedle, 
    return (void*)pNextSearch;
 }
 
-void memset32(void *pDest, void const *pMemsetWord, uint32_t bufferSize)
+void memset32(void* pDest, void const* pMemsetWord, uint32_t bufferSize)
 {
    uint32_t i;
    uint32_t numWhole32BitWords = bufferSize & (~(sizeof(uint32_t) - 1));
@@ -617,7 +617,7 @@ void memset32(void *pDest, void const *pMemsetWord, uint32_t bufferSize)
    }
    memcpy(((char*)pDest) + i, pMemsetWord, bufferSize - i);
 }
-uint32_t memdif(void const *pSrc1, void const *pSrc2, uint32_t startIndex, uint32_t compareLength)
+uint32_t memdif(void const* pSrc1, void const* pSrc2, uint32_t startIndex, uint32_t compareLength)
 {
    uint32_t byteIdx = MAX_UINT32;
    for (byteIdx = startIndex; byteIdx < compareLength; byteIdx++)
