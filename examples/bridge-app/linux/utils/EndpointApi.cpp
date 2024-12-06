@@ -244,7 +244,7 @@ static void EndpointRemoveWorker(intptr_t context)
     }
     else
     {
-        log_error("Index not in use: %u", index);
+        log_error("device not in use: %u", deviceIndex);
     }
 }
 static void EndpointReportUpdateWorker(intptr_t closure)
@@ -253,14 +253,15 @@ static void EndpointReportUpdateWorker(intptr_t closure)
     uint16_t deviceIndex = (uint16_t)path->mEndpointId;
     uint16_t endpointIndex = EndpointGetIndexFromDeviceIndex(deviceIndex);
 
-    path->mEndpointId = emberAfEndpointFromIndex(endpointApi.firstDynamicEndpointId + endpointIndex);
-    if(path->mEndpointId == kInvalidEndpointId){
-        log_error("Invalid endpoint %u", index);
-        Platform::Delete(path);
-        return;
+    if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
+    {
+        log_info("Update device/cluster/attr %i/%04lX/%04lX", deviceIndex, path->mClusterId, path->mAttributeId);
+        MatterReportingAttributeChangeCallback(*path);
     }
-    log_info("Update deviceIndex/cluster/attr %i/%04lX/%04lX %s", deviceIndex, path->mClusterId, path->mAttributeId);
-    MatterReportingAttributeChangeCallback(*path);
+    else
+    {
+        log_warn("Update device %u doesn't exist!", deviceIndex);
+    }
     Platform::Delete(path);
 }
 static uint16_t EndpointGetIndexFromDeviceIndex(uint16_t deviceIndex)
