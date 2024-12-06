@@ -61,7 +61,7 @@ DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, Transpo
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
-        .index                    = GetIndex(),
+        .deviceIndex              = GetIndex(),
         .pObject                  = this,
         .pfnReadCallback          = GoogleReadCallback /*local read function specific to a DeviceLightLevel*/,
         .pfnWriteCallback         = GoogleWriteCallback,

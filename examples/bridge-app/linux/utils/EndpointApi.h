@@ -21,7 +21,7 @@ typedef EmberAfStatus (*GOOGLE_WRITE_CALLBACK)(void *pObject, chip::ClusterId cl
 typedef bool (*GOOGLE_INSTANT_ACTION_CALLBACK)(chip::app::CommandHandler* commandObj, const chip::app::ConcreteCommandPath & commandPath, const chip::app::Clusters::Actions::Commands::InstantAction::DecodableType & commandData);
 typedef struct
 {
-    uint16_t index;
+    uint16_t deviceIndex;
     void *pObject;
     GOOGLE_READ_CALLBACK pfnReadCallback;
     GOOGLE_WRITE_CALLBACK pfnWriteCallback;
@@ -43,5 +43,5 @@ typedef struct
  **************************************************************************/
 void EndpointApiInit(void);
 void EndpointAdd(ENDPOINT_DATA *pData);
-void EndpointRemove(uint16_t index);
-void EndpointReportChange(uint16_t index, chip::ClusterId cluster, chip::AttributeId attribute);
+void EndpointRemove(uint16_t deviceIndex);
+void EndpointReportChange(uint16_t deviceIndex, chip::ClusterId cluster, chip::AttributeId attribute);

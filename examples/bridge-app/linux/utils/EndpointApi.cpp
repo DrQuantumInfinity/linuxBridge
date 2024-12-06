@@ -19,6 +19,7 @@ static const char * TAG = "endpoint-api";
 #define DEVICE_VERSION_DEFAULT 1
 const EmberAfDeviceType rootDeviceTypes[]          = { { DEVICE_TYPE_ROOT_NODE, DEVICE_VERSION_DEFAULT } };
 const EmberAfDeviceType aggregateNodeDeviceTypes[] = { { DEVICE_TYPE_BRIDGE, DEVICE_VERSION_DEFAULT } };
+#define DEVICE_INDEX_UNUSED (65535)
 
 /**************************************************************************
  *                                  Macros
@@ -28,7 +29,7 @@ const EmberAfDeviceType aggregateNodeDeviceTypes[] = { { DEVICE_TYPE_BRIDGE, DEV
  **************************************************************************/
 typedef struct
 {
-    uint16_t index;
+    uint16_t deviceIndex;
     void *pObject;
     GOOGLE_READ_CALLBACK pfnReadCallback;
     GOOGLE_WRITE_CALLBACK pfnWriteCallback;
@@ -37,7 +38,6 @@ typedef struct
 
 typedef struct
 {
-    EndpointId currentEndpointId;
     EndpointId firstDynamicEndpointId;
     ENDPOINT endpoint[CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT];
 }ENDPOINT_API;
@@ -50,6 +50,7 @@ static void EndpointApiInitWorker(intptr_t context);
 static void EndpointAddWorker(intptr_t context);
 static void EndpointRemoveWorker(intptr_t context);
 static void EndpointReportUpdateWorker(intptr_t closure);
+static uint16_t EndpointGetIndexFromDeviceIndex(uint16_t deviceIndex);
 /**************************************************************************
  *                                  Variables
  **************************************************************************/
@@ -63,17 +64,15 @@ void EndpointApiInit(void)
 }
 void EndpointAdd(ENDPOINT_DATA *pData)
 {
-    ENDPOINT_DATA* pDataMalloc = (ENDPOINT_DATA*)malloc(sizeof(*pData));
-    memcpy(pDataMalloc, pData, sizeof(*pDataMalloc));
-    chip::DeviceLayer::PlatformMgr().ScheduleWork(EndpointAddWorker, reinterpret_cast<intptr_t>(pDataMalloc));
+    chip::DeviceLayer::PlatformMgr().ScheduleWork(EndpointAddWorker, reinterpret_cast<intptr_t>(pData));
 }
-void EndpointRemove(uint16_t index)
+void EndpointRemove(uint16_t deviceIndex)
 {
-    chip::DeviceLayer::PlatformMgr().ScheduleWork(EndpointRemoveWorker, reinterpret_cast<intptr_t>((void*)(uint32_t)index));
+    chip::DeviceLayer::PlatformMgr().ScheduleWork(EndpointRemoveWorker, reinterpret_cast<intptr_t>((void*)(uint32_t)deviceIndex));
 }
-void EndpointReportChange(uint16_t index, ClusterId cluster, AttributeId attribute)
+void EndpointReportChange(uint16_t deviceIndex, ClusterId cluster, AttributeId attribute)
 {
-    auto * path = Platform::New<app::ConcreteAttributePath>(index + FIXED_ENDPOINT_COUNT, cluster, attribute);
+    auto * path = Platform::New<app::ConcreteAttributePath>(deviceIndex, cluster, attribute);
     DeviceLayer::PlatformMgr().ScheduleWork(EndpointReportUpdateWorker, reinterpret_cast<intptr_t>(path));
 }
 /**************************************************************************
@@ -84,34 +83,35 @@ EmberAfStatus emberAfExternalAttributeReadCallback(
 {
     EmberAfStatus status = EMBER_ZCL_STATUS_FAILURE;
 
-    uint16_t index = emberAfGetDynamicIndexFromEndpoint(endpoint);
+    uint16_t deviceIndex = emberAfGetDynamicIndexFromEndpoint(endpoint);
+    uint16_t endpointIndex = EndpointGetIndexFromDeviceIndex(deviceIndex);
 
-    if (index < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
+    if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
     {
-        if (endpointApi.endpoint[index].pfnReadCallback)
+        if (endpointApi.endpoint[endpointIndex].pfnReadCallback)
         {
-            status = endpointApi.endpoint[index].pfnReadCallback(endpointApi.endpoint[index].pObject, clusterId, attributeMetadata, buffer, maxReadLength);
+            status = endpointApi.endpoint[endpointIndex].pfnReadCallback(endpointApi.endpoint[endpointIndex].pObject, clusterId, attributeMetadata, buffer, maxReadLength);
+
+            if (status == EMBER_ZCL_STATUS_SUCCESS)
+            {
+                uint32_t temp = 0;
+                uint32_t copyLength = maxReadLength;
+                if (sizeof(temp) < copyLength)
+                {
+                    copyLength = sizeof(temp);
+                }
+                memcpy(&temp, buffer, copyLength);
+                log_info("Read callback for device %u, cluster %04lX, attr %04lX, val %08lX", deviceIndex, clusterId, attributeMetadata->attributeId, temp);
+            }
+            else
+            {
+                log_error("Read failed for device %u, cluster %04lX, attr %04lX", deviceIndex, clusterId, attributeMetadata->attributeId);
+            }
         }
     }
     else
     {
-        log_error("Read invalid endpoint %u, %u", endpoint, endpoint);
-    }
-
-    if (status == EMBER_ZCL_STATUS_SUCCESS)
-    {
-        uint32_t temp = 0;
-        uint32_t copyLength = maxReadLength;
-        if (sizeof(temp) < copyLength)
-        {
-            copyLength = sizeof(temp);
-        }
-        memcpy(&temp, buffer, copyLength);
-        log_info("Read callback for endpoint %u, cluster %04lX, attr %04lX, val %08lX", endpoint, clusterId, attributeMetadata->attributeId, temp);
-    }
-    else
-    {
-        log_error("Read failed for endpoint %u, cluster %04lX, attr %04lX", endpoint, clusterId, attributeMetadata->attributeId);
+        log_error("Read invalid endpoint");
     }
     return status;
 }
@@ -120,30 +120,31 @@ EmberAfStatus emberAfExternalAttributeWriteCallback(
 {
     EmberAfStatus status = EMBER_ZCL_STATUS_FAILURE;
     
-    uint16_t index = emberAfGetDynamicIndexFromEndpoint(endpoint);
+    uint16_t deviceIndex = emberAfGetDynamicIndexFromEndpoint(endpoint);
+    uint16_t endpointIndex = EndpointGetIndexFromDeviceIndex(deviceIndex);
 
-    if (index < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
+    if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
     {
-        if (endpointApi.endpoint[index].pfnWriteCallback)
+        if (endpointApi.endpoint[endpointIndex].pfnWriteCallback)
         {
-            status = endpointApi.endpoint[index].pfnWriteCallback(endpointApi.endpoint[index].pObject, clusterId, attributeMetadata, buffer);
+            status = endpointApi.endpoint[endpointIndex].pfnWriteCallback(endpointApi.endpoint[endpointIndex].pObject, clusterId, attributeMetadata, buffer);
+            if (status == EMBER_ZCL_STATUS_SUCCESS)
+            {
+                uint32_t temp;
+                memcpy(&temp, buffer, sizeof(temp));
+                log_info("Write callback for device %u, cluster %04lX, attr %04lX, val %08lX", deviceIndex, clusterId, attributeMetadata->attributeId, temp);
+            }
+            else
+            {
+                log_error("Write failed for device %u, cluster %04lX, attr %04lX", deviceIndex, clusterId, attributeMetadata->attributeId);
+            }
         }
     }
     else
     {
-        log_error("Write invalid endpoint %u, %u", endpoint, endpoint);
+        log_error("Write invalid endpoint");
     }
     
-    if (status == EMBER_ZCL_STATUS_SUCCESS)
-    {
-        uint32_t temp;
-        memcpy(&temp, buffer, sizeof(temp));
-        log_info("Write callback for endpoint %u, cluster %04lX, attr %04lX, val %08lX", endpoint, clusterId, attributeMetadata->attributeId, temp);
-    }
-    else
-    {
-        log_error("Write failed for endpoint %u, cluster %04lX, attr %04lX", endpoint, clusterId, attributeMetadata->attributeId);
-    }
     return status;
 }
 //Another magic callback. I think we want to use this. Review the path below for examples.
@@ -177,10 +178,15 @@ static void EndpointApiInitWorker(intptr_t context)
     log_info("Init");
     memset(&endpointApi, 0x00, sizeof(endpointApi));
 
+    for (int endpointIndex = 0; endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; endpointIndex++)
+    {
+        endpointApi.endpoint[endpointIndex].deviceIndex = DEVICE_INDEX_UNUSED;
+    }
+
     // Set starting endpoint id where dynamic endpoints will be assigned, which
     // will be the next consecutive endpoint id after the last fixed endpoint.
     endpointApi.firstDynamicEndpointId = static_cast<chip::EndpointId>(static_cast<int>(emberAfEndpointFromIndex(static_cast<uint16_t>(emberAfFixedEndpointCount() - 1))) + 1);
-    endpointApi.currentEndpointId = endpointApi.firstDynamicEndpointId;
+    endpointApi.firstDynamicEndpointId;
 
     // Disable last fixed endpoint, which is used as a placeholder for all of the
     // supported clusters so that ZAP will generated the requisite code.
@@ -193,93 +199,80 @@ static void EndpointApiInitWorker(intptr_t context)
 static void EndpointAddWorker(intptr_t context)
 {
     ENDPOINT_DATA *pData = reinterpret_cast<ENDPOINT_DATA *>(context);
-    log_info("Adding device %u: %s", pData->index, pData->name);
-    
-    if (pData->index < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
-    {
-        if (endpointApi.endpoint[pData->index].index == 0)
-        {
-            endpointApi.endpoint[pData->index].index = pData->index;
-            endpointApi.endpoint[pData->index].pObject = pData->pObject;
-            endpointApi.endpoint[pData->index].pfnReadCallback = pData->pfnReadCallback;
-            endpointApi.endpoint[pData->index].pfnWriteCallback = pData->pfnWriteCallback;
-            endpointApi.endpoint[pData->index].pfnInstantActionCallback = pData->pfnInstantActionCallback;
+    log_info("Adding device %u: %s", pData->deviceIndex, pData->name);
+    uint16_t endpointIndex = EndpointGetIndexFromDeviceIndex(pData->deviceIndex);
 
-            while (true)
-            {
-                Span<DataVersion> dataVersion = Span<DataVersion>(pData->pDataVersionStorage, pData->dataVersionStorageLength);
-                Span<const EmberAfDeviceType> deviceTypeList= Span<const EmberAfDeviceType>(pData->pDeviceTypeList, pData->deviceTypeListLength);
-                CHIP_ERROR ret = emberAfSetDynamicEndpoint(
-                    pData->index, endpointApi.currentEndpointId, pData->ep, 
-                    dataVersion, deviceTypeList, 
-                    pData->parentEndpointId);
-                if (ret == CHIP_NO_ERROR)
-                {
-                    log_info("Added device %u: %s at dynamic endpoint %u", pData->index, pData->name, endpointApi.currentEndpointId);
-                    endpointApi.currentEndpointId++;
-                    free(pData);
-                    return;
-                }
-                else //if (ret != EMBER_ZCL_STATUS_DUPLICATE_EXISTS)
-                {
-                    log_error("add failed for device %u: retVal %u", pData->index, ret);
-                    // return;
-                }
-                // Handle wrap condition
-                if (++endpointApi.currentEndpointId < endpointApi.firstDynamicEndpointId)
-                {
-                    endpointApi.currentEndpointId = endpointApi.firstDynamicEndpointId;
-                }
-            }
-        }
-        else
+    if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
+    {
+        endpointApi.endpoint[endpointIndex].deviceIndex = pData->deviceIndex;
+        endpointApi.endpoint[endpointIndex].pObject = pData->pObject;
+        endpointApi.endpoint[endpointIndex].pfnReadCallback = pData->pfnReadCallback;
+        endpointApi.endpoint[endpointIndex].pfnWriteCallback = pData->pfnWriteCallback;
+        endpointApi.endpoint[endpointIndex].pfnInstantActionCallback = pData->pfnInstantActionCallback;
+
+        Span<DataVersion> dataVersion = Span<DataVersion>(pData->pDataVersionStorage, pData->dataVersionStorageLength);
+        Span<const EmberAfDeviceType> deviceTypeList= Span<const EmberAfDeviceType>(pData->pDeviceTypeList, pData->deviceTypeListLength);
+        CHIP_ERROR ret = emberAfSetDynamicEndpoint(
+            endpointIndex, endpointApi.firstDynamicEndpointId + pData->deviceIndex, pData->ep, 
+            dataVersion, deviceTypeList, 
+            pData->parentEndpointId);
+        if (ret == CHIP_NO_ERROR)
         {
-            log_error("Index already in use: %u: %s", pData->index, pData->name);
+            log_info("Added device %u: %s at dynamic endpoint %u", pData->deviceIndex, pData->name, endpointIndex);
+        }
+        else //if (ret != EMBER_ZCL_STATUS_DUPLICATE_EXISTS)
+        {
+            log_error("add failed for device %u: retVal %u", pData->deviceIndex, ret);
         }
     }
     else
     {
-        log_error("Index out of range: %u: %s", pData->index, pData->name);
+        log_error("Failed to add dynamic endpoint: No endpoints available! %u: %s", pData->deviceIndex, pData->name);
     }
-    log_error("Failed to add dynamic endpoint: No endpoints available!");
-    free(pData);
 }
 static void EndpointRemoveWorker(intptr_t context)
 {
-    uint16_t index = (uint16_t)(uint64_t)reinterpret_cast<void*>(context);
-    log_info("Removing device: %u", index);
+    uint16_t deviceIndex = (uint16_t)(uint64_t)reinterpret_cast<void*>(context);
+    int endpointIndex = EndpointGetIndexFromDeviceIndex(deviceIndex);
 
-    if (index < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
+    if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
     {
-        if (endpointApi.endpoint[index].index == index)
-        {
-            memset(&endpointApi.endpoint[index], 0x00, sizeof(endpointApi.endpoint[index]));
-            EndpointId ep = emberAfClearDynamicEndpoint(index);
-            ChipLogProgress(DeviceLayer, "Removed device %u from dynamic endpoint %d", index, ep);
-
-            // Silence complaints about unused ep when progress logging is disabled.
-            UNUSED_VAR(ep);
-        }
-        else
-        {
-            log_error("Index not in use: %u", index);
-        }
+        log_info("Removing device: %u from %u", deviceIndex, endpointIndex);
+        memset(&endpointApi.endpoint[endpointIndex], 0x00, sizeof(endpointApi.endpoint[endpointIndex]));
+        endpointApi.endpoint[endpointIndex].deviceIndex = DEVICE_INDEX_UNUSED;
+        EndpointId ep = emberAfClearDynamicEndpoint(endpointIndex);
+        UNUSED_VAR(ep);
     }
     else
     {
-        log_error("Index out of range: %u", index);
+        log_error("Index not in use: %u", index);
     }
 }
 static void EndpointReportUpdateWorker(intptr_t closure)
 {
     auto path = reinterpret_cast<app::ConcreteAttributePath *>(closure);
-    path->mEndpointId = emberAfEndpointFromIndex(path->mEndpointId);
+    uint16_t deviceIndex = (uint16_t)path->mEndpointId;
+    uint16_t endpointIndex = EndpointGetIndexFromDeviceIndex(deviceIndex);
+
+    path->mEndpointId = emberAfEndpointFromIndex(endpointApi.firstDynamicEndpointId + endpointIndex);
     if(path->mEndpointId == kInvalidEndpointId){
         log_error("Invalid endpoint %u", index);
         Platform::Delete(path);
         return;
     }
-    log_info("Update endpoint/cluster/attr %u/%04lX/%04lX", path->mEndpointId, path->mClusterId, path->mAttributeId);
+    log_info("Update deviceIndex/cluster/attr %i/%04lX/%04lX %s", deviceIndex, path->mClusterId, path->mAttributeId);
     MatterReportingAttributeChangeCallback(*path);
     Platform::Delete(path);
+}
+static uint16_t EndpointGetIndexFromDeviceIndex(uint16_t deviceIndex)
+{
+    int endpointIndex;
+    for (endpointIndex = 0; endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; endpointIndex++)
+    {
+        if (endpointApi.endpoint[endpointIndex].deviceIndex == deviceIndex)
+        {
+            break;
+        }
+    }
+    return endpointIndex;
 }
