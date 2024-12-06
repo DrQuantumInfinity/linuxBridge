@@ -73,7 +73,18 @@ pip install esptool
 remove console=... from /boot/firmware/cmdline.txt
 
 create file named /lib/systemd/system/esp-serial.service with one of these two in it
+[Unit]
+Description=My Sample Service
+After=multi-user.target
 
+[Service]
+Type=idle
+ExecStart=cmd
+
+[Install]
+WantedBy=multi-user.target
+
+where cmd is one of:
 sudo ln -s /dev/ttyS0 /dev/ttyEspNow
 
 sudo ln -s /dev/ttyAMA0 /dev/ttyEspNow
