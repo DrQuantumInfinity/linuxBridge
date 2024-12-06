@@ -79,7 +79,7 @@ DeviceLightTemp::DeviceLightTemp(const char* pName, const char* pLocation, Trans
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
-    log_info("Created device %u %s", endpointData.deviceIndex, pName);
+    log_info("Created device %u %s", endpointData.deviceIndex, endpointData.name);
 }
 DeviceLightTemp::~DeviceLightTemp()
 {   

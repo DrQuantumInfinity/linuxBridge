@@ -87,7 +87,7 @@ DeviceTemperature::DeviceTemperature(const char* pName, const char* pLocation, T
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
-    log_info("Created device %u %s", endpointData.deviceIndex, pName);
+    log_info("Created device %u %s", endpointData.deviceIndex, endpointData.name);
 }
 
 DeviceTemperature::~DeviceTemperature(void)
