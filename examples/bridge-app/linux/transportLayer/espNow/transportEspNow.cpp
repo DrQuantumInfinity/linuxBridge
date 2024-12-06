@@ -128,7 +128,7 @@ Device* TransportEspNow::Private::NewDevice(int index, PersistEspNow* pPersist)
     {
     case ESP_NOW_DEVICE_TYPE_TOGGLE:    pDevice = new DeviceButton(pPersist->name, pPersist->room, pTransport);     break;
     case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: pDevice = new DeviceLightRGB(pPersist->name, pPersist->room, pTransport);   break;
-    case ESP_NOW_DEVICE_TYPE_DHT:       pDevice = new DeviceTemperature(pPersist->name, pPersist->room, pTransport, 0.0f, 0.0f);break;
+    case ESP_NOW_DEVICE_TYPE_DHT:       pDevice = new DeviceTemperature(pPersist->name, pPersist->room, pTransport);break;
     default:                            log_warn("support new device %u", pPersist->type);                          break;
     }
     return pDevice;

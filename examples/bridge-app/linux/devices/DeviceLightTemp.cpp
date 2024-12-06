@@ -50,7 +50,23 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
+DeviceLightTemp::DeviceLightTemp(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex) : Device(deviceIndex)
+{
+    DeviceLightTempLocal(pName, pLocation, pTransportLayer);
+}
 DeviceLightTemp::DeviceLightTemp(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
+{
+    DeviceLightTempLocal(pName, pLocation, pTransportLayer);
+}
+DeviceLightTemp::~DeviceLightTemp()
+{   
+    free(_endpointData.pDataVersionStorage);
+    EndpointRemove(GetIndex());
+}
+/**************************************************************************
+ *                                  Private Functions
+ **************************************************************************/
+void DeviceLightTemp::DeviceLightTempLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
 {
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
@@ -74,19 +90,12 @@ DeviceLightTemp::DeviceLightTemp(const char* pName, const char* pLocation, Trans
     AddCluster(&onOffCluster);
     AddCluster(&levelControlCluster);
     AddCluster(&colourCluster);
+    basicCluster.SetName(pName, GetIndex());
+    
     strcpy(endpointData.name, pName);
     strcpy(endpointData.location, pLocation);
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
-    log_info("Created device %u %s", endpointData.deviceIndex, endpointData.name);
+    log_info("Created device %u %s", _endpointData.deviceIndex, _endpointData.name);
 }
-DeviceLightTemp::~DeviceLightTemp()
-{   
-    free(_endpointData.pDataVersionStorage);
-    EndpointRemove(GetIndex());
-}
-
-/**************************************************************************
- *                                  Private Functions
- **************************************************************************/

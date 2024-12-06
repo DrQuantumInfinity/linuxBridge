@@ -45,14 +45,26 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-DeviceLight::DeviceLight(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index) : Device(index)
+DeviceLight::DeviceLight(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex) : Device(deviceIndex)
 {
-    DeviceLight(pName, pLocation, pTransportLayer);
+    DeviceLightLocal(pName, pLocation, pTransportLayer);
 }
 DeviceLight::DeviceLight(const char * pName, const char * pLocation, TransportLayer* pTransportLayer)
 {
+    DeviceLightLocal(pName, pLocation, pTransportLayer);
+}
+DeviceLight::~DeviceLight(void)
+{
+    free(_endpointData.pDataVersionStorage);
+    EndpointRemove(GetIndex());
+}
+/**************************************************************************
+ *                                  Private Functions
+ **************************************************************************/
+void DeviceLight::DeviceLightLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
+{
     _pTransportLayer = pTransportLayer;
-    DataVersion * pDataVersions = (DataVersion *) malloc(sizeof(DataVersion) * ArraySize(bridgedClusters));
+    DataVersion * pDataVersions = (DataVersion *)malloc(sizeof(DataVersion) * ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData  = {
          .deviceIndex              = GetIndex(),
          .pObject                  = this,
@@ -70,19 +82,11 @@ DeviceLight::DeviceLight(const char * pName, const char * pLocation, TransportLa
     };
     AddCluster(&descriptorCluster);
     AddCluster(&onOffCluster);
+    basicCluster.SetName(pName, GetIndex());
     strcpy(endpointData.name, pName);
     strcpy(endpointData.location, pLocation);
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
-    log_info("Created device %u %s", endpointData.deviceIndex, endpointData.name);
+    log_info("Created device %u %s", _endpointData.deviceIndex, _endpointData.name);
 }
-
-DeviceLight::~DeviceLight(void)
-{
-    free(_endpointData.pDataVersionStorage);
-    EndpointRemove(GetIndex());
-}
-/**************************************************************************
- *                                  Private Functions
- **************************************************************************/

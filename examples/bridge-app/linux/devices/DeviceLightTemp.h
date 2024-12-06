@@ -22,6 +22,7 @@
 class DeviceLightTemp : public Device
 {
 public:
+    DeviceLightTemp(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex);
     DeviceLightTemp(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
     ~DeviceLightTemp(void);
 
@@ -39,7 +40,8 @@ private:
     ColourCluster colourCluster;
     DescriptorCluster descriptorCluster;
     ENDPOINT_DATA _endpointData;
-    void sendEspNowMessage(void);
+    
+    void DeviceLightTempLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
 };
 /**************************************************************************
  *                                  Prototypes
