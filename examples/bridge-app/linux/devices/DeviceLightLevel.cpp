@@ -79,6 +79,7 @@ DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, Tra
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
+    log_info("Created device %u %s", endpointData.deviceIndex, pName);
 }
 DeviceLightLevel::~DeviceLightLevel()
 {

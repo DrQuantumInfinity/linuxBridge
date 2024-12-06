@@ -10,7 +10,6 @@ using namespace ::chip::app::Clusters;
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
-static const char * TAG = "endpoint-api";
 // (taken from chip-devices.xml)
 #define DEVICE_TYPE_ROOT_NODE 0x0016
 // (taken from chip-devices.xml)
@@ -69,7 +68,7 @@ void EndpointAdd(ENDPOINT_DATA *pData)
 }
 void EndpointRemove(uint16_t deviceIndex)
 {
-    chip::DeviceLayer::PlatformMgr().ScheduleWork(EndpointRemoveWorker, reinterpret_cast<intptr_t>((void*)(uint32_t)deviceIndex));
+    chip::DeviceLayer::PlatformMgr().ScheduleWork(EndpointRemoveWorker, reinterpret_cast<intptr_t>((void*)(uint64_t)deviceIndex));
 }
 void EndpointReportChange(uint16_t deviceIndex, ClusterId cluster, AttributeId attribute)
 {
@@ -187,7 +186,6 @@ static void EndpointApiInitWorker(intptr_t context)
     // Set starting endpoint id where dynamic endpoints will be assigned, which
     // will be the next consecutive endpoint id after the last fixed endpoint.
     endpointApi.firstDynamicEndpointId = static_cast<chip::EndpointId>(static_cast<int>(emberAfEndpointFromIndex(static_cast<uint16_t>(emberAfFixedEndpointCount() - 1))) + 1);
-    endpointApi.firstDynamicEndpointId;
 
     // Disable last fixed endpoint, which is used as a placeholder for all of the
     // supported clusters so that ZAP will generated the requisite code.
@@ -234,7 +232,7 @@ static void EndpointAddWorker(intptr_t context)
 static void EndpointRemoveWorker(intptr_t context)
 {
     uint16_t deviceIndex = (uint16_t)(uint64_t)reinterpret_cast<void*>(context);
-    int endpointIndex = EndpointGetIndexFromDeviceIndex(deviceIndex);
+    uint16_t endpointIndex = EndpointGetIndexFromDeviceIndex(deviceIndex);
 
     if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
     {
@@ -267,7 +265,7 @@ static void EndpointReportUpdateWorker(intptr_t closure)
 }
 static uint16_t EndpointGetIndexFromDeviceIndex(uint16_t deviceIndex)
 {
-    int endpointIndex;
+    uint16_t endpointIndex;
     for (endpointIndex = 0; endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; endpointIndex++)
     {
         if (endpointApi.endpoint[endpointIndex].deviceIndex == deviceIndex)
@@ -279,7 +277,7 @@ static uint16_t EndpointGetIndexFromDeviceIndex(uint16_t deviceIndex)
 }
 static uint16_t EndpointGetFreeIndexFromDeviceIndex(void)
 {
-    int endpointIndex;
+    uint16_t endpointIndex;
     for (endpointIndex = 0; endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; endpointIndex++)
     {
         if (endpointApi.endpoint[endpointIndex].deviceIndex == DEVICE_INDEX_UNUSED)
