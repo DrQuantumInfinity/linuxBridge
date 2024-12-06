@@ -51,6 +51,7 @@ static void EndpointAddWorker(intptr_t context);
 static void EndpointRemoveWorker(intptr_t context);
 static void EndpointReportUpdateWorker(intptr_t closure);
 static uint16_t EndpointGetIndexFromDeviceIndex(uint16_t deviceIndex);
+static uint16_t EndpointGetFreeIndexFromDeviceIndex(void);
 /**************************************************************************
  *                                  Variables
  **************************************************************************/
@@ -200,7 +201,7 @@ static void EndpointAddWorker(intptr_t context)
 {
     ENDPOINT_DATA *pData = reinterpret_cast<ENDPOINT_DATA *>(context);
     log_info("Adding device %u: %s", pData->deviceIndex, pData->name);
-    uint16_t endpointIndex = EndpointGetIndexFromDeviceIndex(pData->deviceIndex);
+    uint16_t endpointIndex = EndpointGetFreeIndexFromDeviceIndex();
 
     if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
     {
@@ -270,6 +271,18 @@ static uint16_t EndpointGetIndexFromDeviceIndex(uint16_t deviceIndex)
     for (endpointIndex = 0; endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; endpointIndex++)
     {
         if (endpointApi.endpoint[endpointIndex].deviceIndex == deviceIndex)
+        {
+            break;
+        }
+    }
+    return endpointIndex;
+}
+static uint16_t EndpointGetFreeIndexFromDeviceIndex(void)
+{
+    int endpointIndex;
+    for (endpointIndex = 0; endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; endpointIndex++)
+    {
+        if (endpointApi.endpoint[endpointIndex].deviceIndex == DEVICE_INDEX_UNUSED)
         {
             break;
         }

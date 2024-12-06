@@ -22,7 +22,10 @@ using namespace ::chip;
 //static const char * TAG = "Device";
 Device::Device(int index)
 {
-    _lastIndex = (uint16_t)index;
+    if (index > _lastIndex)
+    {
+        _lastIndex = (uint16_t)index;
+    }
     _index = (uint16_t)index;
 }
 Device::Device(void)
