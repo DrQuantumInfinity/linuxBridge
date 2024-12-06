@@ -60,7 +60,7 @@ DeviceTemperature::DeviceTemperature(const char* pName, const char* pLocation, T
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
-        .index = GetIndex(),
+        .deviceIndex = GetIndex(),
         .pObject = this,
         .pfnReadCallback = GoogleReadCallback,
         .pfnWriteCallback = GoogleWriteCallback,
@@ -78,8 +78,8 @@ DeviceTemperature::DeviceTemperature(const char* pName, const char* pLocation, T
     AddCluster(&tempCluster);
     AddCluster(&humidityCluster);
 
-    tempCluster._temp = (int)(100*temp); //TODO: create a constructor
-    humidityCluster._humidity = (int)(100*humid); //TODO: create a constructor
+    tempCluster._temp = (int16_t)(100*temp); //TODO: create a constructor
+    humidityCluster._humidity = (uint16_t)(100*humid); //TODO: create a constructor
     strncpy(basicCluster._name, pName, sizeof(basicCluster._name));
     
     strcpy(endpointData.name, pName);
@@ -87,6 +87,7 @@ DeviceTemperature::DeviceTemperature(const char* pName, const char* pLocation, T
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
+    log_info("Created device %u %s", endpointData.deviceIndex, endpointData.name);
 }
 
 DeviceTemperature::~DeviceTemperature(void)

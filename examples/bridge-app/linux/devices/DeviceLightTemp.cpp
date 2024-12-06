@@ -55,7 +55,7 @@ DeviceLightTemp::DeviceLightTemp(const char* pName, const char* pLocation, Trans
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
-        .index                    = GetIndex(),
+        .deviceIndex              = GetIndex(),
         .pObject                  = this,
         .pfnReadCallback          = GoogleReadCallback /*local read function specific to a DeviceLightLevel*/,
         .pfnWriteCallback         = GoogleWriteCallback,
@@ -79,6 +79,7 @@ DeviceLightTemp::DeviceLightTemp(const char* pName, const char* pLocation, Trans
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
+    log_info("Created device %u %s", endpointData.deviceIndex, endpointData.name);
 }
 DeviceLightTemp::~DeviceLightTemp()
 {   

@@ -55,7 +55,7 @@ DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, Tra
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion) * ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
-         .index = GetIndex(),
+         .deviceIndex = GetIndex(),
          .pObject = this,
          .pfnReadCallback = GoogleReadCallback /*local read function specific to a DeviceLightLevel*/,
          .pfnWriteCallback = GoogleWriteCallback,
@@ -79,6 +79,7 @@ DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, Tra
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
+    log_info("Created device %u %s", endpointData.deviceIndex, endpointData.name);
 }
 DeviceLightLevel::~DeviceLightLevel()
 {

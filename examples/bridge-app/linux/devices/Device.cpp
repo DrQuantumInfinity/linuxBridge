@@ -22,34 +22,16 @@ using namespace ::chip;
 //static const char * TAG = "Device";
 Device::Device(int index)
 {
-    if (index < 0)
+    if (index > _lastIndex)
     {
-        Device();
+        _lastIndex = (uint16_t)index;
     }
-    else
-    {
-        _index = index;
-        _indexList[_index] = true;
-        AddCluster(&basicCluster);
-        basicCluster._reachable = true;
-    }
+    _index = (uint16_t)index;
 }
 Device::Device(void)
 {
-    for (_index = 0; _index < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; _index++)
-    {
-        if (!_indexList[_index])
-        {
-            _indexList[_index] = true;
-            break;
-        }
-    }
-    AddCluster(&basicCluster);
-    basicCluster._reachable = true;
-}
-Device::~Device(void)
-{
-    _indexList[_index] = false;
+    _lastIndex++;
+    _index = _lastIndex;
 }
 
 uint16_t Device::GetIndex(void)

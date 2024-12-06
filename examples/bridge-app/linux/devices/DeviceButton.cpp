@@ -58,7 +58,7 @@ DeviceButton::DeviceButton(const char* pName, const char* pLocation, TransportLa
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
-        .index = GetIndex(),
+        .deviceIndex = GetIndex(),
         .pObject = this,
         .pfnReadCallback = GoogleReadCallback,
         .pfnWriteCallback = GoogleWriteCallback,
@@ -79,6 +79,7 @@ DeviceButton::DeviceButton(const char* pName, const char* pLocation, TransportLa
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
+    log_info("Created device %u %s", endpointData.deviceIndex, endpointData.name);
 }
 
 DeviceButton::~DeviceButton(void)
