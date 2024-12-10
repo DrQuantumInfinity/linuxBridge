@@ -11,13 +11,14 @@ PersistDevList::PersistDevList(size_t structSize, const char* filename) //: _str
     {
         while (!feof(f_ptr))
         {
-             PersistGeneric* pNewDev = (PersistGeneric*)malloc(_structSize);
+            PersistGeneric* pNewDev = (PersistGeneric*)malloc(_structSize);
             if(1 == fread(pNewDev, _structSize + sizeof(PersistGeneric), 1, f_ptr))
             {
                 log_info("Fread in persist. index is:%d", pNewDev->index);
                 _map[pNewDev->index] = pNewDev;
             }
-            else{
+            else
+            {
                 log_error("Fread of persist file failed. filename: %s", _filename);
             }
         }
@@ -29,7 +30,7 @@ void PersistDevList::Upsert(int index, void* newDev)
 {
     PersistGeneric* persistedDev = (PersistGeneric*)malloc( _structSize);
     persistedDev->index = index;
-    memcpy(persistedDev->data, newDev, _structSize);
+    memcpy(persistedDev->data, newDev, _structSize - sizeof(PersistGeneric));
     _map[index] = persistedDev;
     PersistDevList::Persist();
 }
