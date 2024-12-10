@@ -120,7 +120,7 @@ EmberAfStatus emberAfExternalAttributeWriteCallback(
 {
     EmberAfStatus status = EMBER_ZCL_STATUS_FAILURE;
     
-    uint16_t deviceIndex = emberAfGetDynamicIndexFromEndpoint(endpoint);
+    uint16_t deviceIndex = endpoint - endpointApi.firstDynamicEndpointId;
     uint16_t endpointIndex = EndpointGetIndexFromDeviceIndex(deviceIndex);
 
     if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
@@ -142,7 +142,7 @@ EmberAfStatus emberAfExternalAttributeWriteCallback(
     }
     else
     {
-        log_error("Write invalid endpoint");
+        log_error("Write invalid endpoint for device %u", deviceIndex);
     }
     
     return status;
