@@ -252,6 +252,7 @@ static void EndpointReportUpdateWorker(intptr_t closure)
     auto path = reinterpret_cast<app::ConcreteAttributePath *>(closure);
     uint16_t deviceIndex = (uint16_t)path->mEndpointId;
     uint16_t endpointIndex = EndpointGetIndexFromDeviceIndex(deviceIndex);
+    path->mEndpointId = deviceIndex + endpointApi.firstDynamicEndpointId;
 
     if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
     {
