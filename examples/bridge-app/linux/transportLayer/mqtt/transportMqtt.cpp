@@ -109,8 +109,9 @@ void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
         if (pDevice == NULL)
         {
             PersistMQTT persistData;
-            strncpy(persistData.name, name, sizeof(persistData.name));
-            strncpy(persistData.room, "Bridge", sizeof(persistData.room));
+            memset(&persistData, 0x00, sizeof(persistData));
+            strncat(persistData.name, name, sizeof(persistData.name)-1);
+            strncat(persistData.room, "Bridge", sizeof(persistData.room)-1);
             persistData.type = type;
             pDevice = TransportMqtt::Private::NewDevice(-1, &persistData);
             _persistList.Upsert(pDevice->GetIndex(), &persistData);

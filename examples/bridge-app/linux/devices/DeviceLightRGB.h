@@ -22,8 +22,8 @@
 class DeviceLightRGB : public Device
 {
 public:
+    DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex);
     DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
-    DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index);
     ~DeviceLightRGB(void);
 
     void SetOn(bool isOn) { onOffCluster.SetOn(isOn, GetIndex()); }
@@ -41,7 +41,8 @@ public:
 private:
     DescriptorCluster descriptorCluster;
     ENDPOINT_DATA _endpointData;
-    void sendEspNowMessage(void);
+
+    void DeviceLightRGBLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
 };
 /**************************************************************************
  *                                  Prototypes

@@ -21,7 +21,7 @@
 class DeviceLightLevel : public Device
 {
 public:
-    DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index);
+    DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex);
     DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
     ~DeviceLightLevel(void);
 
@@ -37,7 +37,8 @@ public:
 private:
     DescriptorCluster descriptorCluster;
     ENDPOINT_DATA _endpointData;
-    void sendEspNowMessage(void);
+
+    void DeviceLightLevelLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
 };
 /**************************************************************************
  *                                  Prototypes

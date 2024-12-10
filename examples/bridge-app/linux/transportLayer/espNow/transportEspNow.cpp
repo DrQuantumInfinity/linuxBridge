@@ -76,7 +76,7 @@ void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLen
             sprintf(persistData.name, "%s %02X:%02X:%02X:%02X:%02X:%02X", EspNowGetName(pData),
                 pData->macAddr[0], pData->macAddr[1], pData->macAddr[2],
                 pData->macAddr[3], pData->macAddr[4], pData->macAddr[5]);
-            strcpy(persistData.room, "Bridge");
+            strncat(persistData.room, "Bridge", sizeof(persistData.room)-1);
             memcpy(persistData.macAddr, pData->macAddr, sizeof(persistData.macAddr));
             persistData.type = pData->type;
             pDevice = TransportEspNow::Private::NewDevice(-1, &persistData);
@@ -128,7 +128,7 @@ Device* TransportEspNow::Private::NewDevice(int index, PersistEspNow* pPersist)
     {
     case ESP_NOW_DEVICE_TYPE_TOGGLE:    pDevice = new DeviceButton(pPersist->name, pPersist->room, pTransport);     break;
     case ESP_NOW_DEVICE_TYPE_LIGHT_RGB: pDevice = new DeviceLightRGB(pPersist->name, pPersist->room, pTransport);   break;
-    case ESP_NOW_DEVICE_TYPE_DHT:       pDevice = new DeviceTemperature(pPersist->name, pPersist->room, pTransport, 0.0f, 0.0f);break;
+    case ESP_NOW_DEVICE_TYPE_DHT:       pDevice = new DeviceTemperature(pPersist->name, pPersist->room, pTransport);break;
     default:                            log_warn("support new device %u", pPersist->type);                          break;
     }
     return pDevice;

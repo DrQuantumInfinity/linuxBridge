@@ -77,12 +77,19 @@ void SerialInit(void)
     espMsg.data.lightRgb.brightness = 75;
 
     const void* pData = &espMsg;
-    uint8_t byteLength = OFFSET_OF(typeof(espMsg), data) + sizeof(espMsg.data.lightRgb);    
+    uint8_t byteLength = OFFSET_OF(typeof(espMsg), data) + sizeof(espMsg.data.lightRgb);
    
     SerialHandleRxCallback(serial.uartHandle, (uint8_t*)&startKey, sizeof(startKey));
     SerialHandleRxCallback(serial.uartHandle, (uint8_t*)&byteLength, sizeof(byteLength));
     SerialHandleRxCallback(serial.uartHandle, (uint8_t*)pData, byteLength);
     uint16_t crc = Crc16Block(0, pData, byteLength);
+    SerialHandleRxCallback(serial.uartHandle, (uint8_t*)&crc, sizeof(crc));
+   
+    espMsg.macAddr[0] = 0xFE;
+    SerialHandleRxCallback(serial.uartHandle, (uint8_t*)&startKey, sizeof(startKey));
+    SerialHandleRxCallback(serial.uartHandle, (uint8_t*)&byteLength, sizeof(byteLength));
+    SerialHandleRxCallback(serial.uartHandle, (uint8_t*)pData, byteLength);
+    crc = Crc16Block(0, pData, byteLength);
     SerialHandleRxCallback(serial.uartHandle, (uint8_t*)&crc, sizeof(crc));
     */
 }
