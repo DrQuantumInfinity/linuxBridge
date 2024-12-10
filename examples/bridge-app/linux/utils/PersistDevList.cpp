@@ -1,9 +1,9 @@
 #include "PersistDevList.h"
 #include "Log.h"
 
-PersistDevList::PersistDevList(size_t structSize, const char* filename) //: _structSize(structSize)
+PersistDevList::PersistDevList(size_t userDataSize, const char* filename)
 {
-    _structSize = structSize + sizeof(PersistGeneric);
+    _structSize = userDataSize + sizeof(PersistGeneric);
     strncpy(_filename, filename, sizeof(_filename));
     FILE* f_ptr;
     f_ptr = fopen(filename, "rb");
@@ -12,7 +12,7 @@ PersistDevList::PersistDevList(size_t structSize, const char* filename) //: _str
         while (!feof(f_ptr))
         {
             PersistGeneric* pNewDev = (PersistGeneric*)malloc(_structSize);
-            if(1 == fread(pNewDev, _structSize + sizeof(PersistGeneric), 1, f_ptr))
+            if(1 == fread(pNewDev, _structSize, 1, f_ptr))
             {
                 log_info("Fread in persist. index is:%d", pNewDev->index);
                 _map[pNewDev->index] = pNewDev;
@@ -28,7 +28,7 @@ PersistDevList::PersistDevList(size_t structSize, const char* filename) //: _str
 
 void PersistDevList::Upsert(int index, void* newDev)
 {
-    PersistGeneric* persistedDev = (PersistGeneric*)malloc( _structSize);
+    PersistGeneric* persistedDev = (PersistGeneric*)malloc(_structSize);
     persistedDev->index = index;
     memcpy(persistedDev->data, newDev, _structSize - sizeof(PersistGeneric));
     _map[index] = persistedDev;

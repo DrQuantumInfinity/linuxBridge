@@ -152,7 +152,8 @@ void TransportMqtt::Send(const Device* pDevice, ClusterId clusterId, const Ember
 
 void TransportMqtt::Private::NewDeviceOnPwr(int index, void* pPersist)
 {
-    NewDevice((uint16_t)index, (PersistMQTT*)pPersist);
+    Device* pDevice = NewDevice((uint16_t)index, (PersistMQTT*)pPersist);
+    _deviceList.Upsert(((PersistMQTT*)pPersist)->name, pDevice);
 }
 Device* TransportMqtt::Private::NewDevice(uint16_t index, PersistMQTT* pPersist)
 {
