@@ -57,11 +57,12 @@ void ApplicationInit()
     gpioWrite(2, 0);
     TimerSleepMs(10);
     gpioWrite(2, 1);*/
-    TransportMqtt::HandleTopicRx("DimmerFeit-222233445566/1/set", "1");
-    TransportMqtt::HandleTopicRx("OutletGordon-332233445566/1/set", "1");
+    
 
     SerialInit();
     TransportMqtt::Init();
+    // TransportMqtt::HandleTopicRx("DimmerFeit/222233445566/1/set", "1");
+    // TransportMqtt::HandleTopicRx("DimmerFeit/332233445566/1/set", "1");
 }
 
 void ApplicationShutdown() {}
