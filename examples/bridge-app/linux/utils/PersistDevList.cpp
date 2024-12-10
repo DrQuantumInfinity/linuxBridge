@@ -28,7 +28,7 @@ PersistDevList::PersistDevList(size_t structSize, const char* filename) //: _str
 void PersistDevList::Upsert(int index, void* newDev)
 {
     PersistGeneric* persistedDev = (PersistGeneric*)malloc( _structSize);
-    persistedDevt->index = index;
+    persistedDev->index = index;
     memcpy(persistedDev->data, newDev, _structSize);
     _map[index] = persistedDev;
     PersistDevList::Persist();
