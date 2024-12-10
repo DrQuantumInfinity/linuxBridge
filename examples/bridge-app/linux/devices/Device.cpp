@@ -72,6 +72,7 @@ EmberAfStatus Device::ReadCluster(ClusterId clusterId, const EmberAfAttributeMet
     uint16_t maxReadLength)
 {
     EmberAfStatus status = EMBER_ZCL_STATUS_FAILURE;
+    bool readOccurred = false;
     if (basicCluster._reachable)
     {
         for (auto& cluster : _clusters)
@@ -79,9 +80,19 @@ EmberAfStatus Device::ReadCluster(ClusterId clusterId, const EmberAfAttributeMet
             if (cluster->_id == clusterId)
             {
                 status = cluster->Read(attributeMetadata->attributeId, buffer, maxReadLength);
+                readOccurred = true;
                 break;
             }
         }
+    }
+    else
+    {
+        log_error("Device %u basic unreachable", GetIndex());
+    }
+
+    if (!readOccurred)
+    {
+        log_warn("Device %u no read occurred", GetIndex());
     }
     return status;
 }
