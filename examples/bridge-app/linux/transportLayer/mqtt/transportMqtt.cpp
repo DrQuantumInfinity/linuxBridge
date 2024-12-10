@@ -41,7 +41,7 @@ typedef struct {
 struct TransportMqtt::Private {
     static MQTT_TYPE GetDeviceType(const char* pTopic);
     static void NewDeviceOnPwr(int index, void* pPersist);
-    static Device* NewDevice(int index, PersistMQTT* persistMqtt);
+    static Device* NewDevice(uint16_t index, PersistMQTT* persistMqtt);
 
     static void GoogleSend(MQTT_TYPE type, const char* pTopic, const char* pPayload, Device* pDevice);
     static void GoogleSendLightLevel(const char* pTopic, const char* pPayload, DeviceLightLevel* pDevice);
@@ -113,7 +113,7 @@ void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)
             strncat(persistData.name, name, sizeof(persistData.name)-1);
             strncat(persistData.room, "Bridge", sizeof(persistData.room)-1);
             persistData.type = type;
-            pDevice = TransportMqtt::Private::NewDevice(-1, &persistData);
+            pDevice = TransportMqtt::Private::NewDevice(DEVICE_INVALID, &persistData);
             _persistList.Upsert(pDevice->GetIndex(), &persistData);
         }
         _deviceList.Upsert(name, pDevice);
@@ -150,9 +150,9 @@ void TransportMqtt::Send(const Device* pDevice, ClusterId clusterId, const Ember
 
 void TransportMqtt::Private::NewDeviceOnPwr(int index, void* pPersist)
 {
-    NewDevice(index, (PersistMQTT*)pPersist);
+    NewDevice((uint16_t)index, (PersistMQTT*)pPersist);
 }
-Device* TransportMqtt::Private::NewDevice(int index, PersistMQTT* pPersist)
+Device* TransportMqtt::Private::NewDevice(uint16_t index, PersistMQTT* pPersist)
 {
     Device* pDevice = nullptr;
 
@@ -203,10 +203,10 @@ void TransportMqtt::Private::GoogleSend(MQTT_TYPE type, const char* pTopic, cons
 {
     switch (type)
     {
-        case MQTT_DIMMER_SWITCH_FEIT:        Private::GoogleSendLightLevel(pTopic, pPayload, (DeviceLightLevel*)pDevice);       break;
-        case MQTT_OUTLET_GORDON:         Private::GoogleSendOutlet(pTopic, pPayload, (DeviceButton*)pDevice);        break;
-        case MQTT_LAMP_RGB:        Private::GoogleSendLightRgb(pTopic, pPayload, (DeviceLightRGB*)pDevice);        break;
-        default: /*Support this type!*/        break;
+        case MQTT_DIMMER_SWITCH_FEIT:       Private::GoogleSendLightLevel(pTopic, pPayload, (DeviceLightLevel*)pDevice);    break;
+        case MQTT_OUTLET_GORDON:            Private::GoogleSendOutlet(pTopic, pPayload, (DeviceButton*)pDevice);            break;
+        case MQTT_LAMP_RGB:                 Private::GoogleSendLightRgb(pTopic, pPayload, (DeviceLightRGB*)pDevice);        break;
+        default: /*Support this type!*/     break;
     }
 }
 void TransportMqtt::Private::GoogleSendLightLevel(const char* pTopic, const char* pPayload, DeviceLightLevel* pDevice)

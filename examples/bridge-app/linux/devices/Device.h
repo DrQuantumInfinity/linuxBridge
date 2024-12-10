@@ -29,6 +29,7 @@
 /**************************************************************************
  *                                  Constants
  **************************************************************************/
+#define DEVICE_INVALID              ((uint16_t)65535)
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
@@ -39,7 +40,7 @@
 class Device
 {
 public:
-    Device(int index);
+    Device(uint16_t index);
     Device(void);
     uint16_t GetIndex(void);
     EmberAfStatus ReadCluster(chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer, uint16_t maxReadLength);
