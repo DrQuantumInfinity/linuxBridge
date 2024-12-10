@@ -60,7 +60,6 @@ void ApplicationInit()
 
     SerialInit();
     TransportMqtt::Init();
-    TransportMqtt::HandleTopicRx("WifiDimmerFeit-112233445566/1/set", "1");
 }
 
 void ApplicationShutdown() {}
