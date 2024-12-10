@@ -84,16 +84,16 @@ EmberAfStatus Device::ReadCluster(ClusterId clusterId, const EmberAfAttributeMet
                 break;
             }
         }
+        if (!readOccurred)
+        {
+            log_warn("Device %u no read occurred", GetIndex());
+        }
     }
     else
     {
         log_error("Device %u basic unreachable", GetIndex());
     }
 
-    if (!readOccurred)
-    {
-        log_warn("Device %u no read occurred", GetIndex());
-    }
     return status;
 }
 EmberAfStatus Device::WriteCluster(ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer)
