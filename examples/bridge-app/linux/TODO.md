@@ -101,3 +101,9 @@ cd utils
 cmake .
 make
 sudo make install
+
+
+
+
+BugFoots:
+sometimes MQTT "get" updates don't show up on google. Happened once???
