@@ -93,6 +93,17 @@ void TransportMqtt::Init(void)
         mqtt_wrap_add_sub(TransportMqtt::_mqttInst, topicBuf);
     }
     mqtt_wrap_loopstart(TransportMqtt::_mqttInst);
+
+    // PersistMQTT fakePer1;
+    // strcpy(fakePer1.name, "WifiDimmerFeit-222233445566");
+    // strcpy(fakePer1.room, "bridge");
+    // fakePer1.type = MQTT_DIMMER_SWITCH_FEIT;
+    // PersistMQTT fakePer2;
+    // strcpy(fakePer2.name, "WifiDimmerFeit-332233445566");
+    // strcpy(fakePer2.room, "bridge");
+    // fakePer2.type = MQTT_OUTLET_GORDON;
+    // TransportMqtt::Private::NewDevice(3, &fakePer1);
+    // TransportMqtt::Private::NewDevice(4, &fakePer2);
     _persistList.Apply(TransportMqtt::Private::NewDeviceOnPwr);
 }
 void TransportMqtt::HandleTopicRx(const char* pTopic, const char* pPayload)

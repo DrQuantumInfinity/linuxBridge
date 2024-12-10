@@ -1,8 +1,6 @@
 #include "PersistDevList.h"
 #include "Log.h"
 
-
-
 PersistDevList::PersistDevList(size_t structSize, const char* filename) //: _structSize(structSize)
 {
     _structSize = structSize + sizeof(PersistGeneric);
@@ -30,7 +28,7 @@ PersistDevList::PersistDevList(size_t structSize, const char* filename) //: _str
 void PersistDevList::Upsert(int index, void* newDev)
 {
     PersistGeneric* persistedDev = (PersistGeneric*)malloc( _structSize);
-    persistedDev->index = index;
+    persistedDevt->index = index;
     memcpy(persistedDev->data, newDev, _structSize);
     _map[index] = persistedDev;
     PersistDevList::Persist();
