@@ -75,13 +75,21 @@ EmberAfStatus Device::ReadCluster(ClusterId clusterId, const EmberAfAttributeMet
     bool readOccurred = false;
     if (basicCluster._reachable)
     {
-        for (auto& cluster : _clusters)
+        if (clusterId == basicCluster.cluster.clusterId)
         {
-            if (cluster->_id == clusterId)
+            status = basicCluster.Read(attributeMetadata->attributeId, buffer, maxReadLength);
+            readOccurred = true;
+        }
+        else
+        {
+            for (auto& cluster : _clusters)
             {
-                status = cluster->Read(attributeMetadata->attributeId, buffer, maxReadLength);
-                readOccurred = true;
-                break;
+                if (cluster->_id == clusterId)
+                {
+                    status = cluster->Read(attributeMetadata->attributeId, buffer, maxReadLength);
+                    readOccurred = true;
+                    break;
+                }
             }
         }
         if (!readOccurred)
