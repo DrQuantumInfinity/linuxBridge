@@ -31,8 +31,6 @@ EmberAfStatus BasicCluster::Write(chip::AttributeId attributeId, uint8_t * buffe
 
 EmberAfStatus BasicCluster::Read(chip::AttributeId attributeId, uint8_t * buffer, uint16_t maxReadLength)
 {
-    log_info("BasicCluster Read called");
-
     using namespace BridgedDeviceBasicInformation::Attributes;
     // TODO: add debug
     //     ChipLogProgress(DeviceLayer, "HandleReadBridgedDeviceBasicAttribute: attrId=%" PRIu32 ", maxReadLength=%u", attributeId,
@@ -40,22 +38,37 @@ EmberAfStatus BasicCluster::Read(chip::AttributeId attributeId, uint8_t * buffer
 
     EmberAfStatus status = EMBER_ZCL_STATUS_SUCCESS;
 
-    if ((attributeId == Reachable::Id) && (maxReadLength == 1))
+    if (attributeId == Reachable::Id)
     {
         *buffer = _reachable ? 1 : 0;
     }
-    else if ((attributeId == NodeLabel::Id) && (maxReadLength == 32))
+    else if (attributeId == NodeLabel::Id)
     {
-        MutableByteSpan zclNameSpan(buffer, maxReadLength);
-        MakeZclCharString(zclNameSpan, _name); // TODO: get this from the info cluster
+        if (maxReadLength == 32)
+        {
+            MutableByteSpan zclNameSpan(buffer, maxReadLength);
+            MakeZclCharString(zclNameSpan, _name); // TODO: get this from the info cluster
+        }
+        else
+        {
+            log_error("basic cluster NodeLabel size %u", maxReadLength);
+        }
     }
-    else if ((attributeId == ClusterRevision::Id) && (maxReadLength == 2))
+    else if (attributeId == ClusterRevision::Id)
     {
-        uint16_t rev = ZCL_BRIDGED_DEVICE_BASIC_INFORMATION_CLUSTER_REVISION;
-        memcpy(buffer, &rev, sizeof(rev));
+        if (maxReadLength == 2)
+        {
+            uint16_t rev = ZCL_BRIDGED_DEVICE_BASIC_INFORMATION_CLUSTER_REVISION;
+            memcpy(buffer, &rev, sizeof(rev));
+        }
+        else
+        {
+            log_error("basic cluster ClusterRevision size %u", maxReadLength);
+        }
     }
     else
     {
+        log_warn("our basic cluster doesn't support attribute %04X", attributeId);
         status = EMBER_ZCL_STATUS_FAILURE;
     }
 
