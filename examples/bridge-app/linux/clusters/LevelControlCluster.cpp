@@ -10,7 +10,6 @@ using namespace ::chip::app::Clusters;
  *                                  Constants
  **************************************************************************/
 #define ZCL_LEVEL_CLUSTER_REVISION (5u)
-static const char * TAG = "LevelControlCluster";
 
 const EmberAfGenericClusterFunction chipFuncArrayLevelControlServer[] = {
     (EmberAfGenericClusterFunction) emberAfLevelControlClusterServerInitCallback,

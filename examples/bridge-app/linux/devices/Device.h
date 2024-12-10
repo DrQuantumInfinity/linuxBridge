@@ -41,7 +41,6 @@ class Device
 public:
     Device(int index);
     Device(void);
-    virtual ~Device(void);
     uint16_t GetIndex(void);
     EmberAfStatus ReadCluster(chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer, uint16_t maxReadLength);
     EmberAfStatus WriteCluster(chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
@@ -57,7 +56,7 @@ public:
 
 private:
     uint16_t _index;
-    static inline bool _indexList[CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT] = {0};
+    static inline uint16_t _lastIndex = 0;
     std::vector<Cluster*> _clusters;
 };
 /**************************************************************************

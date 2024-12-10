@@ -51,17 +51,28 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-
-DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index) : Device(index)
+DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex) : Device(deviceIndex)
 {
-    DeviceLightRGB(pName, pLocation, pTransportLayer);
+    DeviceLightRGBLocal(pName, pLocation, pTransportLayer);
 }
 DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
+{
+    DeviceLightRGBLocal(pName, pLocation, pTransportLayer);
+}
+DeviceLightRGB::~DeviceLightRGB()
+{   
+    free(_endpointData.pDataVersionStorage);
+    EndpointRemove(GetIndex());
+}
+/**************************************************************************
+ *                                  Private Functions
+ **************************************************************************/
+void DeviceLightRGB::DeviceLightRGBLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
 {
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
-        .index                    = GetIndex(),
+        .deviceIndex              = GetIndex(),
         .pObject                  = this,
         .pfnReadCallback          = GoogleReadCallback /*local read function specific to a DeviceLightLevel*/,
         .pfnWriteCallback         = GoogleWriteCallback,
@@ -80,6 +91,7 @@ DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, Transpo
     AddCluster(&onOffCluster);
     AddCluster(&levelControlCluster);
     AddCluster(&colourCluster);
+    basicCluster.SetName(pName, GetIndex());
     
     levelControlCluster._level = 74;
     levelControlCluster._minLevel = 0;
@@ -93,13 +105,5 @@ DeviceLightRGB::DeviceLightRGB(const char* pName, const char* pLocation, Transpo
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
+    log_info("Created device %u %s", _endpointData.deviceIndex, _endpointData.name);
 }
-DeviceLightRGB::~DeviceLightRGB()
-{   
-    free(_endpointData.pDataVersionStorage);
-    EndpointRemove(GetIndex());
-}
-
-/**************************************************************************
- *                                  Private Functions
- **************************************************************************/

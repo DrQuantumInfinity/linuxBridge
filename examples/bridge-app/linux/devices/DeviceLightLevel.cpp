@@ -34,28 +34,40 @@ const EmberAfDeviceType bridgedDeviceTypes[] = { {.deviceId = 0x0101, .deviceVer
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
- /**************************************************************************
-  *                                  Types
-  **************************************************************************/
-  /**************************************************************************
-   *                                  Prototypes
-   **************************************************************************/
-   /**************************************************************************
-    *                                  Variables
-    **************************************************************************/
-    /**************************************************************************
-     *                                  Global Functions
-     **************************************************************************/
-DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index) : Device(index)
+/**************************************************************************
+ *                                  Types
+ **************************************************************************/
+/**************************************************************************
+ *                                  Prototypes
+ **************************************************************************/
+/**************************************************************************
+*                                   Variables
+**************************************************************************/
+/**************************************************************************
+ *                                  Global Functions
+ **************************************************************************/
+DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex) : Device(deviceIndex)
 {
-    DeviceLightLevel(pName, pLocation, pTransportLayer);
+    DeviceLightLevelLocal(pName, pLocation, pTransportLayer);
 }
 DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
+{
+    DeviceLightLevelLocal(pName, pLocation, pTransportLayer);
+}
+DeviceLightLevel::~DeviceLightLevel()
+{
+    free(_endpointData.pDataVersionStorage);
+    EndpointRemove(GetIndex());
+}
+/**************************************************************************
+ *                                  Private Functions
+ **************************************************************************/
+void DeviceLightLevel::DeviceLightLevelLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
 {
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion) * ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
-         .index = GetIndex(),
+         .deviceIndex = GetIndex(),
          .pObject = this,
          .pfnReadCallback = GoogleReadCallback /*local read function specific to a DeviceLightLevel*/,
          .pfnWriteCallback = GoogleWriteCallback,
@@ -79,13 +91,5 @@ DeviceLightLevel::DeviceLightLevel(const char* pName, const char* pLocation, Tra
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
+    log_info("Created device %u %s %p", _endpointData.deviceIndex, _endpointData.name);
 }
-DeviceLightLevel::~DeviceLightLevel()
-{
-    free(_endpointData.pDataVersionStorage);
-    EndpointRemove(GetIndex());
-}
-
-/**************************************************************************
- *                                  Private Functions
- **************************************************************************/

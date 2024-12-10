@@ -3,9 +3,9 @@
 
 
 
-PersistDevList::PersistDevList(int structSize, char* filename) //: _structSize(structSize)
+PersistDevList::PersistDevList(size_t structSize, const char* filename) //: _structSize(structSize)
 {
-    _structSize = structSize;
+    _structSize = structSize + sizeof(PersistGeneric);
     strncpy(_filename, filename, sizeof(_filename));
     FILE* f_ptr;
     f_ptr = fopen(filename, "rb");
@@ -13,7 +13,7 @@ PersistDevList::PersistDevList(int structSize, char* filename) //: _structSize(s
     {
         while (!feof(f_ptr))
         {
-             PersistGeneric* pNewDev = (PersistGeneric*)malloc(_structSize + sizeof(PersistGeneric));
+             PersistGeneric* pNewDev = (PersistGeneric*)malloc(_structSize);
             if(1 == fread(pNewDev, _structSize + sizeof(PersistGeneric), 1, f_ptr))
             {
                 log_info("Fread in persist. index is:%d", pNewDev->index);
@@ -29,7 +29,7 @@ PersistDevList::PersistDevList(int structSize, char* filename) //: _structSize(s
 
 void PersistDevList::Upsert(int index, void* newDev)
 {
-    PersistGeneric* persistedDev = (PersistGeneric*)malloc(sizeof(PersistGeneric) + _structSize);
+    PersistGeneric* persistedDev = (PersistGeneric*)malloc( _structSize);
     persistedDev->index = index;
     memcpy(persistedDev->data, newDev, _structSize);
     _map[index] = persistedDev;
@@ -42,7 +42,7 @@ void PersistDevList::Persist(void)
     f_ptr = fopen(_filename, "wb");
     for (auto dev : _map)
     {
-        fwrite(dev.second, _structSize + sizeof(PersistGeneric), 1, f_ptr);
+        fwrite(dev.second, _structSize , 1, f_ptr);
     }
     fclose(f_ptr);
 }

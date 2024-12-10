@@ -20,7 +20,8 @@
 class DeviceTemperature : public Device
 {
 public:
-    DeviceTemperature(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, float temp, float humid);
+    DeviceTemperature(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex);
+    DeviceTemperature(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
     ~DeviceTemperature(void);
     void UpdateTemp(float temp) { tempCluster.UpdateTemp(temp, GetIndex()); }
     void UpdateHumidity(float humidity) { humidityCluster.UpdateHumidity(humidity, GetIndex()); }
@@ -30,6 +31,8 @@ private:
     HumidityCluster humidityCluster;
     DescriptorCluster descriptorCluster;
     ENDPOINT_DATA _endpointData;
+
+    void DeviceTemperatureLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer);
 };
 /**************************************************************************
  *                                  Prototypes

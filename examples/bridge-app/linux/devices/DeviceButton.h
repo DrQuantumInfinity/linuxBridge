@@ -19,8 +19,8 @@
 class DeviceButton : public Device
 {
 public:
+    DeviceButton(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex);
     DeviceButton(const char * pName, const char * pLocation, TransportLayer* pTransportLayer);
-    DeviceButton(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, int index);
     ~DeviceButton(void);
     void SetOn(bool on) { onOffCluster.SetOn(on, GetIndex()); }
     void Toggle(void) { onOffCluster.SetOn(!onOffCluster._isOn, GetIndex()); }
@@ -29,6 +29,8 @@ private:
     OnOffCluster onOffCluster;
     DescriptorCluster descriptorCluster;
     ENDPOINT_DATA _endpointData;
+
+    void DeviceButtonLocal(const char* pName, const char* pLocation, TransportLayer *pTransportLayer);
 };
 /**************************************************************************
  *                                  Prototypes

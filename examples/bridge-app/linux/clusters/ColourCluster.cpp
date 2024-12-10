@@ -11,7 +11,6 @@ using namespace ::chip::app::Clusters;
  **************************************************************************/
 
 #define ZCL_COLOR_CLUSTER_REVISION (6u)
-static const char * TAG = "ColorCluster";
 
 const EmberAfGenericClusterFunction chipFuncArrayColorServer[] = {
     (EmberAfGenericClusterFunction) emberAfColorControlClusterServerInitCallback,

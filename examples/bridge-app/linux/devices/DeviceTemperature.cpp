@@ -55,12 +55,28 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-DeviceTemperature::DeviceTemperature(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, float temp, float humid)
+DeviceTemperature::DeviceTemperature(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex) : Device(deviceIndex)
+{
+    DeviceTemperatureLocal(pName, pLocation, pTransportLayer);
+}
+DeviceTemperature::DeviceTemperature(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
+{
+    DeviceTemperatureLocal(pName, pLocation, pTransportLayer);
+}
+DeviceTemperature::~DeviceTemperature(void)
+{
+    free(_endpointData.pDataVersionStorage);
+    EndpointRemove(GetIndex());
+}
+/**************************************************************************
+ *                                  Private Functions
+ **************************************************************************/
+void DeviceTemperature::DeviceTemperatureLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer)
 {
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion)*ArraySize(bridgedClusters));
     ENDPOINT_DATA endpointData = {
-        .index = GetIndex(),
+        .deviceIndex = GetIndex(),
         .pObject = this,
         .pfnReadCallback = GoogleReadCallback,
         .pfnWriteCallback = GoogleWriteCallback,
@@ -77,23 +93,12 @@ DeviceTemperature::DeviceTemperature(const char* pName, const char* pLocation, T
     AddCluster(&descriptorCluster);
     AddCluster(&tempCluster);
     AddCluster(&humidityCluster);
-
-    tempCluster._temp = (int)(100*temp); //TODO: create a constructor
-    humidityCluster._humidity = (int)(100*humid); //TODO: create a constructor
-    strncpy(basicCluster._name, pName, sizeof(basicCluster._name));
+    basicCluster.SetName(pName, GetIndex());
     
     strcpy(endpointData.name, pName);
     strcpy(endpointData.location, pLocation);
 
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
+    log_info("Created device %u %s", _endpointData.deviceIndex, _endpointData.name);
 }
-
-DeviceTemperature::~DeviceTemperature(void)
-{
-    free(_endpointData.pDataVersionStorage);
-    EndpointRemove(GetIndex());
-}
-/**************************************************************************
- *                                  Private Functions
- **************************************************************************/

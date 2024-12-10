@@ -37,7 +37,7 @@ mqtt_inst* mqtt_wrap_init(const char* broker, mqtt_msgCallback messageHandler)
 	inst->mosq = mosquitto_new(NULL, true, inst);
 	mosquitto *mosq = inst->mosq;
 	if(mosq == NULL){
-        log_error("MQTT OOM error: %s", mosquitto_strerror(rc));
+        log_error("MQTT OOM error");
 		return NULL;
 	}
 
