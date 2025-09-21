@@ -48,17 +48,26 @@ temp sensor
 
 
 ******************************************Linux Bridge first-time Setup:
-sudo apt-get install -y libmosquitto-dev
+
+
+sudo apt-get install -y libmosquitto-dev cmake
 wget http://launchpadlibrarian.net/741613665/libssl1.1_1.1.1f-1ubuntu2.23_arm64.deb
 sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_arm64.deb 
 
 sudo apt install -y mosquitto mosquitto-clients
 sudo systemctl enable mosquitto.service
+sudo systemctl start mosquitto.service
 sudo nano /etc/mosquitto/mosquitto.conf
-//Add "listener 1883" and "allow_anonymous true" to the end
+
+#this doesn't seem to always work, might need to run twice
+
+echo "listener 1883
+allow_anonymous true" | sudo tee -a /etc/mosquitto/mosquitto.conf
+
 sudo systemctl restart mosquitto
 
-apt install python3.10-venv
+sudo apt install python3.9-venv
+#sudo apt install python3.10-venv
 python3 -m venv ./espVenv/
 cd espVenv/
 source ./bin/activate
@@ -70,27 +79,50 @@ pip install esptool
 ***** ubuntu
 
 **enable serial port
-remove console=... from /boot/firmware/cmdline.txt
+remove console=... from /boot/firmware/cmdline.txt ????
+enabled serial with raspi-config instead
 
-create file named /lib/systemd/system/esp-serial.service with one of these two in it
-[Unit]
+create file named /lib/systemd/system/esp-serial.service with this
+========
+
+#cmd="sudo ln -s /dev/ttyS0 /dev/ttyEspNow"
+
+cmd="sudo ln -s /dev/ttyAMA0 /dev/ttyEspNow"
+echo "[Unit]
 Description=My Sample Service
 After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=cmd
+ExecStart=$cmd
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target" | sudo tee /lib/systemd/system/esp-serial.service
 
-where cmd is one of:
-sudo ln -s /dev/ttyS0 /dev/ttyEspNow
+======
 
-sudo ln -s /dev/ttyAMA0 /dev/ttyEspNow
+create file named /lib/systemd/system/bridge.service with this
+
+========
+echo "[Unit]
+Description=My Sample Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/home/matter/chip-bridge-app
+
+[Install]
+WantedBy=multi-user.target" | sudo tee /lib/systemd/system/bridge.service
+
+======
 
 sudo systemctl daemon-reload
 sudo systemctl enable esp-serial.service
+sudo systemctl enable bridge.service
+
+sudo systemctl start esp-serial.service
+sudo systemctl start bridge.service
 
 **pinctrl
 
