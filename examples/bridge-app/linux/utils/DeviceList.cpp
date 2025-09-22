@@ -69,10 +69,12 @@ Device* DeviceList::GetFirstDevice(void)
 }
 Device* DeviceList::GetNextDevice(void)
 {
-    if ((_currentDeviceIterator + 1) != _map.end())
+    MAPPING::iterator nextDeviceIterator = _currentDeviceIterator;
+    nextDeviceIterator++;
+    if (nextDeviceIterator != _map.end())
     {
         _currentDeviceIterator++;
-        return _currentDeviceIterator->second->_pDevice
+        return _currentDeviceIterator->second->_pDevice;
     }
     else 
     {
