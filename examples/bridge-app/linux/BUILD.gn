@@ -43,6 +43,7 @@ executable("chip-bridge-app") {
     "transportLayer/espNow/transportEspNow.cpp",
     "transportLayer/mqtt/mqttWrapper.cpp",
     "transportLayer/mqtt/transportMqtt.cpp",
+    "transportLayer/ping/transportPing.cpp",
     "utils/Crc16.cpp",
     "utils/DeviceList.cpp",
     "utils/EndpointApi.cpp",
@@ -51,6 +52,7 @@ executable("chip-bridge-app") {
     "utils/TimerTick.cpp",
     "utils/assert.cpp",
     "utils/futil.cpp",
+    "utils/ping.cpp",
     "utils/timer.cpp",
     "utils/uart.cpp",
     "utils/utils.cpp",
@@ -76,18 +78,19 @@ executable("chip-bridge-app") {
     "transportLayer",
     "transportLayer/espNow",
     "transportLayer/mqtt",
+    "transportLayer/ping",
     "utils",
-    #"libs/pigpio/include",
+    "libs/pigpio/include",
     "libs/mqtt/include",
   ]
 
   lib_dirs = [
     "libs/mqtt/lib/aarch64-linux-gnu",
-    #"libs/pigpio/lib/aarch64-linux-gnu"
+    "libs/pigpio/lib/aarch64-linux-gnu",
   ]
   libs = [
     "mosquitto",
-    #"pigpio"
+    "pigpio",
   ]
 
   output_dir = root_out_dir

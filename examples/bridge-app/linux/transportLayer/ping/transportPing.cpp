@@ -55,9 +55,9 @@ struct TransportPing::Private {
     static void GoogleSendOutlet(const char* pTopic, const char* pPayload, DeviceButton* pDevice);
 
     static void PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId);
-    static void TransportPing::Private::PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress);
-    static void TransportPing::Private::PingStartThread(void);
-    static void TransportPing::Private::PingThread(void* pArgs);
+    static void PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress);
+    static void PingStartThread(void);
+    static void PingThread(void* pArgs);
 };
 
 /**************************************************************************
