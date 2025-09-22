@@ -51,13 +51,11 @@ struct TransportPing::Private {
     static void NewDeviceOnPwr(int index, void* pPersist);
     static Device* NewDevice(uint16_t index, PersistPing* persistPing);
 
-    static void GoogleSend(const char* pTopic, const char* pPayload, Device* pDevice);
-    static void GoogleSendOutlet(const char* pTopic, const char* pPayload, DeviceButton* pDevice);
+    static void StartThread(void);
+    static void Run(void* pArgs);
+    static void PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress);
 
     static void PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId);
-    static void PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress);
-    static void PingStartThread(void);
-    static void PingThread(void* pArgs);
 };
 
 /**************************************************************************
@@ -80,7 +78,7 @@ void TransportPing::Init(void)
     mqtt_wrap_loopstart(TransportPing::_mqttInst);
 
     _persistList.Apply(TransportPing::Private::NewDeviceOnPwr);
-    TransportPing::Private::PingStartThread();
+    TransportPing::Private::StartThread();
 }
 void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
 {
@@ -132,31 +130,31 @@ void TransportPing::Send(const Device* pDevice, ClusterId clusterId, const Ember
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-void TransportPing::Private::PingStartThread(void)
+void TransportPing::Private::StartThread(void)
 {
     pthread_t thread;
-    pthread_create(&thread, NULL, (THREAD_PFN), NULL);
+    pthread_create(&thread, NULL, (THREAD_PFN)TransportPing::Private::Run, NULL);
 }
-void TransportPing::Private::PingThread(void* pArgs)
+void TransportPing::Private::Run(void* pArgs)
 {
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Paul: " PING_SWITCH_IP_ADDRESS_PAUL, PING_SWITCH_IP_ADDRESS_PAUL);
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Gordon: " PING_SWITCH_IP_ADDRESS_GORDON, PING_SWITCH_IP_ADDRESS_GORDON);
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Conrad: " PING_SWITCH_IP_ADDRESS_CONRAD, PING_SWITCH_IP_ADDRESS_CONRAD);
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Max: " PING_SWITCH_IP_ADDRESS_MAX, PING_SWITCH_IP_ADDRESS_MAX);
 
-    Device* pDevice;
+    DeviceButton* pDevice;
     while (true)
     {
-        pDevice = _deviceList.GetFirstDevice();
+        pDevice = (DeviceButton*)_deviceList.GetFirstDevice();
         while (pDevice != NULL)
         {
-            TransportPing* pPing = ((TransportPing*)pDevice._pTransportLayer);
+            TransportPing* pPing = ((TransportPing*)pDevice->_pTransportLayer);
             if (send_ping(pPing->_ipAddress))
             {
                 if (pPing->_failedPingCount != 0)
                 {
                     pPing->_failedPingCount = 0;
-                    //tell google it's on
+                    pDevice->SetOn(true);
                 }
             }
             else
@@ -164,15 +162,15 @@ void TransportPing::Private::PingThread(void* pArgs)
                 pPing->_failedPingCount++;
                 if (pPing->_failedPingCount == 3)
                 {
-                    //tell google it's off
+                    pDevice->SetOn(false);
                 }
             }
-            pDevice = _deviceList.GetNextDevice();
+
+            pDevice = (DeviceButton*)_deviceList.GetNextDevice();
             sleep(5);
         }
     }
 }
-
 void TransportPing::Private::PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress)
 {
     PersistPing persistData;
@@ -183,7 +181,6 @@ void TransportPing::Private::PingAddHardcodedIpAddress(const char* pName, const 
     Device* pDevice = TransportPing::Private::NewDevice(DEVICE_INVALID, &persistData);
     _deviceList.Upsert(persistData.name, pDevice);
 }
-
 void TransportPing::Private::NewDeviceOnPwr(int index, void* pPersist)
 {
     Device* pDevice = NewDevice((uint16_t)index, (PersistPing*)pPersist);
@@ -193,16 +190,6 @@ Device* TransportPing::Private::NewDevice(uint16_t index, PersistPing* pPersist)
 {
     TransportLayer* pTransport = new TransportPing(pPersist->ipAddress);
     return new DeviceButton(pPersist->name, pPersist->room, pTransport, index);
-}
-// Send to Google functions
-void TransportPing::Private::GoogleSend(const char* pTopic, const char* pPayload, Device* pDevice)
-{
-    Private::GoogleSendOutlet(pTopic, pPayload, (DeviceButton*)pDevice);
-}
-void TransportPing::Private::GoogleSendOutlet(const char* pTopic, const char* pPayload, DeviceButton* pDevice)
-{
-    /*Parse the topic for which value is changing*/
-    pDevice->SetOn(true /*or false...*/);
 }
 // Send to PING device functions
 void TransportPing::Private::PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId)
