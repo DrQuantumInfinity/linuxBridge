@@ -97,6 +97,7 @@ void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
 TransportPing::TransportPing(const char* pIpAddress)
 {
     strcpy(_ipAddress, pIpAddress);
+    _failedPingCount = 0;
 }
 TransportPing::~TransportPing(void)
 {
@@ -123,11 +124,35 @@ void PingThread(void* pArgs)
     PingAddHardcodedIpAddress("Phone Conrad: " PING_SWITCH_IP_ADDRESS_CONRAD, PING_SWITCH_IP_ADDRESS_CONRAD);
     PingAddHardcodedIpAddress("Phone Max: " PING_SWITCH_IP_ADDRESS_MAX, PING_SWITCH_IP_ADDRESS_MAX);
 
+    Device* pDevice;
     while (true)
     {
-        sleep(5);
-        _deviceList.
-        if (ping())
+        pDevice = _deviceList.GetFirstDevice();
+        while (pDevice != NULL)
+        {
+            TransportPing* pPing = ((TransportPing*)pDevice._pTransportLayer)
+            if (ping(pPing->_ipAddress))
+            {
+                if (pPing->_failedPingCount != 0)
+                {
+                    pPing->_failedPingCount = 0;
+                    //tell google it's on
+                }
+            }
+            else
+            {
+                pPing->_failedPingCount++
+                if (pPing->_failedPingCount == 3)
+                {
+                    //tell google it's off
+                }
+            }
+
+            pPing->_ipAddress
+            pPing->_failedPingCount
+            pDevice = _deviceList.GetNextDevice();
+            sleep(5);
+        } 
     }
 }
 void PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress)
@@ -147,7 +172,7 @@ void TransportPing::Private::NewDeviceOnPwr(int index, void* pPersist)
 }
 Device* TransportPing::Private::NewDevice(uint16_t index, PersistPing* pPersist)
 {
-    TransportLayer* pTransport = new TransportPing(pPersist->type, &pPersist->name[strlen(pPingDeviceTypes[pPersist->type])]);
+    TransportLayer* pTransport = new TransportPing(pPersist->ipAddress);
     return new DeviceButton(pPersist->name, pPersist->room, pTransport, index);
 }
 // Send to Google functions
