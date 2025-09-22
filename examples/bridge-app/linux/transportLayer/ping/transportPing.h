@@ -17,7 +17,7 @@
  *                                  Constants
  **************************************************************************/
 #define PING_MAX_DEVICE_NAME_LENGTH (32)
-#define PING_IP_ADDRESS_LENGTH     (strlen("xxx.xxx.xxx.xxx") + 1)
+#define PING_IP_ADDRESS_LENGTH      (strlen("xxx.xxx.xxx.xxx") + 1)
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
@@ -27,7 +27,7 @@
 class TransportPing : public TransportLayer
 {
 public:
-    TransportPing( const char* pIpAddress);
+    TransportPing(const char* pIpAddress);
     virtual ~TransportPing(void);
     static void Init(void);
     static void HandleTopicRx(const char* pTopic, const char* pPayload);
@@ -37,6 +37,7 @@ protected:
 
 private:
     char _ipAddress[PING_IP_ADDRESS_LENGTH];
+    uint8_t _failedPingCount;
     static DeviceList _deviceList;
     static mqtt_inst* _mqttInst;
     struct Private;

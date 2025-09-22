@@ -4,10 +4,9 @@
 #include "Log.h"
 // Devices
 #include "DeviceButton.h"
-#include "DeviceLightLevel.h"
-#include "DeviceLightRGB.h"
 
 #include "mqttWrapper.h"
+#include "ping.h"
 #include "string"
 #include "timer.h"
 
@@ -27,17 +26,28 @@ using namespace std;
    *                                  Types
    **************************************************************************/
 typedef void* (*THREAD_PFN)(void*);
+#define PING_SWITCH_IP_ADDRESS_PAUL         "192.168.0.16"
+#define PING_SWITCH_IP_ADDRESS_GORDON       "192.168.0.14"
+#define PING_SWITCH_IP_ADDRESS_CONRAD       "192.168.0.15"
+#define PING_SWITCH_IP_ADDRESS_MAX          "192.168.0.17"
+/**************************************************************************
+ *                                  Macros
+ **************************************************************************/
+/**************************************************************************
+ *                                  Types
+ **************************************************************************/
+typedef void * (*THREAD_PFN)(void *);
 
 typedef struct {
     char name[PING_MAX_DEVICE_NAME_LENGTH];
     char room[ENDPOINT_LOCATION_LENGTH];
+    char ipAddress[PING_IP_ADDRESS_LENGTH];
 }PersistPing;
 
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
 struct TransportPing::Private {
-    // static PING_TYPE GetDeviceType(const char* pTopic);
     static void NewDeviceOnPwr(int index, void* pPersist);
     static Device* NewDevice(uint16_t index, PersistPing* persistPing);
 
@@ -94,8 +104,8 @@ void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
     }
     else
     {
-        log_warn("Invalid PING topic: %s", pTopic);
-        // TODO: log something about an invalid PING message
+        log_warn("Invalid MQTT topic: %s", pTopic);
+        // TODO: log something about an invalid MQTT message
     }
 }
 /**************************************************************************
@@ -104,6 +114,7 @@ void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
 TransportPing::TransportPing(const char* pIpAddress)
 {
     strcpy(_ipAddress, pIpAddress);
+    _failedPingCount = 0;
 }
 TransportPing::~TransportPing(void)
 {
@@ -121,7 +132,55 @@ void TransportPing::Send(const Device* pDevice, ClusterId clusterId, const Ember
 void PingStartThread(void)
 {
     pthread_t thread;
-    pthread_create(&thread, NULL, (THREAD_PFN)UartReceiveHandler, NULL);
+    pthread_create(&thread, NULL, (THREAD_PFN), NULL);
+}
+void PingThread(void* pArgs)
+{
+    PingAddHardcodedIpAddress("Phone Paul: " PING_SWITCH_IP_ADDRESS_PAUL, PING_SWITCH_IP_ADDRESS_PAUL);
+    PingAddHardcodedIpAddress("Phone Gordon: " PING_SWITCH_IP_ADDRESS_GORDON, PING_SWITCH_IP_ADDRESS_GORDON);
+    PingAddHardcodedIpAddress("Phone Conrad: " PING_SWITCH_IP_ADDRESS_CONRAD, PING_SWITCH_IP_ADDRESS_CONRAD);
+    PingAddHardcodedIpAddress("Phone Max: " PING_SWITCH_IP_ADDRESS_MAX, PING_SWITCH_IP_ADDRESS_MAX);
+
+    Device* pDevice;
+    while (true)
+    {
+        pDevice = _deviceList.GetFirstDevice();
+        while (pDevice != NULL)
+        {
+            TransportPing* pPing = ((TransportPing*)pDevice._pTransportLayer)
+            if (ping(pPing->_ipAddress))
+            {
+                if (pPing->_failedPingCount != 0)
+                {
+                    pPing->_failedPingCount = 0;
+                    //tell google it's on
+                }
+            }
+            else
+            {
+                pPing->_failedPingCount++
+                if (pPing->_failedPingCount == 3)
+                {
+                    //tell google it's off
+                }
+            }
+
+            pPing->_ipAddress
+            pPing->_failedPingCount
+            pDevice = _deviceList.GetNextDevice();
+            sleep(5);
+        } 
+    }
+}
+void PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress)
+{
+    PersistPing persistData;
+    memset(&persistData, 0x00, sizeof(persistData));
+    strncat(persistData.name, pName, sizeof(persistData.name)-1);
+    strncat(persistData.room, "Bridge", sizeof(persistData.room)-1);
+    strncat(persistData.ipAddress, pIpAddress, sizeof(persistData.ipAddress)-1);
+    Device* pDevice = TransportPing::Private::NewDevice(DEVICE_INVALID, &persistData);
+    _deviceList.Upsert(persistData.name, pDevice);
 }
 void TransportPing::Private::NewDeviceOnPwr(int index, void* pPersist)
 {
@@ -130,7 +189,7 @@ void TransportPing::Private::NewDeviceOnPwr(int index, void* pPersist)
 }
 Device* TransportPing::Private::NewDevice(uint16_t index, PersistPing* pPersist)
 {
-    TransportLayer* pTransport = new TransportPing( &pPersist->name);
+    TransportLayer* pTransport = new TransportPing(pPersist->ipAddress);
     return new DeviceButton(pPersist->name, pPersist->room, pTransport, index);
 }
 // Send to Google functions
