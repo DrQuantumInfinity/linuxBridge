@@ -1,1 +1,1 @@
-bool send_ping(int ping_sockfd, struct sockaddr_in* ping_addr);
+bool send_ping(const char* addr);
