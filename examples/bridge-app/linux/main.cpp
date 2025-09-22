@@ -49,6 +49,7 @@ void ApplicationInit()
     log_set_level(1);
     // chip::Server::GetInstance().ScheduleFactoryReset();
     EndpointApiInit();
+    TransportPing::Init();
     TransportEspNow::Init();
 /*    gpioInitialise();
     gpioSetMode(2, PI_OUTPUT);
