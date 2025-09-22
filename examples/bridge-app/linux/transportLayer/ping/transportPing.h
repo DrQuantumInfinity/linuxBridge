@@ -17,7 +17,7 @@
  *                                  Constants
  **************************************************************************/
 #define PING_MAX_DEVICE_NAME_LENGTH (32)
-#define PING_MAC_ADDRESS_LENGTH     (strlen("xxx.xxx.xxx.xxx") + 1)
+#define PING_IP_ADDRESS_LENGTH      (strlen("xxx.xxx.xxx.xxx") + 1)
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
@@ -27,7 +27,7 @@
 class TransportPing : public TransportLayer
 {
 public:
-    TransportPing(PING_TYPE type, const char* pMacAddr);
+    TransportPing(const char* pIpAddress);
     virtual ~TransportPing(void);
     static void Init(void);
     static void HandleTopicRx(const char* pTopic, const char* pPayload);
@@ -36,7 +36,8 @@ protected:
     void Send(const Device* pDevice, chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
 
 private:
-    char _ipAddress[PING_MAC_ADDRESS_LENGTH];
+    char _ipAddress[PING_IP_ADDRESS_LENGTH];
+    uint8_t _failedPingCount;
     static DeviceList _deviceList;
     static ping_inst* _pingInst;
     struct Private;

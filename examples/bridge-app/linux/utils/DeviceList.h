@@ -49,6 +49,8 @@ public:
     void Remove(const uint8_t* pKey, uint32_t len);
     Device* GetDevice(std::string key);
     Device* GetDevice(const uint8_t* pKey, uint32_t len);
+    Device* GetFirstDevice(void);
+    Device* GetNextDevice(void);
     Device* GetAndRemoveExpiredDevice(std::string key);
     Device* GetAndRemoveExpiredDevice(const uint8_t* pKey, uint32_t len);
 
@@ -56,4 +58,5 @@ protected:
 
 private:
     MAPPING _map;
+    MAPPING::iterator _currentDeviceIterator;
 };

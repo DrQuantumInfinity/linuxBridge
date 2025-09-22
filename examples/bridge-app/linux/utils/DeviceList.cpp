@@ -62,6 +62,23 @@ Device* DeviceList::GetDevice(const uint8_t* pKey, uint32_t len)
 {
     return GetDevice(STR(pKey, len));
 }
+Device* DeviceList::GetFirstDevice(void)
+{
+    _currentDeviceIterator = _map.begin();
+    return _currentDeviceIterator->second->_pDevice;
+}
+Device* DeviceList::GetNextDevice(void)
+{
+    if ((_currentDeviceIterator + 1) != _map.end())
+    {
+        _currentDeviceIterator++;
+        return _currentDeviceIterator->second->_pDevice
+    }
+    else 
+    {
+        return NULL;
+    }
+}
 Device* DeviceList::GetAndRemoveExpiredDevice(std::string key)
 {
     for (MAPPING::iterator it = _map.begin(); it != _map.end(); it++)
