@@ -29,7 +29,9 @@
 #include "EndpointApi.h"
 #include "transportEspNow.h"
 #include "transportMqtt.h"
+#include "transportPing.h"
 #include "timer.h"
+#include "ping.h"
 
 
 std::vector<EndpointListInfo> GetEndpointListInfo(chip::EndpointId parentId)
@@ -38,9 +40,9 @@ std::vector<EndpointListInfo> GetEndpointListInfo(chip::EndpointId parentId)
     return infoList;
 }
 
-std::vector<Action *> GetActionListInfo(chip::EndpointId parentId)
+std::vector<Action*> GetActionListInfo(chip::EndpointId parentId)
 {
-    std::vector<Action *> actionsDummy;
+    std::vector<Action*> actionsDummy;
     return actionsDummy;
 }
 
@@ -49,15 +51,16 @@ void ApplicationInit()
     log_set_level(1);
     // chip::Server::GetInstance().ScheduleFactoryReset();
     EndpointApiInit();
+    TransportPing::Init();
     TransportEspNow::Init();
-/*    gpioInitialise();
-    gpioSetMode(2, PI_OUTPUT);
-    gpioSetMode(3, PI_OUTPUT);
-    gpioWrite(3, 1);
-    gpioWrite(2, 0);
-    TimerSleepMs(10);
-    gpioWrite(2, 1);*/
-    
+    /*    gpioInitialise();
+        gpioSetMode(2, PI_OUTPUT);
+        gpioSetMode(3, PI_OUTPUT);
+        gpioWrite(3, 1);
+        gpioWrite(2, 0);
+        TimerSleepMs(10);
+        gpioWrite(2, 1);*/
+
 
     SerialInit();
     TransportMqtt::Init();
@@ -73,7 +76,7 @@ void UartRxCallback(UART_HANDLE uartHandle, void* pData, uint32_t dataLen)
     log_warn("uart got ---- %s", pMsg);
 }
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
     if (ChipLinuxAppInit(argc, argv) != 0)
     {
