@@ -37,18 +37,20 @@ const EmberAfDeviceType bridgedDeviceTypes[] = {
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
- /**************************************************************************
-  *                                  Types
-  **************************************************************************/
-  /**************************************************************************
-   *                                  Prototypes
-   **************************************************************************/
-   /**************************************************************************
-    *                                  Variables
-    **************************************************************************/
-    /**************************************************************************
-     *                                  Global Functions
-     **************************************************************************/
+/**************************************************************************
+ *                                  Types
+ **************************************************************************/
+typedef void* (*THREAD_PFN)(void*);
+
+/**************************************************************************
+ *                                  Prototypes
+ **************************************************************************/
+/**************************************************************************
+ *                                  Variables
+ **************************************************************************/
+/**************************************************************************
+ *                                  Global Functions
+ **************************************************************************/
 DevicePing::DevicePing(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex, const char* pIpAddress) : Device(deviceIndex)
 {
     DevicePingLocal(pName, pLocation, pTransportLayer, pIpAddress);
@@ -59,35 +61,18 @@ DevicePing::DevicePing(const char* pName, const char* pLocation, TransportLayer*
 }
 DevicePing::~DevicePing(void)
 {
+    _threadData.threadIsActive = false;
+    sleep(1);
     free(_endpointData.pDataVersionStorage);
     EndpointRemove(GetIndex());
-}
-bool DevicePing::SendPing()
-{
-    if (send_ping(this->_ipAddress))
-    {
-        if (this->_failedPingCount != 0)
-        {
-            this->_failedPingCount = 0;
-            return true;
-        }
-    }
-    else
-    {
-        this->_failedPingCount++;
-        if (this->_failedPingCount == 3)
-        {
-            return false;
-        }
-    }
 }
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
 void DevicePing::DevicePingLocal(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, const char* pIpAddress)
 {
-    strcpy(_ipAddress, pIpAddress);
-    _failedPingCount = 0;
+    strcpy(_threadData.ipAddress, pIpAddress);
+    _threadData.failedPingCount = 0;
 
     _pTransportLayer = pTransportLayer;
     DataVersion* pDataVersions = (DataVersion*)malloc(sizeof(DataVersion) * ArraySize(bridgedClusters));
@@ -115,4 +100,32 @@ void DevicePing::DevicePingLocal(const char* pName, const char* pLocation, Trans
     memcpy(&_endpointData, &endpointData, sizeof(_endpointData));
     EndpointAdd(&_endpointData);
     log_info("Created device %u %s", _endpointData.deviceIndex, _endpointData.name);
+
+    _threadData.threadIsActive = true;
+    pthread_create(&_thread, NULL, (THREAD_PFN)DevicePing::DevicePingRun, &_threadData);
+}
+void* DevicePing::DevicePingRun(void* pArgs)
+{
+    thread_data_t* pThreadData = (thread_data_t*)pArgs; 
+    while (pThreadData->threadIsActive)
+    {
+        if (send_ping(pThreadData->ipAddress))
+        {
+            if (pThreadData->failedPingCount != 0)
+            {
+                pThreadData->failedPingCount = 0;
+                pThreadData->pSelf->SetOn(true);
+            }
+        }
+        else
+        {
+            pThreadData->failedPingCount++;
+            if (pThreadData->failedPingCount == 3)
+            {
+                pThreadData->pSelf->SetOn(false);
+            }
+        }
+        sleep(5);
+    }
+    return NULL;
 }

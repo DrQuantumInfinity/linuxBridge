@@ -16,6 +16,15 @@
 /**************************************************************************
  *                                  Types
  **************************************************************************/
+class DevicePing; //Forward declare.
+
+typedef struct
+{
+    DevicePing* pSelf;
+    char ipAddress[PING_IP_ADDRESS_LENGTH];
+    uint8_t failedPingCount;
+    volatile bool threadIsActive;
+}thread_data_t;
 
 class DevicePing : public Device
 {
@@ -25,16 +34,16 @@ public:
     ~DevicePing(void);
     void SetOn(bool on) { onOffCluster.SetOn(on, GetIndex()); }
     void Toggle(void) { onOffCluster.SetOn(!onOffCluster._isOn, GetIndex()); }
-    bool SendPing();
 
 private:
-    char _ipAddress[PING_IP_ADDRESS_LENGTH];
-    uint8_t _failedPingCount;
+    thread_data_t _threadData;
+    pthread_t _thread;
     OnOffCluster onOffCluster;
     DescriptorCluster descriptorCluster;
     ENDPOINT_DATA _endpointData;
 
     void DevicePingLocal(const char* pName, const char* pLocation, TransportLayer *pTransportLayer,const char* pIpAddress);
+    static void* DevicePingRun(void* pArgs);
 };
 /**************************************************************************
  *                                  Prototypes

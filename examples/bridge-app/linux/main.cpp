@@ -29,7 +29,7 @@
 #include "EndpointApi.h"
 #include "transportEspNow.h"
 #include "transportMqtt.h"
-#include "transportPing.h"
+#include "transportLocal.h"
 #include "timer.h"
 
 
@@ -50,7 +50,7 @@ void ApplicationInit()
     log_set_level(1);
     // chip::Server::GetInstance().ScheduleFactoryReset();
     EndpointApiInit();
-    TransportPing::Init();
+    TransportLocal::Init();
     TransportEspNow::Init();
     /*    gpioInitialise();
         gpioSetMode(2, PI_OUTPUT);

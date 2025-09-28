@@ -23,11 +23,11 @@
 /**************************************************************************
  *                                  Types
  **************************************************************************/
-class TransportPing : public TransportLayer
+class TransportLocal : public TransportLayer
 {
 public:
-    TransportPing(const char* pIpAddress);
-    virtual ~TransportPing(void);
+    TransportLocal(const char* pIpAddress);
+    virtual ~TransportLocal(void);
     static void Init(void);
     static void HandleTopicRx(const char* pTopic, const char* pPayload);
 

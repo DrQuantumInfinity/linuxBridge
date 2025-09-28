@@ -1,5 +1,5 @@
 
-#include "transportPing.h"
+#include "transportLocal.h"
 
 #include "Log.h"
 // Devices
@@ -41,45 +41,46 @@ typedef struct {
     char name[PING_MAX_DEVICE_NAME_LENGTH];
     char room[ENDPOINT_LOCATION_LENGTH];
     char ipAddress[PING_IP_ADDRESS_LENGTH];
-}PersistPing;
+}PersistLocal;
 
 /**************************************************************************
  *                                  Prototypes
  **************************************************************************/
-struct TransportPing::Private {
+struct TransportLocal::Private {
     static void NewDeviceOnPwr(int index, void* pPersist);
-    static Device* NewDevice(uint16_t index, PersistPing* persistPing);
+    static Device* NewDevice(uint16_t index, PersistLocal* persistLocal);
 
-    static void StartThread(void);
-    static void Run(void* pArgs);
     static void PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress);
-
-    static void PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId);
 };
 
 /**************************************************************************
  *                                  Variables
  **************************************************************************/
-DeviceList TransportPing::_deviceList; // static variables in a class need to be independently initialized. C++ is dumb
-mqtt_inst* TransportPing::_mqttInst;
-PersistDevList TransportPing::_persistList = PersistDevList(sizeof(PersistPing), "pingPersist.bin");
+DeviceList TransportLocal::_deviceList; // static variables in a class need to be independently initialized. C++ is dumb
+mqtt_inst* TransportLocal::_mqttInst;
+PersistDevList TransportLocal::_persistList = PersistDevList(sizeof(PersistLocal), "localPersist.bin");
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/
-void TransportPing::Init(void)
+void TransportLocal::Init(void)
 {
 
-    TransportPing::_mqttInst = mqtt_wrap_init("192.168.0.128", TransportPing::HandleTopicRx);
+    TransportLocal::_mqttInst = mqtt_wrap_init("192.168.0.128", TransportLocal::HandleTopicRx);
 
-    mqtt_wrap_add_sub(TransportPing::_mqttInst, ADD_TOPIC);
-    mqtt_wrap_add_sub(TransportPing::_mqttInst, REM_TOPIC);
+    mqtt_wrap_add_sub(TransportLocal::_mqttInst, ADD_TOPIC);
+    mqtt_wrap_add_sub(TransportLocal::_mqttInst, REM_TOPIC);
 
-    mqtt_wrap_loopstart(TransportPing::_mqttInst);
+    mqtt_wrap_loopstart(TransportLocal::_mqttInst);
 
-    _persistList.Apply(TransportPing::Private::NewDeviceOnPwr);
-    TransportPing::Private::StartThread();
+    _persistList.Apply(TransportLocal::Private::NewDeviceOnPwr);
+    
+    
+    TransportLocal::Private::PingAddHardcodedIpAddress("Phone Paul: " PING_SWITCH_IP_ADDRESS_PAUL, PING_SWITCH_IP_ADDRESS_PAUL);
+    TransportLocal::Private::PingAddHardcodedIpAddress("Phone Gordon: " PING_SWITCH_IP_ADDRESS_GORDON, PING_SWITCH_IP_ADDRESS_GORDON);
+    TransportLocal::Private::PingAddHardcodedIpAddress("Phone Conrad: " PING_SWITCH_IP_ADDRESS_CONRAD, PING_SWITCH_IP_ADDRESS_CONRAD);
+    TransportLocal::Private::PingAddHardcodedIpAddress("Phone Max: " PING_SWITCH_IP_ADDRESS_MAX, PING_SWITCH_IP_ADDRESS_MAX);
 }
-void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
+void TransportLocal::HandleTopicRx(const char* pTopic, const char* pPayload)
 {
     log_info("HandleTopicRx. topic: %s. payload: %s", pTopic, pPayload);
     if (strcmp(pTopic, ADD_TOPIC))
@@ -87,11 +88,11 @@ void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
         Device* pDevice = _deviceList.GetDevice(pPayload);
         if (pDevice == NULL)
         {
-            PersistPing persistData;
+            PersistLocal persistData;
             memset(&persistData, 0x00, sizeof(persistData));
             strncat(persistData.name, pPayload, sizeof(persistData.name) - 1);
             strncat(persistData.room, "Bridge", sizeof(persistData.room) - 1);
-            pDevice = TransportPing::Private::NewDevice(DEVICE_INVALID, &persistData);
+            pDevice = TransportLocal::Private::NewDevice(DEVICE_INVALID, &persistData);
             _persistList.Upsert(pDevice->GetIndex(), &persistData);
             log_info("Added device: %s", pPayload);
         }
@@ -111,70 +112,40 @@ void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
 /**************************************************************************
  *                                  Global Functions
  **************************************************************************/
-TransportPing::TransportPing(const char* pIpAddress)
+TransportLocal::TransportLocal(const char* pIpAddress)
 {
 
 }
-TransportPing::~TransportPing(void)
+TransportLocal::~TransportLocal(void)
 {
 }
 /**************************************************************************
  *                                  Protected Functions
  **************************************************************************/
-void TransportPing::Send(const Device* pDevice, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer)
+void TransportLocal::Send(const Device* pDevice, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer)
 {
-    Private::PingSend(*this, pDevice, clusterId, attributeMetadata->attributeId);
+    //Do something based on the command coming from Google.
 }
 /**************************************************************************
  *                                  Private Functions
  **************************************************************************/
-void TransportPing::Private::StartThread(void)
+void TransportLocal::Private::PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress)
 {
-    pthread_t thread;
-    pthread_create(&thread, NULL, (THREAD_PFN)TransportPing::Private::Run, NULL);
-}
-void TransportPing::Private::Run(void* pArgs)
-{
-    TransportPing::Private::PingAddHardcodedIpAddress("Phone Paul: " PING_SWITCH_IP_ADDRESS_PAUL, PING_SWITCH_IP_ADDRESS_PAUL);
-    TransportPing::Private::PingAddHardcodedIpAddress("Phone Gordon: " PING_SWITCH_IP_ADDRESS_GORDON, PING_SWITCH_IP_ADDRESS_GORDON);
-    TransportPing::Private::PingAddHardcodedIpAddress("Phone Conrad: " PING_SWITCH_IP_ADDRESS_CONRAD, PING_SWITCH_IP_ADDRESS_CONRAD);
-    TransportPing::Private::PingAddHardcodedIpAddress("Phone Max: " PING_SWITCH_IP_ADDRESS_MAX, PING_SWITCH_IP_ADDRESS_MAX);
-
-    DevicePing* pDevice;
-    while (true)
-    {
-        pDevice = (DevicePing*)_deviceList.GetFirstDevice();
-        while (pDevice != NULL)
-        {
-            bool present = pDevice->SendPing();
-            pDevice->SetOn(present);
-            pDevice = (DevicePing*)_deviceList.GetNextDevice();
-            sleep(5);
-        }
-    }
-}
-void TransportPing::Private::PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress)
-{
-    PersistPing persistData;
+    PersistLocal persistData;
     memset(&persistData, 0x00, sizeof(persistData));
     strncat(persistData.name, pName, sizeof(persistData.name) - 1);
     strncat(persistData.room, "Bridge", sizeof(persistData.room) - 1);
     strncat(persistData.ipAddress, pIpAddress, sizeof(persistData.ipAddress) - 1);
-    Device* pDevice = TransportPing::Private::NewDevice(DEVICE_INVALID, &persistData);
+    Device* pDevice = TransportLocal::Private::NewDevice(DEVICE_INVALID, &persistData);
     _deviceList.Upsert(persistData.name, pDevice);
 }
-void TransportPing::Private::NewDeviceOnPwr(int index, void* pPersist)
+void TransportLocal::Private::NewDeviceOnPwr(int index, void* pPersist)
 {
-    Device* pDevice = NewDevice((uint16_t)index, (PersistPing*)pPersist);
-    _deviceList.Upsert(((PersistPing*)pPersist)->name, pDevice);
+    Device* pDevice = NewDevice((uint16_t)index, (PersistLocal*)pPersist);
+    _deviceList.Upsert(((PersistLocal*)pPersist)->name, pDevice);
 }
-Device* TransportPing::Private::NewDevice(uint16_t index, PersistPing* pPersist)
+Device* TransportLocal::Private::NewDevice(uint16_t index, PersistLocal* pPersist)
 {
-    TransportLayer* pTransport = new TransportPing(pPersist->ipAddress);
+    TransportLayer* pTransport = new TransportLocal(pPersist->ipAddress);
     return new DevicePing(pPersist->name, pPersist->room, pTransport, index, pPersist->ipAddress);
-}
-// Send to PING device functions
-void TransportPing::Private::PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId)
-{
-    //This can be ignored. Users can not edit the state of whether an IP address is present.
 }
