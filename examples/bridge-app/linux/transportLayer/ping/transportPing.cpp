@@ -1,3 +1,6 @@
+//NOTE: This is a fake transport layer. There's nothing being transported 
+//since there are no external devices to communicate with. The device is 
+//local to the RaspberryPi.
 
 #include "transportPing.h"
 
