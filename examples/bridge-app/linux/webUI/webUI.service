@@ -1,0 +1,13 @@
+[Unit]
+Description=Matter Bridge UI service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -m http.server 80
+WorkingDirectory=/home/matter/WebUI
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

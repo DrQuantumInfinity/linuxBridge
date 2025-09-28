@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Ping Control</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+<h1>Ping Control</h1>
+<p>Status: <span id="status">Disconnected</span></p>
+
+<label for="addText">Add an IP:</label>
+<input type="text" id="addText" name="addText" placeholder="IP Address">
+<button onclick="AddIp()">Add</button>
+
+<br/>
+<label for="remText">Remove an IP:</label>
+<input type="text" id="remText" name="remText" placeholder="IP Address">
+<button onclick="RemIp()">Remove</button>
+
+
+<script>
+    const statusElement = document.getElementById('status');
+    const messagesElement = document.getElementById('messages');
+    const host = location.host;
+    const brokerUrl = 'ws://'+host+':8080';
+    // const brokerUrl = 'ws://192.168.0.128:8080';
+    const topicToAdd = 'ping/addIP';
+    const topicToRem = 'ping/remIP';
+    const topicToSubscribe = 'listIP'
+
+    const client = mqtt.connect(brokerUrl);
+
+    client.on('connect', () => {
+        statusElement.textContent = 'Connected';
+        console.log('Connected to MQTT broker');
+        client.subscribe(topicToSubscribe, (err) => {
+            if (!err) {
+                console.log(`Subscribed to topic: ${topicToSubscribe}`);
+            }
+        });
+    });
+
+    client.on('message', (topic, message) => {
+        const messageText = message.toString();
+        console.log(`Received message on topic "${topic}": ${messageText}`);
+        const p = document.createElement('p');
+        p.textContent = `Topic: ${topic}, Message: ${messageText}`;
+        messagesElement.appendChild(p);
+    });
+
+    client.on('error', (err) => {
+        statusElement.textContent = 'Error';
+        console.error('MQTT error:', err);
+    });
+
+    client.on('close', () => {
+        statusElement.textContent = 'Disconnected';
+        console.log('Disconnected from MQTT broker');
+    });
+
+    function AddIp() {
+        const ip = document.getElementById('addText').value;
+
+        client.publish(topicToAdd, ip, (err) => {
+            if (!err) {
+                console.log(`Published message "${ip}" to topic: ${topicToAdd}`);
+            } else {
+                console.error('Error publishing message:', err);
+            }
+        });
+    }
+
+    function RemIp() {
+        const ip = document.getElementById('remText').value;
+        client.publish(topicToRem, ip, (err) => {
+            if (!err) {
+                console.log(`Published message "${ip}" to topic: ${topicToRem}`);
+            } else {
+                console.error('Error publishing message:', err);
+            }
+        });
+    }
+</script>
+</body>
+</html>

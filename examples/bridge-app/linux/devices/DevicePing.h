@@ -16,6 +16,11 @@
 /**************************************************************************
  *                                  Types
  **************************************************************************/
+enum PingResult{
+    PingResultSuccess=0,
+    PingResultFailed=1,
+    PingResultNoUpdate=2
+};
 
 class DevicePing : public Device
 {
@@ -25,7 +30,7 @@ public:
     ~DevicePing(void);
     void SetOn(bool on) { onOffCluster.SetOn(on, GetIndex()); }
     void Toggle(void) { onOffCluster.SetOn(!onOffCluster._isOn, GetIndex()); }
-    bool SendPing();
+    PingResult SendPing();
 
 private:
     char _ipAddress[PING_IP_ADDRESS_LENGTH];

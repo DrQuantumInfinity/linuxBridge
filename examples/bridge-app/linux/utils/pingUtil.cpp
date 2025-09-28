@@ -62,7 +62,12 @@ bool send_ping(const char* addr)
     memset(&sock, 0, addrlen);
     sock.sin_family = AF_INET;
     sock.sin_port = htons(0);
-    inet_pton(AF_INET, addr, &sock.sin_addr);
+    if (inet_pton(AF_INET, addr, &sock.sin_addr) != 1)
+    {
+        log_error("Error parsing ip from addr! addr=%s\n", addr);
+        return false;
+    }
+
 
     // Set socket options at IP to TTL and value to 64
     if (setsockopt(ping_sockfd, SOL_IP, IP_TTL, &ttl_val, sizeof(ttl_val)) != 0)
@@ -99,7 +104,7 @@ bool send_ping(const char* addr)
     addr_len = sizeof(r_addr);
     if (recvfrom(ping_sockfd, rbuffer, sizeof(rbuffer), 0, (struct sockaddr*)&r_addr, &addr_len) <= 0)
     {
-        log_error("Packet receive failed!\n");
+        log_error("Packet receive failed! addr=%s\n", addr);
         return false;
     }
     else

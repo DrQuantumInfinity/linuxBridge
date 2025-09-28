@@ -69,7 +69,9 @@ PersistDevList TransportPing::_persistList = PersistDevList(sizeof(PersistPing),
 void TransportPing::Init(void)
 {
 
-    TransportPing::_mqttInst = mqtt_wrap_init("192.168.0.128", TransportPing::HandleTopicRx);
+    // TransportPing::_mqttInst = mqtt_wrap_init("localhost", TransportPing::HandleTopicRx);
+    // TransportPing::_mqttInst = mqtt_wrap_init("192.168.0.217", TransportPing::HandleTopicRx);
+    TransportPing::_mqttInst = mqtt_wrap_init("0.0.0.0", TransportPing::HandleTopicRx);
 
     mqtt_wrap_add_sub(TransportPing::_mqttInst, ADD_TOPIC);
     mqtt_wrap_add_sub(TransportPing::_mqttInst, REM_TOPIC);
@@ -82,7 +84,7 @@ void TransportPing::Init(void)
 void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
 {
     log_info("HandleTopicRx. topic: %s. payload: %s", pTopic, pPayload);
-    if (strcmp(pTopic, ADD_TOPIC))
+    if (strcmp(pTopic, ADD_TOPIC) == 0)
     {
         Device* pDevice = _deviceList.GetDevice(pPayload);
         if (pDevice == NULL)
@@ -91,13 +93,14 @@ void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
             memset(&persistData, 0x00, sizeof(persistData));
             strncat(persistData.name, pPayload, sizeof(persistData.name) - 1);
             strncat(persistData.room, "Bridge", sizeof(persistData.room) - 1);
+            strcat(persistData.ipAddress, pPayload);
             pDevice = TransportPing::Private::NewDevice(DEVICE_INVALID, &persistData);
             _persistList.Upsert(pDevice->GetIndex(), &persistData);
             log_info("Added device: %s", pPayload);
         }
         _deviceList.Upsert(pPayload, pDevice);
     }
-    else if (strcmp(pTopic, REM_TOPIC))
+    else if (strcmp(pTopic, REM_TOPIC) == 0)
     {
         _deviceList.Remove(pPayload);
         log_info("Removed device: %s", pPayload);
@@ -146,11 +149,15 @@ void TransportPing::Private::Run(void* pArgs)
         pDevice = (DevicePing*)_deviceList.GetFirstDevice();
         while (pDevice != NULL)
         {
-            bool present = pDevice->SendPing();
-            pDevice->SetOn(present);
+            PingResult pingResult = pDevice->SendPing();
+            if (pingResult != PingResultNoUpdate)
+            {
+                pDevice->SetOn(pingResult == PingResultSuccess);
+            }
             pDevice = (DevicePing*)_deviceList.GetNextDevice();
-            sleep(5);
+            sleep(1);
         }
+        sleep(4);
     }
 }
 void TransportPing::Private::PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress)
@@ -170,6 +177,8 @@ void TransportPing::Private::NewDeviceOnPwr(int index, void* pPersist)
 }
 Device* TransportPing::Private::NewDevice(uint16_t index, PersistPing* pPersist)
 {
+    log_info("NewDevice. name: %s. ip: %s", pPersist->name, pPersist->ipAddress);
+    
     TransportLayer* pTransport = new TransportPing(pPersist->ipAddress);
     return new DevicePing(pPersist->name, pPersist->room, pTransport, index, pPersist->ipAddress);
 }

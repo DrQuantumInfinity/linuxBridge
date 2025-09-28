@@ -62,14 +62,14 @@ DevicePing::~DevicePing(void)
     free(_endpointData.pDataVersionStorage);
     EndpointRemove(GetIndex());
 }
-bool DevicePing::SendPing()
+PingResult DevicePing::SendPing()
 {
     if (send_ping(this->_ipAddress))
     {
         if (this->_failedPingCount != 0)
         {
             this->_failedPingCount = 0;
-            return true;
+            return PingResultSuccess;
         }
     }
     else
@@ -77,9 +77,10 @@ bool DevicePing::SendPing()
         this->_failedPingCount++;
         if (this->_failedPingCount == 3)
         {
-            return false;
+            return PingResultFailed;
         }
     }
+    return PingResultNoUpdate;
 }
 /**************************************************************************
  *                                  Private Functions

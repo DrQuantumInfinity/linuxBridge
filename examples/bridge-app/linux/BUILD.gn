@@ -32,6 +32,7 @@ executable("chip-bridge-app") {
     "clusters/TempCluster.cpp",
     "devices/Device.cpp",
     "devices/DeviceButton.cpp",
+    "devices/DevicePing.cpp",
     "devices/DeviceLight.cpp",
     "devices/DeviceLightLevel.cpp",
     "devices/DeviceLightRGB.cpp",

@@ -85,7 +85,7 @@ void TransportMqtt::Init(void)
         mqttDeviceTopicLengths[type] = (uint32_t)strlen(pMqttDeviceTypes[type]) + 12;
     }
 
-    TransportMqtt::_mqttInst = mqtt_wrap_init("192.168.0.128", TransportMqtt::HandleTopicRx);
+    TransportMqtt::_mqttInst = mqtt_wrap_init("0.0.0.0", TransportMqtt::HandleTopicRx);
     for (int i = 0; i < MQTT_TYPE_COUNT; i++)
     {
         char topicBuf[30];
