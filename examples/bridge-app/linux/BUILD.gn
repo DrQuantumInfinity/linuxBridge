@@ -52,7 +52,7 @@ executable("chip-bridge-app") {
     "utils/TimerTick.cpp",
     "utils/assert.cpp",
     "utils/futil.cpp",
-    "utils/ping.cpp",
+    "utils/pingUtil.cpp",
     "utils/timer.cpp",
     "utils/uart.cpp",
     "utils/utils.cpp",

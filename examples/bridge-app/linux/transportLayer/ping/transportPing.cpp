@@ -3,10 +3,9 @@
 
 #include "Log.h"
 // Devices
-#include "DeviceButton.h"
+#include "DevicePing.h"
 
 #include "mqttWrapper.h"
-#include "ping.h"
 #include "string"
 #include "timer.h"
 
@@ -114,8 +113,7 @@ void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
  **************************************************************************/
 TransportPing::TransportPing(const char* pIpAddress)
 {
-    strcpy(_ipAddress, pIpAddress);
-    _failedPingCount = 0;
+
 }
 TransportPing::~TransportPing(void)
 {
@@ -142,31 +140,15 @@ void TransportPing::Private::Run(void* pArgs)
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Conrad: " PING_SWITCH_IP_ADDRESS_CONRAD, PING_SWITCH_IP_ADDRESS_CONRAD);
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Max: " PING_SWITCH_IP_ADDRESS_MAX, PING_SWITCH_IP_ADDRESS_MAX);
 
-    DeviceButton* pDevice;
+    DevicePing* pDevice;
     while (true)
     {
-        pDevice = (DeviceButton*)_deviceList.GetFirstDevice();
+        pDevice = (DevicePing*)_deviceList.GetFirstDevice();
         while (pDevice != NULL)
         {
-            TransportPing* pPing = ((TransportPing*)pDevice->_pTransportLayer);
-            if (send_ping(pPing->_ipAddress))
-            {
-                if (pPing->_failedPingCount != 0)
-                {
-                    pPing->_failedPingCount = 0;
-                    pDevice->SetOn(true);
-                }
-            }
-            else
-            {
-                pPing->_failedPingCount++;
-                if (pPing->_failedPingCount == 3)
-                {
-                    pDevice->SetOn(false);
-                }
-            }
-
-            pDevice = (DeviceButton*)_deviceList.GetNextDevice();
+            bool present = pDevice->SendPing();
+            pDevice->SetOn(present);
+            pDevice = (DevicePing*)_deviceList.GetNextDevice();
             sleep(5);
         }
     }
@@ -189,7 +171,7 @@ void TransportPing::Private::NewDeviceOnPwr(int index, void* pPersist)
 Device* TransportPing::Private::NewDevice(uint16_t index, PersistPing* pPersist)
 {
     TransportLayer* pTransport = new TransportPing(pPersist->ipAddress);
-    return new DeviceButton(pPersist->name, pPersist->room, pTransport, index);
+    return new DevicePing(pPersist->name, pPersist->room, pTransport, index, pPersist->ipAddress);
 }
 // Send to PING device functions
 void TransportPing::Private::PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId)

@@ -62,7 +62,9 @@ sudo nano /etc/mosquitto/mosquitto.conf
 #this doesn't seem to always work, might need to run twice
 
 echo "listener 1883
-allow_anonymous true" | sudo tee -a /etc/mosquitto/mosquitto.conf
+allow_anonymous true
+listener 8080
+protocol websockets" | sudo tee -a /etc/mosquitto/mosquitto.conf
 
 sudo systemctl restart mosquitto
 

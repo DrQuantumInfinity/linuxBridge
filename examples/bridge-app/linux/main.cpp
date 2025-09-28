@@ -31,7 +31,6 @@
 #include "transportMqtt.h"
 #include "transportPing.h"
 #include "timer.h"
-#include "ping.h"
 
 
 std::vector<EndpointListInfo> GetEndpointListInfo(chip::EndpointId parentId)

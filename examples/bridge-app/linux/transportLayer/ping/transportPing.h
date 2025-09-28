@@ -17,7 +17,6 @@
  *                                  Constants
  **************************************************************************/
 #define PING_MAX_DEVICE_NAME_LENGTH (32)
-#define PING_IP_ADDRESS_LENGTH      (sizeof("xxx.xxx.xxx.xxx") + 1)
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
@@ -36,8 +35,6 @@ protected:
     void Send(const Device* pDevice, chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
 
 private:
-    char _ipAddress[PING_IP_ADDRESS_LENGTH];
-    uint8_t _failedPingCount;
     static DeviceList _deviceList;
     static mqtt_inst* _mqttInst;
     struct Private;
