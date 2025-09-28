@@ -7,12 +7,12 @@ PersistDevList::PersistDevList(size_t userDataSize, const char* filename)
     strncpy(_filename, filename, sizeof(_filename));
     FILE* f_ptr;
     f_ptr = fopen(filename, "rb");
-    if(f_ptr!=NULL)
+    if (f_ptr != NULL)
     {
         while (!feof(f_ptr))
         {
             PersistGeneric* pNewDev = (PersistGeneric*)malloc(_structSize);
-            if(1 == fread(pNewDev, _structSize, 1, f_ptr))
+            if (1 == fread(pNewDev, _structSize, 1, f_ptr))
             {
                 log_info("Fread in persist. index is:%d", pNewDev->index);
                 _map[pNewDev->index] = pNewDev;
@@ -24,6 +24,11 @@ PersistDevList::PersistDevList(size_t userDataSize, const char* filename)
         }
         fclose(f_ptr);
     }
+}
+void PersistDevList::Remove(int index)
+{
+    _map.erase(index);
+    PersistDevList::Persist();
 }
 
 void PersistDevList::Upsert(int index, void* newDev)
@@ -41,7 +46,7 @@ void PersistDevList::Persist(void)
     f_ptr = fopen(_filename, "wb");
     for (auto dev : _map)
     {
-        fwrite(dev.second, _structSize , 1, f_ptr);
+        fwrite(dev.second, _structSize, 1, f_ptr);
     }
     fclose(f_ptr);
 }

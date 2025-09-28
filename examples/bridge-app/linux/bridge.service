@@ -1,0 +1,10 @@
+[Unit]
+Description=My Sample Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/home/matter/chip-bridge-app
+
+[Install]
+WantedBy=multi-user.target

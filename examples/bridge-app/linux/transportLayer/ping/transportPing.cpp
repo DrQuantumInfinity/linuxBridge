@@ -105,8 +105,17 @@ void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
     }
     else if (strcmp(pTopic, REM_TOPIC) == 0)
     {
-        _deviceList.Remove(pPayload);
-        log_info("Removed device: %s", pPayload);
+        Device* pDevice = _deviceList.GetDevice(pPayload);
+        if (pDevice != NULL)
+        {
+            _deviceList.Remove(pPayload);
+            _persistList.Remove(pDevice->GetIndex());
+            log_info("Removed device: %s", pPayload);
+        }
+        else
+        {
+            log_info("Could not find device to remove: %s", pPayload);
+        }
     }
     else
     {
@@ -158,9 +167,8 @@ void TransportPing::Private::Run(void* pArgs)
                 pDevice->SetOn(pingResult == PingResultSuccess);
             }
             pDevice = (DevicePing*)_deviceList.GetNextDevice();
-            sleep(1);
         }
-        sleep(4);
+        sleep(5);
     }
 }
 void TransportPing::Private::PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress)
@@ -181,7 +189,7 @@ void TransportPing::Private::NewDeviceOnPwr(int index, void* pPersist)
 Device* TransportPing::Private::NewDevice(uint16_t index, PersistPing* pPersist)
 {
     log_info("NewDevice. name: %s. ip: %s", pPersist->name, pPersist->ipAddress);
-    
+
     TransportLayer* pTransport = new TransportPing(pPersist->ipAddress);
     return new DevicePing(pPersist->name, pPersist->room, pTransport, index, pPersist->ipAddress);
 }

@@ -11,6 +11,7 @@ typedef void (*PersistApplyFn)(int /*index*/, void* /*newDev*/);
 class PersistDevList {
 public:
     PersistDevList(size_t structSize, const char* filename);
+    void Remove(int index);
     void Upsert(int index, void* newDev);
     void Apply(PersistApplyFn func);
 private:
