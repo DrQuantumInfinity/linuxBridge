@@ -16,25 +16,18 @@
 /**************************************************************************
  *                                  Types
  **************************************************************************/
-enum PingResult{
-    PingResultSuccess=0,
-    PingResultFailed=1,
-    PingResultNoUpdate=2
-};
-
 class DevicePing : public Device
 {
 public:
     DevicePing(const char* pName, const char* pLocation, TransportLayer* pTransportLayer, uint16_t deviceIndex, const char* pIpAddress);
     DevicePing(const char * pName, const char * pLocation, TransportLayer* pTransportLayer, const char* pIpAddress);
     ~DevicePing(void);
-    void SetOn(bool on) { onOffCluster.SetOn(on, GetIndex()); }
-    void Toggle(void) { onOffCluster.SetOn(!onOffCluster._isOn, GetIndex()); }
-    PingResult SendPing();
+    void SendPing(void);
 
 private:
     char _ipAddress[PING_IP_ADDRESS_LENGTH];
-    uint8_t _failedPingCount;
+    uint32_t _successPingCount;
+    uint32_t _failedPingCount;
     OnOffCluster onOffCluster;
     DescriptorCluster descriptorCluster;
     ENDPOINT_DATA _endpointData;

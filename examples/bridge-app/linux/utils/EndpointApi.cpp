@@ -4,6 +4,7 @@
 #include <app/reporting/reporting.h> //for MatterReportingAttributeChangeCallback()
 #include <span>
 #include "Log.h"
+#include "BasicCluster.h" //for BasicAttrs
 
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
@@ -33,6 +34,7 @@ typedef struct
     GOOGLE_READ_CALLBACK pfnReadCallback;
     GOOGLE_WRITE_CALLBACK pfnWriteCallback;
     GOOGLE_INSTANT_ACTION_CALLBACK pfnInstantActionCallback;
+    char name[32];
 }ENDPOINT;
 
 typedef struct
@@ -51,6 +53,7 @@ static void EndpointRemoveWorker(intptr_t context);
 static void EndpointReportUpdateWorker(intptr_t closure);
 static uint16_t EndpointGetIndexFromDeviceIndex(uint16_t deviceIndex);
 static uint16_t EndpointGetFreeIndexFromDeviceIndex(void);
+static const char* EndpointReadNameFromBasicCluster(ENDPOINT* pEndpoint);
 /**************************************************************************
  *                                  Variables
  **************************************************************************/
@@ -61,6 +64,7 @@ static ENDPOINT_API endpointApi;
 void EndpointApiInit(void)
 {
     chip::DeviceLayer::PlatformMgr().ScheduleWork(EndpointApiInitWorker);
+    memset(&endpointApi, 0x00, sizeof(endpointApi));
 }
 void EndpointAdd(ENDPOINT_DATA *pData)
 {
@@ -88,9 +92,10 @@ EmberAfStatus emberAfExternalAttributeReadCallback(
 
     if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
     {
-        if (endpointApi.endpoint[endpointIndex].pfnReadCallback)
+        ENDPOINT* pEndpoint = &endpointApi.endpoint[endpointIndex];
+        if (pEndpoint->pfnReadCallback)
         {
-            status = endpointApi.endpoint[endpointIndex].pfnReadCallback(endpointApi.endpoint[endpointIndex].pObject, clusterId, attributeMetadata, buffer, maxReadLength);
+            status = pEndpoint->pfnReadCallback(pEndpoint->pObject, clusterId, attributeMetadata, buffer, maxReadLength);
 
             if (status == EMBER_ZCL_STATUS_SUCCESS)
             {
@@ -101,11 +106,11 @@ EmberAfStatus emberAfExternalAttributeReadCallback(
                     copyLength = sizeof(temp);
                 }
                 memcpy(&temp, buffer, copyLength);
-                log_info("Read callback for device %u, cluster %04lX, attr %04lX, val %08lX", deviceIndex, clusterId, attributeMetadata->attributeId, temp);
+                log_info("Read callback for device %s %u, cluster %04lX, attr %04lX, val %08lX", pEndpoint->name, deviceIndex, clusterId, attributeMetadata->attributeId, temp);
             }
             else
             {
-                log_error("Read failed for device %u, cluster %04lX, attr %04lX", deviceIndex, clusterId, attributeMetadata->attributeId);
+                log_error("Read failed for device %s %u, cluster %04lX, attr %04lX", pEndpoint->name, deviceIndex, clusterId, attributeMetadata->attributeId);
             }
         }
     }
@@ -132,11 +137,11 @@ EmberAfStatus emberAfExternalAttributeWriteCallback(
             {
                 uint32_t temp;
                 memcpy(&temp, buffer, sizeof(temp));
-                log_info("Write callback for device %u, cluster %04lX, attr %04lX, val %08lX", deviceIndex, clusterId, attributeMetadata->attributeId, temp);
+                log_info("Write callback for device %s %u, cluster %04lX, attr %04lX, val %08lX", endpointApi.endpoint[endpointIndex].name, deviceIndex, clusterId, attributeMetadata->attributeId, temp);
             }
             else
             {
-                log_error("Write failed for device %u, cluster %04lX, attr %04lX", deviceIndex, clusterId, attributeMetadata->attributeId);
+                log_error("Write failed for device %s %u, cluster %04lX, attr %04lX", endpointApi.endpoint[endpointIndex].name, deviceIndex, clusterId, attributeMetadata->attributeId);
             }
         }
     }
@@ -208,6 +213,7 @@ static void EndpointAddWorker(intptr_t context)
         endpointApi.endpoint[endpointIndex].pfnReadCallback = pData->pfnReadCallback;
         endpointApi.endpoint[endpointIndex].pfnWriteCallback = pData->pfnWriteCallback;
         endpointApi.endpoint[endpointIndex].pfnInstantActionCallback = pData->pfnInstantActionCallback;
+        strcpy(endpointApi.endpoint[endpointIndex].name, pData->name);
 
         Span<DataVersion> dataVersion = Span<DataVersion>(pData->pDataVersionStorage, pData->dataVersionStorageLength);
         Span<const EmberAfDeviceType> deviceTypeList= Span<const EmberAfDeviceType>(pData->pDeviceTypeList, pData->deviceTypeListLength);
@@ -236,9 +242,10 @@ static void EndpointRemoveWorker(intptr_t context)
 
     if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
     {
-        log_info("Removing device: %u from %u", deviceIndex, endpointIndex);
-        memset(&endpointApi.endpoint[endpointIndex], 0x00, sizeof(endpointApi.endpoint[endpointIndex]));
-        endpointApi.endpoint[endpointIndex].deviceIndex = DEVICE_INDEX_UNUSED;
+        ENDPOINT* pEndpoint = &endpointApi.endpoint[endpointIndex];
+        log_info("Removing device: %s %u from %u", EndpointReadNameFromBasicCluster(pEndpoint), deviceIndex, endpointIndex);
+        memset(pEndpoint, 0x00, sizeof(*pEndpoint));
+        pEndpoint->deviceIndex = DEVICE_INDEX_UNUSED;
         EndpointId ep = emberAfClearDynamicEndpoint(endpointIndex);
         UNUSED_VAR(ep);
     }
@@ -256,7 +263,8 @@ static void EndpointReportUpdateWorker(intptr_t closure)
 
     if (endpointIndex < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT)
     {
-        log_info("Update device/cluster/attr %i/%04lX/%04lX", deviceIndex, path->mClusterId, path->mAttributeId);
+        ENDPOINT* pEndpoint = &endpointApi.endpoint[endpointIndex];
+        log_info("Update name/device/cluster/attr %s/%i/%04lX/%04lX", EndpointReadNameFromBasicCluster(pEndpoint), deviceIndex, path->mClusterId, path->mAttributeId);
         MatterReportingAttributeChangeCallback(*path);
     }
     else
@@ -288,4 +296,29 @@ static uint16_t EndpointGetFreeIndexFromDeviceIndex(void)
         }
     }
     return endpointIndex;
+}
+static const char* EndpointReadNameFromBasicCluster(ENDPOINT* pEndpoint)
+{
+    const char noName[] = "no name";
+    const char* pRetVal = noName;
+    
+    if (pEndpoint->pfnReadCallback)
+    {
+        pEndpoint->pfnReadCallback(
+            pEndpoint->pObject, 
+            chip::app::Clusters::BridgedDeviceBasicInformation::Id, 
+            &BasicCluster::BasicAttrs[0], 
+            (uint8_t*)pEndpoint->name,
+            sizeof(pEndpoint->name)
+        );
+        pRetVal = pEndpoint->name;
+    }
+    
+    /*
+    if (pEndpoint->pObject)
+    {
+        Device* pDevice = (Device*)pEndpoint->pObject;
+        pRetVal = pDevice->basicCluster._name;
+    }*/
+    return pRetVal;
 }

@@ -141,3 +141,15 @@ sudo make install
 
 BugFoots:
 sometimes MQTT "get" updates don't show up on google. Happened once???
+
+
+Cluster Debug Notes:
+    Cluster 39 = Basic Cluster
+    Attr     5 = Name
+
+    Cluster  6 = On/Off Cluster
+    Attr     0 = on/off state
+
+It's possible to redo first time adding to google home with "sudo rm /tmp/chip_kvs"
+
+To get the QR code or see debug, use "journalctl -u bridge -f"

@@ -57,7 +57,7 @@ struct TransportPing::Private {
     static void Run(void* pArgs);
     static void PingAddHardcodedIpAddress(const char* pName, const char* pIpAddress);
 
-    static void PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId);
+    static void PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId, uint8_t* buffer);
 };
 
 /**************************************************************************
@@ -81,7 +81,7 @@ void TransportPing::Init(void)
 
     mqtt_wrap_loopstart(TransportPing::_mqttInst);
 
-    _persistList.Apply(TransportPing::Private::NewDeviceOnPwr);
+    //_persistList.Apply(TransportPing::Private::NewDeviceOnPwr);
     TransportPing::Private::StartThread();
 }
 void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
@@ -138,7 +138,7 @@ TransportPing::~TransportPing(void)
  **************************************************************************/
 void TransportPing::Send(const Device* pDevice, ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer)
 {
-    Private::PingSend(*this, pDevice, clusterId, attributeMetadata->attributeId);
+    Private::PingSend(*this, pDevice, clusterId, attributeMetadata->attributeId, buffer);
 }
 /**************************************************************************
  *                                  Private Functions
@@ -151,8 +151,8 @@ void TransportPing::Private::StartThread(void)
 void TransportPing::Private::Run(void* pArgs)
 {
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Paul: " PING_SWITCH_IP_ADDRESS_PAUL, PING_SWITCH_IP_ADDRESS_PAUL);
-    TransportPing::Private::PingAddHardcodedIpAddress("Phone Gordon: " PING_SWITCH_IP_ADDRESS_GORDON, PING_SWITCH_IP_ADDRESS_GORDON);
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Conrad: " PING_SWITCH_IP_ADDRESS_CONRAD, PING_SWITCH_IP_ADDRESS_CONRAD);
+    TransportPing::Private::PingAddHardcodedIpAddress("Phone Gordon: " PING_SWITCH_IP_ADDRESS_GORDON, PING_SWITCH_IP_ADDRESS_GORDON);
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Max: " PING_SWITCH_IP_ADDRESS_MAX, PING_SWITCH_IP_ADDRESS_MAX);
 
     DevicePing* pDevice;
@@ -161,11 +161,7 @@ void TransportPing::Private::Run(void* pArgs)
         pDevice = (DevicePing*)_deviceList.GetFirstDevice();
         while (pDevice != NULL)
         {
-            PingResult pingResult = pDevice->SendPing();
-            if (pingResult != PingResultNoUpdate)
-            {
-                pDevice->SetOn(pingResult == PingResultSuccess);
-            }
+            pDevice->SendPing();
             pDevice = (DevicePing*)_deviceList.GetNextDevice();
         }
         sleep(5);
@@ -194,7 +190,10 @@ Device* TransportPing::Private::NewDevice(uint16_t index, PersistPing* pPersist)
     return new DevicePing(pPersist->name, pPersist->room, pTransport, index, pPersist->ipAddress);
 }
 // Send to PING device functions
-void TransportPing::Private::PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId)
+void TransportPing::Private::PingSend(TransportPing& self, const Device* pDevice, ClusterId clusterId, AttributeId attributeId, uint8_t* buffer)
 {
-    //This can be ignored. Users can not edit the state of whether an IP address is present.
+    if (clusterId == OnOff::Id && attributeId == OnOff::Attributes::OnOff::Id)
+    {
+        //Do Nothing. 
+    }
 }

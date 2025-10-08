@@ -65,25 +65,26 @@ DevicePing::~DevicePing(void)
     free(_endpointData.pDataVersionStorage);
     EndpointRemove(GetIndex());
 }
-PingResult DevicePing::SendPing()
+void DevicePing::SendPing(void)
 {
     if (send_ping(this->_ipAddress))
     {
-        if (this->_failedPingCount != 0)
+        _failedPingCount = 0;
+        _successPingCount++;
+        if (this->_successPingCount >= 3)
         {
-            this->_failedPingCount = 0;
-            return PingResultSuccess;
+            onOffCluster.SetOn(true, GetIndex());
         }
     }
     else
     {
+        _successPingCount = 0;
         this->_failedPingCount++;
-        if (this->_failedPingCount == 3)
+        if (this->_failedPingCount >= 3)
         {
-            return PingResultFailed;
+            onOffCluster.SetOn(false, GetIndex());
         }
     }
-    return PingResultNoUpdate;
 }
 /**************************************************************************
  *                                  Private Functions
