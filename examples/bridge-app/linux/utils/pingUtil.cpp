@@ -16,7 +16,7 @@
 
 // Define the Packet Constants
 #define PING_PKT_S 64       // ping packet size
-#define RECV_TIMEOUT 1      // timeout for receiving packets (in seconds)
+#define RECV_TIMEOUT_MS 50      // timeout for receiving packets (in miliseconds)
 
 
 // Ping packet structure
@@ -66,11 +66,11 @@ bool send_ping(const char* addr)
     struct ping_pkt pckt;
     struct sockaddr_in r_addr;
     struct timeval tv_out;
-    tv_out.tv_sec = RECV_TIMEOUT;
-    tv_out.tv_usec = 0;
+    tv_out.tv_sec = 0;
+    tv_out.tv_usec = RECV_TIMEOUT_MS*1000;
 
     int ping_sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-    if (ping_sockfd == -1) 
+    if (ping_sockfd == -1)
     {
         log_error("Failed to open socket %s\n", strerror(errno));
     }
@@ -123,7 +123,14 @@ bool send_ping(const char* addr)
                     }
                     else
                     {
-                        success = true;
+                        if (r_addr.sin_addr.s_addr == sock.sin_addr.s_addr)
+                        {
+                            success = true;
+                        }
+                        else
+                        {
+                            success = false;
+                        }
                     }
                 }
             }

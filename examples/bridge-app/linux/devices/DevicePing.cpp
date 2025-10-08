@@ -71,7 +71,7 @@ void DevicePing::SendPing(void)
     {
         _failedPingCount = 0;
         _successPingCount++;
-        if (this->_successPingCount >= 3)
+        if (this->_successPingCount >= 1)
         {
             onOffCluster.SetOn(true, GetIndex());
         }
