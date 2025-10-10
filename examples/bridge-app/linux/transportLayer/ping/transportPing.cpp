@@ -98,7 +98,10 @@ void TransportPing::HandleTopicRx(const char* pTopic, const char* pPayload)
             strncat(persistData.room, "Bridge", sizeof(persistData.room) - 1);
             strcat(persistData.ipAddress, pPayload);
             pDevice = TransportPing::Private::NewDevice(DEVICE_INVALID, &persistData);
-            _persistList.Upsert(pDevice->GetIndex(), &persistData);
+            if (pDevice)
+            {
+                _persistList.Upsert(pDevice->GetIndex(), &persistData);
+            }
             log_info("Added device: %s", pPayload);
         }
         _deviceList.Upsert(pPayload, pDevice);
@@ -150,6 +153,7 @@ void TransportPing::Private::StartThread(void)
 }
 void TransportPing::Private::Run(void* pArgs)
 {
+    sleep(1); //Make sure persistent devices get added before these hardcoded ones. Delete this once Mqtt works and persist is enabled.
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Paul: " PING_SWITCH_IP_ADDRESS_PAUL, PING_SWITCH_IP_ADDRESS_PAUL);
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Conrad: " PING_SWITCH_IP_ADDRESS_CONRAD, PING_SWITCH_IP_ADDRESS_CONRAD);
     TransportPing::Private::PingAddHardcodedIpAddress("Phone Gordon: " PING_SWITCH_IP_ADDRESS_GORDON, PING_SWITCH_IP_ADDRESS_GORDON);
@@ -180,7 +184,10 @@ void TransportPing::Private::PingAddHardcodedIpAddress(const char* pName, const 
 void TransportPing::Private::NewDeviceOnPwr(int index, void* pPersist)
 {
     Device* pDevice = NewDevice((uint16_t)index, (PersistPing*)pPersist);
-    _deviceList.Upsert(((PersistPing*)pPersist)->name, pDevice);
+    if (pDevice)
+    {
+        _deviceList.Upsert(((PersistPing*)pPersist)->name, pDevice);
+    }
 }
 Device* TransportPing::Private::NewDevice(uint16_t index, PersistPing* pPersist)
 {

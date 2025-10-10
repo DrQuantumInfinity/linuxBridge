@@ -50,7 +50,6 @@ PersistDevList TransportEspNow::_persistList = PersistDevList(sizeof(PersistEspN
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/
-
 void TransportEspNow::Init(void)
 {
     _persistList.Apply(TransportEspNow::Private::NewDeviceOnPwr);
@@ -80,7 +79,10 @@ void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLen
             memcpy(persistData.macAddr, pData->macAddr, sizeof(persistData.macAddr));
             persistData.type = pData->type;
             pDevice = TransportEspNow::Private::NewDevice(-1, &persistData);
-            _persistList.Upsert(pDevice->GetIndex(), &persistData);
+            if (pDevice)
+            {
+                _persistList.Upsert(pDevice->GetIndex(), &persistData);
+            }
         }
 
         if (pDevice)
@@ -115,7 +117,12 @@ void TransportEspNow::Send(const Device* pDevice, ClusterId clusterId, const Emb
 
 void TransportEspNow::Private::NewDeviceOnPwr(int index, void* pPersist)
 {
-    NewDevice(index, (PersistEspNow*)pPersist);
+    PersistEspNow* pPersistEspNow = (PersistEspNow*)pPersist;
+    Device* pDevice = NewDevice(index, (PersistEspNow*)pPersist);
+    if (pDevice)
+    {
+        _deviceList.Upsert(pPersistEspNow->macAddr, sizeof(pPersistEspNow->macAddr), pDevice);
+    }
 }
 
 Device* TransportEspNow::Private::NewDevice(int index, PersistEspNow* pPersist)
