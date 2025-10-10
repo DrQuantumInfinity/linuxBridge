@@ -146,6 +146,7 @@ sometimes MQTT "get" updates don't show up on google. Happened once???
 Cluster Debug Notes:
     Cluster 39 = Basic Cluster
     Attr     5 = Name
+    Attr    11 = Reachable
 
     Cluster  6 = On/Off Cluster
     Attr     0 = on/off state
@@ -153,3 +154,12 @@ Cluster Debug Notes:
 It's possible to redo first time adding to google home with "sudo rm /tmp/chip_kvs"
 
 To get the QR code or see debug, use "journalctl -u bridge -f"
+
+
+
+Code changes:
+- Persist should read file size and verify it's a multiple (modulus) of _structSize.
+- Persist should read in a loop and not read past end of size (fix false error message).
+- Investigate persist's use of device index and associated with google endpoint IDs.
+- Fix pings
+- Why is the first device (endpoint 0) always nameless?
