@@ -49,11 +49,11 @@ using CHIP_CONFIG_PERSISTED_STORAGE_KEY_TYPE = const char *;
 // ==================== General Configuration Overrides ====================
 
 #ifndef CHIP_CONFIG_MAX_UNSOLICITED_MESSAGE_HANDLERS
-#define CHIP_CONFIG_MAX_UNSOLICITED_MESSAGE_HANDLERS 8
+#define CHIP_CONFIG_MAX_UNSOLICITED_MESSAGE_HANDLERS 16
 #endif // CHIP_CONFIG_MAX_UNSOLICITED_MESSAGE_HANDLERS
 
 #ifndef CHIP_CONFIG_MAX_EXCHANGE_CONTEXTS
-#define CHIP_CONFIG_MAX_EXCHANGE_CONTEXTS 8
+#define CHIP_CONFIG_MAX_EXCHANGE_CONTEXTS 16
 #endif // CHIP_CONFIG_MAX_EXCHANGE_CONTEXTS
 
 #ifndef CHIP_LOG_FILTERING
@@ -67,5 +67,5 @@ using CHIP_CONFIG_PERSISTED_STORAGE_KEY_TYPE = const char *;
 // ==================== Security Configuration Overrides ====================
 
 #ifndef CHIP_CONFIG_KVS_PATH
-#define CHIP_CONFIG_KVS_PATH "/tmp/chip_kvs"
+#define CHIP_CONFIG_KVS_PATH "/etc/MatterBridge/chip_kvs"
 #endif // CHIP_CONFIG_KVS_PATH
