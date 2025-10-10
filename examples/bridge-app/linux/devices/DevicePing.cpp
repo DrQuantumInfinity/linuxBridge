@@ -113,7 +113,7 @@ void DevicePing::DevicePingLocal(const char* pName, const char* pLocation, Trans
     };
     AddCluster(&descriptorCluster);
     AddCluster(&onOffCluster);
-    basicCluster.SetName(pName, GetIndex());
+    basicCluster.InitializeName(pName);
     strcpy(endpointData.name, pName);
     strcpy(endpointData.location, pLocation);
 

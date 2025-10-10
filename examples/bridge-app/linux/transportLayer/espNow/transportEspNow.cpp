@@ -83,7 +83,6 @@ void TransportEspNow::HandleSerialRx(const ESP_NOW_DATA* pData, uint32_t dataLen
             _persistList.Upsert(pDevice->GetIndex(), &persistData);
         }
 
-        // Device* pDevice = Private::AddNewDevice(pData, dataLength);
         if (pDevice)
         {
             _deviceList.Upsert(pData->macAddr, sizeof(pData->macAddr), pDevice);

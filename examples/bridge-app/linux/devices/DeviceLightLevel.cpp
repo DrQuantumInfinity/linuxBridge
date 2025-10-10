@@ -85,7 +85,7 @@ void DeviceLightLevel::DeviceLightLevelLocal(const char* pName, const char* pLoc
     AddCluster(&descriptorCluster);
     AddCluster(&onOffCluster);
     AddCluster(&levelControlCluster);
-    basicCluster.SetName(pName, GetIndex());
+    basicCluster.InitializeName(pName);
     strcpy(endpointData.name, pName);
     strcpy(endpointData.location, pLocation);
 

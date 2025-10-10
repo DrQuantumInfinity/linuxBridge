@@ -91,7 +91,7 @@ void DeviceLightRGB::DeviceLightRGBLocal(const char* pName, const char* pLocatio
     AddCluster(&onOffCluster);
     AddCluster(&levelControlCluster);
     AddCluster(&colourCluster);
-    basicCluster.SetName(pName, GetIndex());
+    basicCluster.InitializeName(pName);
     
     levelControlCluster._level = 74;
     levelControlCluster._minLevel = 0;

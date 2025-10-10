@@ -85,7 +85,7 @@ void DeviceButton::DeviceButtonLocal(const char* pName, const char* pLocation, T
     };
     AddCluster(&descriptorCluster);
     AddCluster(&onOffCluster);
-    basicCluster.SetName(pName, GetIndex());
+    basicCluster.InitializeName(pName);
     strcpy(endpointData.name, pName);
     strcpy(endpointData.location, pLocation);
 

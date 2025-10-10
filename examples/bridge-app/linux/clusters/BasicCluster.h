@@ -14,6 +14,7 @@ public:
     BasicCluster();
     virtual ~BasicCluster() = default;
     void SetReachable(bool reachable, uint16_t index);
+    void InitializeName(const char* pName);
     void SetName(const char * name, uint16_t index);
     bool _reachable = true;
     char _name[32] = "cat lol";
@@ -51,6 +52,8 @@ public:
                                                 .generatedCommandList = nullptr,
                                                 .eventList            = nullptr,
                                                 .eventCount           = 0 };
+
+protected:
 
 private:
 };

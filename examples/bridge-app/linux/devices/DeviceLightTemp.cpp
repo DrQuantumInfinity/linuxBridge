@@ -90,7 +90,7 @@ void DeviceLightTemp::DeviceLightTempLocal(const char* pName, const char* pLocat
     AddCluster(&onOffCluster);
     AddCluster(&levelControlCluster);
     AddCluster(&colourCluster);
-    basicCluster.SetName(pName, GetIndex());
+    basicCluster.InitializeName(pName);
     
     strcpy(endpointData.name, pName);
     strcpy(endpointData.location, pLocation);

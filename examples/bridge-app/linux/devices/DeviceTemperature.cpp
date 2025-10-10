@@ -93,7 +93,7 @@ void DeviceTemperature::DeviceTemperatureLocal(const char* pName, const char* pL
     AddCluster(&descriptorCluster);
     AddCluster(&tempCluster);
     AddCluster(&humidityCluster);
-    basicCluster.SetName(pName, GetIndex());
+    basicCluster.InitializeName(pName);
     
     strcpy(endpointData.name, pName);
     strcpy(endpointData.location, pLocation);

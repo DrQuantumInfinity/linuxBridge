@@ -23,6 +23,11 @@ void BasicCluster::SetName(const char * name, uint16_t index)
     strncat(_name, name, sizeof(_name)-1);
     EndpointReportChange(index, BridgedDeviceBasicInformation::Id, BridgedDeviceBasicInformation::Attributes::Reachable::Id);
 }
+void BasicCluster::InitializeName(const char* pName)
+{
+    _name[0] = '\0';
+    strncat(_name, pName, sizeof(_name)-1);
+}
 
 EmberAfStatus BasicCluster::Write(chip::AttributeId attributeId, uint8_t * buffer)
 {
