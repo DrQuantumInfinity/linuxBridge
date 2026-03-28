@@ -20,24 +20,89 @@ assert(chip_build_tools)
 
 executable("chip-bridge-app") {
   sources = [
+    "bridged-actions-stub.cpp",
     "${chip_root}/examples/bridge-app/bridge-common/include/CHIPProjectAppConfig.h",
-    "${chip_root}/examples/bridge-app/linux/bridged-actions-stub.cpp",
-    "Device.cpp",
-    "include/Device.h",
-    "include/main.h",
+    "DeviceCallbacks.cpp",
+    "clusters/BasicCluster.cpp",
+    "clusters/ColourCluster.cpp",
+    "clusters/HumidityCluster.cpp",
+    "clusters/LevelControlCluster.cpp",
+    "clusters/ModeCluster.cpp",
+    "clusters/OnOffCluster.cpp",
+    "clusters/TempCluster.cpp",
+    "devices/Device.cpp",
+    "devices/DeviceButton.cpp",
+    "devices/DevicePing.cpp",
+    "devices/DeviceLight.cpp",
+    "devices/DeviceLightLevel.cpp",
+    "devices/DeviceLightRGB.cpp",
+    "devices/DeviceLightTemp.cpp",
+    "devices/DeviceTemperature.cpp",
     "main.cpp",
+    "transportLayer/espNow/EspNowData.cpp",
+    "transportLayer/espNow/SerialFramerEspNow.cpp",
+    "transportLayer/espNow/transportEspNow.cpp",
+    "transportLayer/mqtt/mqttWrapper.cpp",
+    "transportLayer/mqtt/transportMqtt.cpp",
+    "transportLayer/ping/transportPing.cpp",
+    "utils/Crc16.cpp",
+    "utils/DeviceList.cpp",
+    "utils/EndpointApi.cpp",
+    "utils/Log.cpp",
+    "utils/PersistDevList.cpp",
+    "utils/TimerTick.cpp",
+    "utils/assert.cpp",
+    "utils/futil.cpp",
+    "utils/pingUtil.cpp",
+    "utils/timer.cpp",
+    "utils/uart.cpp",
+    "utils/utils.cpp",
   ]
 
   deps = [
     "${chip_root}/examples/bridge-app/bridge-common",
     "${chip_root}/examples/platform/linux:app-main",
     "${chip_root}/src/app/clusters/bridged-device-basic-information-server",
+    "${chip_root}/src/app/clusters/color-control-server",
     "${chip_root}/src/lib",
   ]
 
-  cflags = [ "-Wconversion" ]
+  cflags = [
+    "-Wconversion",
+    "-Wno-unused-const-variable",
+    "-Wno-error",
+    "-Wno-c99-designator",
+  ]
 
-  include_dirs = [ "include" ]
+  defines = [
+    "FATCONFDIR=\"/home/ubuntu/matter-data\"",
+    "SYSCONFDIR=\"/home/ubuntu/matter-data\"",
+    "LOCALSTATEDIR=\"/home/ubuntu/matter-data\"",
+    "CHIP_CONFIG_KVS_PATH=\"/home/ubuntu/matter-data/chip_kvs\"",
+  ]
+
+  include_dirs = [
+    "include",
+    "devices",
+    "clusters",
+    "transportLayer",
+    "transportLayer/espNow",
+    "transportLayer/mqtt",
+    "transportLayer/ping",
+    "utils",
+    "libs/pigpio/include",
+    "libs/mqtt/include",
+  ]
+
+  libs = [ "mosquitto" ]
+
+  if (current_cpu == "arm64") {
+    lib_dirs = [
+      "libs/mqtt/lib/aarch64-linux-gnu",
+      "libs/pigpio/lib/aarch64-linux-gnu",
+    ]
+    libs += [ "pigpio" ]
+  }
 
   output_dir = root_out_dir
 }

@@ -1,0 +1,49 @@
+
+#pragma once
+#include <app/InteractionModelEngine.h>
+#include <app/util/af-types.h>
+#include <protocols/interaction_model/StatusCode.h>
+#include <stdint.h>
+
+using Status = chip::Protocols::InteractionModel::Status;
+
+/**************************************************************************
+ *                                  Constants
+ **************************************************************************/
+#define ENDPOINT_NAME_LENGTH        (32)
+#define ENDPOINT_LOCATION_LENGTH    (32)
+/**************************************************************************
+ *                                  Macros
+ **************************************************************************/
+/**************************************************************************
+ *                                  Types
+ **************************************************************************/
+typedef Status (*GOOGLE_READ_CALLBACK)(void *pObject, chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer, uint16_t maxReadLength);
+typedef Status (*GOOGLE_WRITE_CALLBACK)(void *pObject, chip::ClusterId clusterId, const EmberAfAttributeMetadata* attributeMetadata, uint8_t* buffer);
+typedef bool (*GOOGLE_INSTANT_ACTION_CALLBACK)(chip::app::CommandHandler* commandObj, const chip::app::ConcreteCommandPath & commandPath, const chip::app::Clusters::Actions::Commands::InstantAction::DecodableType & commandData);
+typedef struct
+{
+    uint16_t deviceIndex;
+    void *pObject;
+    GOOGLE_READ_CALLBACK pfnReadCallback;
+    GOOGLE_WRITE_CALLBACK pfnWriteCallback;
+    GOOGLE_INSTANT_ACTION_CALLBACK pfnInstantActionCallback;
+
+    char name[ENDPOINT_NAME_LENGTH];
+    char location[ENDPOINT_LOCATION_LENGTH];
+    const EmberAfEndpointType* ep;
+    const EmberAfDeviceType *pDeviceTypeList;
+    uint32_t deviceTypeListLength;
+    chip::DataVersion *pDataVersionStorage;
+    uint32_t dataVersionStorageLength;
+    chip::EndpointId parentEndpointId;
+}ENDPOINT_DATA;
+
+    
+/**************************************************************************
+ *                                  Prototypes
+ **************************************************************************/
+void EndpointApiInit(void);
+void EndpointAdd(ENDPOINT_DATA *pData);
+void EndpointRemove(uint16_t deviceIndex);
+void EndpointReportChange(uint16_t deviceIndex, chip::ClusterId cluster, chip::AttributeId attribute);
