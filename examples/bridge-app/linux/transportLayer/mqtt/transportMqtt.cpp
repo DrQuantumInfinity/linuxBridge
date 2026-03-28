@@ -10,6 +10,8 @@
 #include "mqttWrapper.h"
 #include "string"
 #include "timer.h"
+#include <fstream>
+#include <map>
 
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
@@ -75,11 +77,44 @@ static uint32_t mqttDeviceTopicLengths[MQTT_TYPE_COUNT];
 DeviceList TransportMqtt::_deviceList; // static variables in a class need to be independently initialized. C++ is dumb
 mqtt_inst* TransportMqtt::_mqttInst;
 PersistDevList TransportMqtt::_persistList = PersistDevList(sizeof(PersistMQTT), "mqttPersist.bin");
+
+#define MQTT_NAMES_CONFIG_FILE "mqttDeviceNames.conf"
+static std::map<std::string, std::string> mqttDeviceNames;
+
+static void LoadMqttDeviceNames(void)
+{
+    std::ifstream configFile(MQTT_NAMES_CONFIG_FILE);
+    if (!configFile.is_open())
+        return;
+    std::string line;
+    while (std::getline(configFile, line))
+    {
+        if (line.empty() || line[0] == '#')
+            continue;
+        size_t comma = line.find(',');
+        if (comma == std::string::npos)
+            continue;
+        std::string mac = line.substr(0, comma);
+        std::string name = line.substr(comma + 1);
+        mqttDeviceNames[mac] = name;
+    }
+}
+
+static const char* LookupMqttDeviceName(const char* topicName, const char* deviceTypePrefix)
+{
+    // Extract MAC from topic name (e.g. "DimmerFeit/18DE507DD6BF" -> "18DE507DD6BF")
+    const char* mac = topicName + strlen(deviceTypePrefix);
+    auto it = mqttDeviceNames.find(mac);
+    if (it != mqttDeviceNames.end())
+        return it->second.c_str();
+    return nullptr;
+}
 /**************************************************************************
  *                                  Static Functions
  **************************************************************************/
 void TransportMqtt::Init(void)
 {
+    LoadMqttDeviceNames();
     for (uint32_t type = 0; type < (uint32_t)MQTT_TYPE_COUNT; type++)
     {
         mqttDeviceTopicLengths[type] = (uint32_t)strlen(pMqttDeviceTypes[type]) + 12;
@@ -168,12 +203,15 @@ Device* TransportMqtt::Private::NewDevice(uint16_t index, PersistMQTT* pPersist)
 {
     Device* pDevice = nullptr;
 
+    const char* friendlyName = LookupMqttDeviceName(pPersist->name, pMqttDeviceTypes[pPersist->type]);
+    const char* displayName = friendlyName ? friendlyName : pPersist->name;
+
     TransportLayer* pTransport = new TransportMqtt(pPersist->type, &pPersist->name[strlen(pMqttDeviceTypes[pPersist->type])]);
     switch (pPersist->type)
     {
-        case MQTT_DIMMER_SWITCH_FEIT:   pDevice = new DeviceLightLevel(pPersist->name, pPersist->room, pTransport, index); break;
-        case MQTT_OUTLET_GORDON:        pDevice = new DeviceButton(pPersist->name, pPersist->room, pTransport, index);     break;
-        case MQTT_LAMP_RGB:             pDevice = new DeviceLightRGB(pPersist->name, pPersist->room, pTransport, index);   break;
+        case MQTT_DIMMER_SWITCH_FEIT:   pDevice = new DeviceLightLevel(displayName, pPersist->room, pTransport, index); break;
+        case MQTT_OUTLET_GORDON:        pDevice = new DeviceButton(displayName, pPersist->room, pTransport, index);     break;
+        case MQTT_LAMP_RGB:             pDevice = new DeviceLightRGB(displayName, pPersist->room, pTransport, index);   break;
         default:                        /*Support this type!*/                                   break;
     }
 

@@ -65,6 +65,8 @@ Device* DeviceList::GetDevice(const uint8_t* pKey, uint32_t len)
 Device* DeviceList::GetFirstDevice(void)
 {
     _currentDeviceIterator = _map.begin();
+    if (_currentDeviceIterator == _map.end())
+        return NULL;
     return _currentDeviceIterator->second->_pDevice;
 }
 Device* DeviceList::GetNextDevice(void)

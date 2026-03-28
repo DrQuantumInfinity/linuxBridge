@@ -11,6 +11,8 @@
 #include "mqttWrapper.h"
 #include "string"
 #include "timer.h"
+#include <fstream>
+#include <cstring>
 
 using namespace ::chip;
 using namespace ::chip::app::Clusters;
@@ -28,10 +30,7 @@ using namespace std;
    *                                  Types
    **************************************************************************/
 typedef void* (*THREAD_PFN)(void*);
-#define PING_SWITCH_IP_ADDRESS_PAUL         "192.168.0.16"
-#define PING_SWITCH_IP_ADDRESS_GORDON       "192.168.0.14"
-#define PING_SWITCH_IP_ADDRESS_CONRAD       "192.168.0.15"
-#define PING_SWITCH_IP_ADDRESS_MAX          "192.168.0.17"
+#define PING_CONFIG_FILE "pingDevices.conf"
 /**************************************************************************
  *                                  Macros
  **************************************************************************/
@@ -153,11 +152,29 @@ void TransportPing::Private::StartThread(void)
 }
 void TransportPing::Private::Run(void* pArgs)
 {
-    sleep(1); //Make sure persistent devices get added before these hardcoded ones. Delete this once Mqtt works and persist is enabled.
-    TransportPing::Private::PingAddHardcodedIpAddress("Phone Paul: " PING_SWITCH_IP_ADDRESS_PAUL, PING_SWITCH_IP_ADDRESS_PAUL);
-    TransportPing::Private::PingAddHardcodedIpAddress("Phone Conrad: " PING_SWITCH_IP_ADDRESS_CONRAD, PING_SWITCH_IP_ADDRESS_CONRAD);
-    TransportPing::Private::PingAddHardcodedIpAddress("Phone Gordon: " PING_SWITCH_IP_ADDRESS_GORDON, PING_SWITCH_IP_ADDRESS_GORDON);
-    TransportPing::Private::PingAddHardcodedIpAddress("Phone Max: " PING_SWITCH_IP_ADDRESS_MAX, PING_SWITCH_IP_ADDRESS_MAX);
+    sleep(1); //Make sure persistent devices get added before config file ones.
+    std::ifstream configFile(PING_CONFIG_FILE);
+    if (configFile.is_open())
+    {
+        std::string line;
+        while (std::getline(configFile, line))
+        {
+            if (line.empty() || line[0] == '#')
+                continue;
+            size_t comma = line.find(',');
+            if (comma == std::string::npos)
+                continue;
+            std::string name = line.substr(0, comma);
+            std::string ip = line.substr(comma + 1);
+            std::string fullName = name + ": " + ip;
+            TransportPing::Private::PingAddHardcodedIpAddress(fullName.c_str(), ip.c_str());
+        }
+        configFile.close();
+    }
+    else
+    {
+        log_warn("No %s found, skipping ping devices", PING_CONFIG_FILE);
+    }
 
     DevicePing* pDevice;
     while (true)

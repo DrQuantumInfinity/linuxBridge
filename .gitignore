@@ -85,3 +85,13 @@ examples/*/esp32/dependencies.lock
 .ipynb_checkpoints
 
 examples/bridge-app/linux/mqtt/garbage/*
+examples/bridge-app/linux/chip-tool
+examples/bridge-app/linux/chip-tool-utils.a
+examples/bridge-app/linux/.ninja_log
+examples/bridge-app/linux/.ninja_deps
+examples/bridge-app/linux/build.ninja
+examples/bridge-app/linux/args.gn
+examples/bridge-app/linux/.idea/*
+
+examples/bridge-app/linux/relative_path_transformations.json
+examples/bridge-app/linux/zap_gen.lock
