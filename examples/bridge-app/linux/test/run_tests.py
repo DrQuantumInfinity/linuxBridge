@@ -55,6 +55,12 @@ def pass_test(msg):
 def fail_test(msg, detail=""):
     global failed
     failed += 1
+    # For chip-tool output, show only [TOO] lines which have the actual data
+    if "[TOO]" in detail:
+        too_lines = [l.strip() for l in detail.splitlines() if "[TOO]" in l]
+        detail = " | ".join(too_lines[:3]) if too_lines else detail[:200]
+    elif len(detail) > 200:
+        detail = detail[:200]
     _out(f"{RED}[FAIL]{NC} {msg}: {detail}")
 
 
@@ -67,11 +73,17 @@ def run(args, timeout=15):
         return "", -1
 
 
+def strip_ansi(text):
+    """Remove ANSI escape codes."""
+    import re
+    return re.sub(r'\x1b\[[0-9;]*m', '', text)
+
+
 def chip_tool(*args, timeout=15):
-    """Run chip-tool with storage dir and return output."""
+    """Run chip-tool with storage dir, return ANSI-stripped output."""
     cmd = [CHIP_TOOL] + list(args) + ["--storage-directory", tool_storage]
-    output, _ = run(cmd, timeout=timeout)
-    return output
+    raw, _ = run(cmd, timeout=timeout)
+    return strip_ansi(raw)
 
 
 def mqtt_pub(topic, payload):
@@ -136,8 +148,9 @@ try:
 
     # ── Commission ────────────────────────────────────────────────────────
 
-    log("TEST", "Commissioning...")
-    output = chip_tool("pairing", "onnetwork", NODE_ID, PASSCODE, timeout=90)
+    log("TEST", "Commissioning via direct IP...")
+    output = chip_tool("pairing", "already-discovered", NODE_ID, PASSCODE,
+                        "127.0.0.1", "5540", timeout=30)
     time.sleep(1)
 
     with open(bridge_log_path) as f:
@@ -202,23 +215,29 @@ try:
 
     ep = str(device_ep)
 
+    def too_lines(output):
+        """Extract [TOO] lines from chip-tool output — these have the actual data."""
+        return [l for l in output.splitlines() if "[TOO]" in l]
+
     # ── Read OnOff ────────────────────────────────────────────────────────
 
     log("TEST", f"Read OnOff (EP{ep})...")
     output = chip_tool("onoff", "read", "on-off", NODE_ID, ep)
-    if "OnOff" in output or "on-off" in output.lower():
+    tl = too_lines(output)
+    if any("OnOff" in l or "on-off" in l.lower() for l in tl):
         pass_test("Read OnOff")
     else:
-        fail_test("Read OnOff", output[:300])
+        fail_test("Read OnOff", output)
 
     # ── Read NodeLabel ────────────────────────────────────────────────────
 
     log("TEST", f"Read NodeLabel (EP{ep})...")
     output = chip_tool("bridgeddevicebasicinformation", "read", "node-label", NODE_ID, ep)
-    if "NodeLabel" in output or "DimmerFeit" in output or "node-label" in output.lower():
+    tl = too_lines(output)
+    if any("NodeLabel" in l or "DimmerFeit" in l or "node-label" in l.lower() for l in tl):
         pass_test("Read NodeLabel")
     else:
-        fail_test("Read NodeLabel", output[:300])
+        fail_test("Read NodeLabel", output)
 
     # ── MQTT OFF → Matter ─────────────────────────────────────────────────
 
@@ -226,28 +245,31 @@ try:
     mqtt_pub("DimmerFeit/AABBCCDDEEFF/1/get", "0")
     time.sleep(2)
     output = chip_tool("onoff", "read", "on-off", NODE_ID, ep)
-    if "FALSE" in output or "false" in output.lower() or "value: 0" in output:
+    tl = too_lines(output)
+    if any("FALSE" in l or "false" in l.lower() for l in tl):
         pass_test("MQTT OFF reflected in Matter")
     else:
-        fail_test("MQTT OFF reflected", output[:300])
+        fail_test("MQTT OFF reflected", output)
 
     # ── Matter ON command ─────────────────────────────────────────────────
 
     log("TEST", "Matter ON command...")
     output = chip_tool("onoff", "on", NODE_ID, ep)
-    if "Received Command Response Status" in output or "status" in output.lower():
+    tl = too_lines(output)
+    if any("Received Command Response" in l or "Status" in l for l in tl):
         pass_test("Matter OnOff ON command")
     else:
-        fail_test("Matter OnOff ON", output[:300])
+        fail_test("Matter OnOff ON", output)
 
     # ── Read LevelControl ─────────────────────────────────────────────────
 
     log("TEST", f"Read LevelControl (EP{ep})...")
     output = chip_tool("levelcontrol", "read", "current-level", NODE_ID, ep)
-    if "CurrentLevel" in output or "currentLevel" in output or "current-level" in output.lower():
+    tl = too_lines(output)
+    if any("CurrentLevel" in l or "current-level" in l.lower() for l in tl):
         pass_test("Read LevelControl")
     else:
-        fail_test("Read LevelControl", output[:300])
+        fail_test("Read LevelControl", output)
 
     # ── Second MQTT device ────────────────────────────────────────────────
 
