@@ -11,6 +11,12 @@ using Status = chip::Protocols::InteractionModel::Status;
 #define ArraySize MATTER_ARRAY_SIZE
 #endif
 
+// The new SDK requires READABLE flag on attributes for reads to work.
+// Our bridge attributes are all external+readable, so override the mask
+// used in all cluster headers to include both flags.
+#undef MATTER_ATTRIBUTE_FLAG_EXTERNAL_STORAGE
+#define MATTER_ATTRIBUTE_FLAG_EXTERNAL_STORAGE (0x10 | 0x20) /* EXTERNAL_STORAGE | READABLE */
+
 class Cluster
 {
 public:

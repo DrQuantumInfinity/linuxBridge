@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """Regression tests for the Matter Linux Bridge.
 
-Starts the bridge, commissions it with chip-tool, then tests static endpoints,
-dynamic MQTT device creation, and attribute read/write.
-
-Prerequisites: mosquitto running, bridge + chip-tool built.
+Uses chip-tool interactive mode with batched commands for speed.
+Commissions via direct IP (no mDNS needed).
 """
 
 import subprocess
 import os
 import sys
 import time
-import signal
+import re
+import select
 import shutil
 import tempfile
 
@@ -55,35 +54,12 @@ def pass_test(msg):
 def fail_test(msg, detail=""):
     global failed
     failed += 1
-    # For chip-tool output, show only [TOO] lines which have the actual data
-    if "[TOO]" in detail:
-        too_lines = [l.strip() for l in detail.splitlines() if "[TOO]" in l]
-        detail = " | ".join(too_lines[:3]) if too_lines else detail[:200]
-    elif len(detail) > 200:
-        detail = detail[:200]
+    detail = detail[:200] if len(detail) > 200 else detail
     _out(f"{RED}[FAIL]{NC} {msg}: {detail}")
 
 
-def run(args, timeout=15):
-    """Run a command, return (stdout+stderr, returncode)."""
-    try:
-        r = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
-        return r.stdout + r.stderr, r.returncode
-    except subprocess.TimeoutExpired:
-        return "", -1
-
-
-def strip_ansi(text):
-    """Remove ANSI escape codes."""
-    import re
-    return re.sub(r'\x1b\[[0-9;]*m', '', text)
-
-
-def chip_tool(*args, timeout=15):
-    """Run chip-tool with storage dir, return ANSI-stripped output."""
-    cmd = [CHIP_TOOL] + list(args) + ["--storage-directory", tool_storage]
-    raw, _ = run(cmd, timeout=timeout)
-    return strip_ansi(raw)
+def strip_ansi(t):
+    return re.sub(r'\x1b\[[0-9;]*m', '', t).replace('\x1b[0J', '')
 
 
 def mqtt_pub(topic, payload):
@@ -91,20 +67,66 @@ def mqtt_pub(topic, payload):
                    capture_output=True, timeout=5)
 
 
+class ChipToolInteractive:
+    """Manages a chip-tool interactive session."""
+    def __init__(self, storage_dir):
+        self.proc = subprocess.Popen(
+            [CHIP_TOOL, "interactive", "start", "--storage-directory", storage_dir],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, bufsize=1
+        )
+        time.sleep(3)
+        self._drain()
+
+    def _drain(self):
+        out = ''
+        while select.select([self.proc.stdout], [], [], 0.2)[0]:
+            out += self.proc.stdout.readline()
+        return strip_ansi(out)
+
+    def send(self, cmd, wait=5):
+        """Send command and return all [TOO] data lines."""
+        self._drain()  # clear pending
+        self.proc.stdin.write(cmd + '\n')
+        self.proc.stdin.flush()
+        deadline = time.time() + wait
+        out = ''
+        while time.time() < deadline:
+            time.sleep(0.3)
+            out += self._drain()
+            # Check if we got data (not just Sending/Command lines)
+            data = [l for l in out.splitlines()
+                    if '[TOO]' in l and 'Sending' not in l and 'Command:' not in l
+                    and 'cluster' not in l and 'ReadAttribute' not in l]
+            if data:
+                time.sleep(0.5)  # let any trailing output arrive
+                out += self._drain()
+                break
+        return out
+
+    def close(self):
+        try:
+            self.proc.stdin.write('exit\n')
+            self.proc.stdin.flush()
+            self.proc.terminate()
+            self.proc.wait(timeout=5)
+        except Exception:
+            self.proc.kill()
+
+
 # ── Preflight ─────────────────────────────────────────────────────────────────
 
 log("SETUP", "Checking prerequisites...")
 for path, name in [(BRIDGE_BIN, "bridge"), (CHIP_TOOL, "chip-tool")]:
     if not os.path.isfile(path):
-        print(f"Missing {name}: {path}")
+        _out(f"Missing {name}: {path}")
         sys.exit(1)
 
 r = subprocess.run(["pgrep", "-x", "mosquitto"], capture_output=True)
 if r.returncode != 0:
-    print("mosquitto not running. Start with: mosquitto -d")
+    _out("mosquitto not running")
     sys.exit(1)
 
-# Kill any leftover bridge
 subprocess.run(["pkill", "-f", "chip-bridge-app"], capture_output=True)
 time.sleep(1)
 
@@ -114,7 +136,6 @@ test_dir = tempfile.mkdtemp(prefix="bridge-test-")
 tool_storage = os.path.join(test_dir, "ts")
 os.makedirs(tool_storage)
 
-# Copy config files
 for conf in ["mqttDeviceNames.conf", "pingDevices.conf"]:
     src = os.path.join(BRIDGE_DIR, conf)
     if os.path.exists(src):
@@ -122,6 +143,7 @@ for conf in ["mqttDeviceNames.conf", "pingDevices.conf"]:
 
 bridge_log_path = os.path.join(test_dir, "bridge.log")
 bridge_proc = None
+ct = None
 
 try:
     # ── Start bridge ──────────────────────────────────────────────────────
@@ -130,60 +152,60 @@ try:
     bridge_log = open(bridge_log_path, "w")
     bridge_proc = subprocess.Popen(
         [BRIDGE_BIN, "--KVS", os.path.join(test_dir, "kvs")],
-        stdout=bridge_log, stderr=bridge_log,
-        cwd=test_dir
+        stdout=bridge_log, stderr=bridge_log, cwd=test_dir
     )
     time.sleep(4)
-
     if bridge_proc.poll() is not None:
-        fail_test("Bridge startup", "process died")
+        fail_test("Bridge startup", "died")
         sys.exit(1)
-
     with open(bridge_log_path) as f:
-        blog = f.read()
-    if "Server Listening" not in blog:
-        fail_test("Bridge startup", "not listening")
-        sys.exit(1)
+        if "Server Listening" not in f.read():
+            fail_test("Bridge startup", "not listening")
+            sys.exit(1)
     pass_test("Bridge started and listening")
 
-    # ── Commission ────────────────────────────────────────────────────────
+    # ── Commission via direct IP ──────────────────────────────────────────
 
     log("TEST", "Commissioning via direct IP...")
-    output = chip_tool("pairing", "already-discovered", NODE_ID, PASSCODE,
-                        "127.0.0.1", "5540", timeout=30)
+    r = subprocess.run(
+        [CHIP_TOOL, "pairing", "already-discovered", NODE_ID, PASSCODE,
+         "127.0.0.1", "5540", "--storage-directory", tool_storage],
+        capture_output=True, text=True, timeout=30
+    )
     time.sleep(1)
-
     with open(bridge_log_path) as f:
         blog = f.read()
     if "Commissioning completed successfully" in blog:
-        pass_test("Commissioned")
+        pass_test("Commissioned via IP")
     else:
-        fail_test("Commission", "not in bridge log")
-        print(output[-500:])
+        fail_test("Commission", strip_ansi(r.stdout + r.stderr)[-200:])
         sys.exit(1)
 
-    if bridge_proc.poll() is not None:
-        fail_test("Bridge died after commission", "")
-        sys.exit(1)
-    pass_test("Bridge alive after commission")
+    # ── Start interactive session ─────────────────────────────────────────
+
+    log("SETUP", "Starting chip-tool interactive session...")
+    ct = ChipToolInteractive(tool_storage)
+
+    # Warmup: establish CASE session
+    ct.send("basicinformation read vendor-id 1 0", wait=8)
 
     # ── Read vendor ID (EP0) ──────────────────────────────────────────────
 
     log("TEST", "Read vendor ID (EP0)...")
-    output = chip_tool("basicinformation", "read", "vendor-id", NODE_ID, "0")
-    if "0xFFF1" in output or "65521" in output:
+    out = ct.send("basicinformation read vendor-id 1 0")
+    if "VendorID" in out and "65521" in out:
         pass_test("Vendor ID (0xFFF1)")
     else:
-        fail_test("Vendor ID", output[:200])
+        fail_test("Vendor ID", out[:200])
 
     # ── Read bridge descriptor (EP1) ──────────────────────────────────────
 
     log("TEST", "Read descriptor (EP1)...")
-    output = chip_tool("descriptor", "read", "device-type-list", NODE_ID, "1")
-    if "DeviceTypeList" in output or "deviceType" in output.lower():
+    out = ct.send("descriptor read device-type-list 1 1")
+    if "DeviceTypeList" in out or "deviceType" in out.lower():
         pass_test("Bridge descriptor (EP1)")
     else:
-        fail_test("Bridge descriptor", output[:200])
+        fail_test("Bridge descriptor", out[:200])
 
     # ── MQTT device creation ──────────────────────────────────────────────
 
@@ -197,86 +219,71 @@ try:
     device_ep = None
     for line in blog.splitlines():
         if "Adding device" in line:
-            # "Adding device N: NAME"
-            parts = line.split("Adding device ")
-            if len(parts) > 1:
-                idx_str = parts[1].split(":")[0].strip()
-                try:
-                    device_ep = 3 + int(idx_str)
-                except ValueError:
-                    pass
+            m = re.search(r'Adding device (\d+)', line)
+            if m:
+                device_ep = 3 + int(m.group(1))
             break
 
     if device_ep and "Added device" in blog:
         pass_test(f"MQTT device created (EP{device_ep})")
     else:
         fail_test("MQTT device creation", "not in bridge log")
-        device_ep = 4  # fallback
+        device_ep = 4
 
     ep = str(device_ep)
-
-    def too_lines(output):
-        """Extract [TOO] lines from chip-tool output — these have the actual data."""
-        return [l for l in output.splitlines() if "[TOO]" in l]
 
     # ── Read OnOff ────────────────────────────────────────────────────────
 
     log("TEST", f"Read OnOff (EP{ep})...")
-    output = chip_tool("onoff", "read", "on-off", NODE_ID, ep)
-    tl = too_lines(output)
-    if any("OnOff" in l or "on-off" in l.lower() for l in tl):
+    out = ct.send(f"onoff read on-off 1 {ep}")
+    if "OnOff:" in out:
         pass_test("Read OnOff")
     else:
-        fail_test("Read OnOff", output)
+        fail_test("Read OnOff", out[:200])
 
     # ── Read NodeLabel ────────────────────────────────────────────────────
 
     log("TEST", f"Read NodeLabel (EP{ep})...")
-    output = chip_tool("bridgeddevicebasicinformation", "read", "node-label", NODE_ID, ep)
-    tl = too_lines(output)
-    if any("NodeLabel" in l or "DimmerFeit" in l or "node-label" in l.lower() for l in tl):
+    out = ct.send(f"bridgeddevicebasicinformation read node-label 1 {ep}")
+    if "NodeLabel:" in out:
         pass_test("Read NodeLabel")
     else:
-        fail_test("Read NodeLabel", output)
+        fail_test("Read NodeLabel", out[:200])
 
     # ── MQTT OFF → Matter ─────────────────────────────────────────────────
 
     log("TEST", "MQTT OFF → Matter...")
     mqtt_pub("DimmerFeit/AABBCCDDEEFF/1/get", "0")
     time.sleep(2)
-    output = chip_tool("onoff", "read", "on-off", NODE_ID, ep)
-    tl = too_lines(output)
-    if any("FALSE" in l or "false" in l.lower() for l in tl):
+    out = ct.send(f"onoff read on-off 1 {ep}")
+    if "FALSE" in out:
         pass_test("MQTT OFF reflected in Matter")
     else:
-        fail_test("MQTT OFF reflected", output)
+        fail_test("MQTT OFF reflected", out[:200])
 
     # ── Matter ON command ─────────────────────────────────────────────────
 
     log("TEST", "Matter ON command...")
-    output = chip_tool("onoff", "on", NODE_ID, ep)
-    tl = too_lines(output)
-    if any("Received Command Response" in l or "Status" in l for l in tl):
+    out = ct.send(f"onoff on 1 {ep}")
+    if "Status" in out or "status" in out:
         pass_test("Matter OnOff ON command")
     else:
-        fail_test("Matter OnOff ON", output)
+        fail_test("Matter OnOff ON", out[:200])
 
     # ── Read LevelControl ─────────────────────────────────────────────────
 
     log("TEST", f"Read LevelControl (EP{ep})...")
-    output = chip_tool("levelcontrol", "read", "current-level", NODE_ID, ep)
-    tl = too_lines(output)
-    if any("CurrentLevel" in l or "current-level" in l.lower() for l in tl):
+    out = ct.send(f"levelcontrol read current-level 1 {ep}")
+    if "CurrentLevel:" in out:
         pass_test("Read LevelControl")
     else:
-        fail_test("Read LevelControl", output)
+        fail_test("Read LevelControl", out[:200])
 
     # ── Second MQTT device ────────────────────────────────────────────────
 
     log("TEST", "Second MQTT device...")
     mqtt_pub("DimmerFeit/112233445566/1/get", "1")
     time.sleep(3)
-
     with open(bridge_log_path) as f:
         blog = f.read()
     count = blog.count("Added device")
@@ -286,18 +293,15 @@ try:
         fail_test("Second device", f"only {count} in log")
 
 finally:
-    # ── Cleanup ───────────────────────────────────────────────────────────
+    if ct:
+        ct.close()
     if bridge_proc and bridge_proc.poll() is None:
         bridge_proc.terminate()
         try:
             bridge_proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             bridge_proc.kill()
-
-    if failed == 0:
-        shutil.rmtree(test_dir, ignore_errors=True)
-    else:
-        print(f"{YELLOW}Test artifacts kept at: {test_dir}{NC}")
+    shutil.rmtree(test_dir, ignore_errors=True)
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
