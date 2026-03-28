@@ -26,7 +26,7 @@ def strip(t): return re.sub(r'\x1b\[[0-9;]*m', '', t)
 
 def ct(*args, timeout=15):
     """Run chip-tool, return ANSI-stripped output."""
-    r = subprocess.run([CHIP_TOOL] + list(args) + ["--storage-directory", tool_storage],
+    r = subprocess.run([CHIP_TOOL] + list(args) + ["--storage-directory", tool_storage, "--timeout", "5"],
                        capture_output=True, text=True, timeout=timeout)
     return strip(r.stdout + r.stderr)
 
